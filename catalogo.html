@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel Muebles Ideal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Panel de trabajo: neutro, denso y claro; el dorado marca acciones y estados */
+:root { --bg:#eeede9; --surface:#ffffff; --ink:#141414; --muted:#6a655d; --line:#dcd8cf; --gold:#b8913f; --gold-ink:#141414; --soft:#f6f1e6;
+  --ok:#2e7d32; --ok-bg:#e8f3e9; --bad:#b3261e; --bad-bg:#fbeae8;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif; --body:"Karla","Helvetica Neue",Arial,sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; letter-spacing: .01em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: 999px; border: 1.5px solid transparent; font-family: var(--display); font-weight: 500; font-size: .9rem; cursor: pointer; background: var(--ink); color: #fff; text-decoration: none; }
+.btn:hover { filter: brightness(1.1); }
+.btn.oro { background: var(--gold); color: var(--gold-ink); }
+.btn.borde { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn.peligro { background: var(--bad); }
+.btn.mini { padding: 6px 12px; font-size: .8rem; }
+.btn[disabled] { opacity: .55; cursor: progress; }
+input[type=text], input[type=number], input[type=email], input[type=password], input[type=tel], select, textarea { width: 100%; padding: 9px 11px; border: 1.5px solid var(--line); border-radius: 9px; background: #fff; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); }
+textarea { min-height: 76px; resize: vertical; }
+label.f { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 700; min-width: 0; }
+label.f small { font-weight: 400; color: var(--muted); }
+.chk { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; font-size: .9rem; cursor: pointer; }
+.chk input { width: 18px; height: 18px; accent-color: var(--gold); }
+
+/* Acceso */
+.login { min-height: 100vh; display: grid; place-items: center; padding: 20px; background: linear-gradient(180deg, #5b5a56, #1c1b19 70%); }
+.login form { width: min(400px, 100%); background: var(--surface); border-radius: 20px; padding: 30px; display: flex; flex-direction: column; gap: 14px; }
+.login img { height: 64px; width: auto; align-self: center; }
+.login h1 { text-align: center; font-size: 1.2rem; text-transform: uppercase; letter-spacing: .06em; }
+.msg { padding: 10px 12px; border-radius: 10px; font-size: .9rem; }
+.msg.err { background: var(--bad-bg); color: var(--bad); } .msg.ok { background: var(--ok-bg); color: var(--ok); }
+.link { background: none; border: 0; padding: 0; color: var(--gold); font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+/* Estructura */
+.top { position: sticky; top: 0; z-index: 20; background: var(--ink); color: #fff; padding: 10px max(16px, 3vw); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.top img { height: 34px; width: auto; filter: invert(1); }
+.top h1 { font-size: 1rem; text-transform: uppercase; letter-spacing: .08em; }
+.top .yo { margin-left: auto; font-size: .82rem; opacity: .75; }
+.top .btn.borde { color: #fff; border-color: rgba(255,255,255,.35); }
+.tabs { display: flex; gap: 4px; overflow-x: auto; padding: 0 max(16px, 3vw); background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 54px; z-index: 19; }
+.tab { padding: 14px 16px; border: 0; background: none; font-family: var(--display); font-size: .9rem; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
+main { padding: 22px max(16px, 3vw) 60px; max-width: 1300px; margin: 0 auto; }
+.barra { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+.barra h2 { font-size: 1.25rem; margin-right: auto; }
+.barra input, .barra select { width: auto; min-width: 180px; }
+.aviso-carga { background: var(--soft); border: 1.5px dashed var(--gold); border-radius: 14px; padding: 18px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.vacio { padding: 30px; text-align: center; color: var(--muted); }
+
+/* Productos */
+.grid-p { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+.prod { overflow: hidden; display: flex; flex-direction: column; cursor: pointer; text-align: left; padding: 0; border: 1px solid var(--line); background: var(--surface); border-radius: 14px; transition: transform .15s ease; }
+.prod:hover { transform: translateY(-2px); border-color: var(--gold); }
+.prod img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: var(--line); display: block; }
+.prod .i { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 4px; }
+.prod b { font-family: var(--display); font-weight: 500; text-transform: uppercase; font-size: .95rem; }
+.prod small { color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.chip { font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--soft); }
+.chip.off { background: var(--bad-bg); color: var(--bad); } .chip.oro { background: var(--gold); color: var(--gold-ink); }
+
+/* Editor */
+.hoja { position: fixed; inset: 0; z-index: 40; background: rgba(15,14,13,.55); display: flex; justify-content: flex-end; }
+.hoja > div { width: min(860px, 100%); height: 100%; overflow-y: auto; background: var(--bg); display: flex; flex-direction: column; }
+.hoja header { position: sticky; top: 0; z-index: 2; display: flex; gap: 10px; align-items: center; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.hoja header h2 { font-size: 1.1rem; margin-right: auto; }
+.form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.bloque { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.bloque > h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .14em; color: var(--gold); font-weight: 600; }
+.fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.foto { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: center; }
+.foto img { width: 180px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; background: var(--line); }
+table.ed { width: 100%; border-collapse: collapse; }
+table.ed th, table.ed td { padding: 6px 4px; text-align: left; vertical-align: middle; }
+table.ed th { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+table.ed input[type=text], table.ed input[type=number] { padding: 7px 8px; }
+.wrap-t { overflow-x: auto; }
+.confirma { background: var(--bad-bg); border: 1px solid #f0c4bf; border-radius: 12px; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* Telas */
+.coleccion { padding: 16px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.col-h { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.col-h h3 { font-size: 1.05rem; text-transform: uppercase; margin-right: 6px; }
+.col-h .num { font-family: var(--display); font-size: .78rem; color: var(--muted); }
+.col-h .acc { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.sws { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px 10px; align-items: start; }
+.sw { position: relative; aspect-ratio: 1; border-radius: 10px; border: 0; padding: 0; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.sw .cod { position: absolute; left: 4px; bottom: 4px; background: rgba(20,20,20,.8); color: #fff; font: 600 .68rem/1.4 var(--display); padding: 1px 5px; border-radius: 5px; }
+.sw.agotado { filter: grayscale(1) opacity(.45); }
+.sw.agotado::after { content: "AGOTADO"; position: absolute; inset: 0; display: grid; place-items: center; font: 700 .62rem var(--display); letter-spacing: .08em; color: var(--bad); background: rgba(255,255,255,.55); border-radius: 10px; }
+.sw-cel { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.sw-nom { padding: 5px 6px !important; font-size: .78rem; border-radius: 7px !important; text-align: center; }
+.sw-add { aspect-ratio: 1; border-radius: 10px; border: 2px dashed var(--gold); background: var(--soft); color: var(--ink); font-family: var(--display); font-size: .78rem; cursor: pointer; display: grid; place-items: center; text-align: center; padding: 6px; }
+.ayuda { font-size: .86rem; color: var(--muted); }
+
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 999px; font-size: .9rem; max-width: calc(100% - 32px); }
+@media (max-width: 640px) { .foto { grid-template-columns: 1fr; } .foto img { width: 100%; } .top .yo { display: none; } .barra input, .barra select { min-width: 0; flex: 1; } }
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Muebles Ideal">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+</head>
+<body>
+
+<!-- ===== ACCESO ===== -->
+<section class="login" id="v-login">
+  <form id="f-login" novalidate>
+    <img src="logo-v.png" alt="Muebles Ideal">
+    <h1>Panel de administración</h1>
+    <label class="f">Correo<input type="email" id="l-email" autocomplete="username" value="mueblesideal2020@gmail.com"></label>
+    <label class="f">Contraseña<input type="password" id="l-pass" autocomplete="current-password"></label>
+    <button class="btn oro" type="submit" id="l-btn">ENTRAR</button>
+    <p class="msg" id="l-msg" hidden></p>
+    <p class="ayuda" style="text-align:center">¿Olvidaste tu contraseña? <button type="button" class="link" id="l-reset">Enviarme un enlace</button></p>
+  </form>
+</section>
+
+<!-- ===== PANEL ===== -->
+<section id="v-panel" hidden>
+  <div class="top">
+    <img src="logo-mark.png" alt="">
+    <h1>Panel Muebles Ideal</h1>
+    <span class="yo" id="yo"></span>
+    <a class="btn borde mini" href="https://mueblesideal2020-commits.github.io/muebles-ideal/" target="_blank" rel="noopener">Ver página</a>
+    <button class="btn borde mini" id="salir" type="button">Salir</button>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-t="productos" aria-selected="true">Productos</button>
+    <button class="tab" role="tab" data-t="categorias" aria-selected="false">Categorías</button>
+    <button class="tab" role="tab" data-t="telas" aria-selected="false">Telas y colores</button>
+    <button class="tab" role="tab" data-t="precios" aria-selected="false">Precios y opciones</button>
+    <button class="tab" role="tab" data-t="pagos" aria-selected="false">Datos de pago</button>
+  </nav>
+  <main>
+    <div class="aviso-carga" id="aviso-carga" hidden>
+      <div><b>Tu catálogo todavía no está en la base de datos.</b><br><span class="ayuda">Carga el catálogo actual de la página (13 productos, 16 telas y 153 colores) para empezar a editarlo.</span></div>
+      <button class="btn oro" id="cargar-inicial" type="button">CARGAR CATÁLOGO INICIAL</button>
+    </div>
+    <section id="t-productos"></section>
+    <section id="t-telas" hidden></section>
+    <section id="t-categorias" hidden></section>
+    <section id="t-precios" hidden></section>
+    <section id="t-pagos" hidden></section>
+  </main>
+</section>
+
+<div class="hoja" id="editor" hidden><div id="editor-in"></div></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+};
+/* Las fotos viven en la página pública */
+const IMG_BASE = "https://mueblesideal2020-commits.github.io/muebles-ideal/";
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth(), db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const toast = t => { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2600); };
+const resolverImg = src => !src ? IMG_BASE + "hero-cama.jpg" : /^(data:|https?:)/.test(src) ? src : IMG_BASE + src.replace(/^img\//, "");
+const slug = t => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "item";
+
+/* Materiales estándar (mismas claves que usa orden.html) */
+const MATERIALES = [
+  ["tablas", "Tablas / listones de madera", "unid."], ["mdf", "Láminas de MDF o contraenchapado", "unid."], ["tornillos", "Tornillos", "unid."],
+  ["grapas", "Grapas", "cajas"], ["pegamento", "Pegamento de contacto", "L"], ["goma", "Goma espuma (alta densidad)", "láminas"],
+  ["guata", "Guata / fibra", "m"], ["tela", "Tela principal", "m"], ["cincha", "Cincha elástica", "m"], ["tafeta", "Tafeta (tela de fondo)", "m"],
+  ["conectores", "Conectores entre módulos (sofás)", "unid."], ["herrajes", "Herrajes de unión cabecero-base (camas)", "juego"],
+  ["herrajesAB", "Herrajes de unión pieza A-B (camas)", "juego"], ["rieles", "Rieles para gavetas", "pares"],
+  ["telaCojin", "Tela de cojines", "m"], ["rellenoCojin", "Relleno de cojines", "kg"]
+];
+
+/* Estado */
+let PRODUCTOS = [], TELAS = [], CONFIG = null, tabActual = "productos";
+
+/* ===== Imágenes: comprimir antes de guardar (gratis en la base de datos) ===== */
+function leerImagen(file){ return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = r.result; }; r.onerror = no; r.readAsDataURL(file); }); }
+async function comprimir(file, lado, calidad){
+  const im = await leerImagen(file);
+  const k = Math.min(1, lado / Math.max(im.width, im.height));
+  const c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+  c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+  let q = calidad, url = c.toDataURL("image/jpeg", q);
+  while (url.length > 330000 && q > .4) { q -= .08; url = c.toDataURL("image/jpeg", q); }
+  return url;
+}
+async function muestraColor(file){
+  const im = await leerImagen(file);
+  const s = Math.min(im.width, im.height) * .7, S = 140;
+  const c = document.createElement("canvas"); c.width = c.height = S; const x = c.getContext("2d");
+  x.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, S, S);
+  const d = x.getImageData(0, 0, S, S).data; let r = 0, g = 0, b = 0;
+  for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+  const n = d.length / 4, hx = v => Math.round(v / n).toString(16).padStart(2, "0");
+  return { img: c.toDataURL("image/jpeg", .78), hex: "#" + hx(r) + hx(g) + hx(b) };
+}
+const estiloColor = c => c.img ? `background:url("${c.img}") center/cover` : `background-color:${c.hex};background-image:url("${IMG_BASE}${c.sp.f}");background-size:${c.sp.n * 100}% 100%;background-position:${c.sp.n > 1 ? (c.sp.i / (c.sp.n - 1)) * 100 : 0}% 0`;
+
+/* ===== Acceso ===== */
+const msgLogin = (t, tipo) => { const m = $("l-msg"); m.textContent = t; m.className = "msg " + tipo; m.hidden = false; };
+$("f-login").addEventListener("submit", async e => {
+  e.preventDefault(); const b = $("l-btn"); b.disabled = true; b.textContent = "Entrando…";
+  try { await auth.signInWithEmailAndPassword($("l-email").value.trim(), $("l-pass").value); }
+  catch (err) { msgLogin(/wrong-password|invalid-credential|user-not-found|invalid-login/.test(err.code || "") ? "Correo o contraseña incorrectos." : /too-many/.test(err.code || "") ? "Demasiados intentos. Espera unos minutos." : "No se pudo entrar: " + (err.message || err), "err"); }
+  finally { b.disabled = false; b.textContent = "ENTRAR"; }
+});
+$("l-reset").addEventListener("click", async () => {
+  const em = $("l-email").value.trim(); if (!em) return msgLogin("Escribe tu correo primero.", "err");
+  try { await auth.sendPasswordResetEmail(em); msgLogin("Te enviamos un enlace a " + em + " para crear una nueva contraseña.", "ok"); }
+  catch (err) { msgLogin("No se pudo enviar el enlace: " + (err.message || err), "err"); }
+});
+$("salir").addEventListener("click", () => auth.signOut());
+auth.onAuthStateChanged(async u => {
+  /* El catálogo de la página solo lo maneja el dueño; los demás vuelven al panel */
+  if (u && (u.email || "").toLowerCase() !== "mueblesideal2020@gmail.com") { location.replace("index.html"); return; }
+  /* Sin sesión: se entra por el inicio del panel */
+  if (!u) { location.replace("index.html"); return; }
+  $("v-login").hidden = !!u; $("v-panel").hidden = !u;
+  if (u) { $("yo").textContent = u.email; await cargarTodo(); }
+});
+
+/* ===== Datos ===== */
+async function cargarTodo(){
+  try {
+    const [ps, ts, cf] = await Promise.all([db.collection("productos").get(), db.collection("telas").get(), db.collection("config").doc("general").get()]);
+    PRODUCTOS = ps.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+    TELAS = ts.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => (a.orden || 0) - (b.orden || 0));
+    CONFIG = cf.exists ? cf.data() : null;
+    $("aviso-carga").hidden = !!(PRODUCTOS.length || TELAS.length || CONFIG);
+    pintar();
+  } catch (err) { toast("No se pudo leer la base de datos. Revisa que publicaste las reglas nuevas."); console.error(err); }
+}
+$("cargar-inicial").addEventListener("click", async () => {
+  const b = $("cargar-inicial"); b.disabled = true; b.textContent = "Cargando…";
+  try {
+    const r = await fetch("catalogo-inicial.json"); const d = await r.json();
+    let batch = db.batch(), n = 0;
+    const meter = async (ref, data) => { batch.set(ref, data); if (++n % 400 === 0) { await batch.commit(); batch = db.batch(); } };
+    for (const p of d.productos) { const { id, ...x } = p; await meter(db.collection("productos").doc(id), x); }
+    for (const t of d.telas) { const { id, ...x } = t; await meter(db.collection("telas").doc(id), x); }
+    await meter(db.collection("config").doc("general"), d.config);
+    await batch.commit(); toast("Catálogo cargado."); await cargarTodo();
+  } catch (err) { toast("No se pudo cargar el catálogo inicial."); console.error(err); }
+  finally { b.disabled = false; b.textContent = "CARGAR CATÁLOGO INICIAL"; }
+});
+const guardarConfig = async () => { await db.collection("config").doc("general").set(CONFIG); };
+
+/* ===== Pestañas ===== */
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  tabActual = t.dataset.t;
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+  ["productos", "categorias", "telas", "precios", "pagos"].forEach(k => $("t-" + k).hidden = k !== tabActual);
+  pintar();
+}));
+function pintar(){ ({ productos: pintarProductos, categorias: pintarCategorias, telas: pintarTelas, precios: pintarPrecios, pagos: pintarPagos })[tabActual](); }
+
+/* ===== CATEGORÍAS ===== */
+const TIPOS_CAT = { camas: "Cama (tamaños, gavetas, base en 1 o 2 piezas)", sofas: "Sofá modular (diván, cojines, plano por piezas)", tapizado: "Mueble tapizado (tela, patas, accesorios)", otro: "Sin tela (comedores, madera, accesorios)" };
+const CATEGORIAS_BASE = [
+  { id: "sofas", nombre: "Sofás", tipo: "sofas" }, { id: "camas", nombre: "Camas", tipo: "camas" }, { id: "camas-duplex", nombre: "Camas dúplex", tipo: "camas" },
+  { id: "sofa-cama", nombre: "Sofá cama", tipo: "tapizado" }, { id: "poltronas", nombre: "Poltronas", tipo: "tapizado" }, { id: "comedores", nombre: "Comedores", tipo: "otro" },
+  { id: "muebles", nombre: "Muebles", tipo: "tapizado" }, { id: "centros-entretenimiento", nombre: "Centros de entretenimiento", tipo: "otro" }, { id: "accesorios", nombre: "Accesorios", tipo: "otro" }
+].map((c, i) => Object.assign(c, { visible: true, orden: i + 1 }));
+const categorias = () => { if (CONFIG && !(CONFIG.categorias && CONFIG.categorias.length)) CONFIG.categorias = JSON.parse(JSON.stringify(CATEGORIAS_BASE));
+  return ((CONFIG && CONFIG.categorias) || CATEGORIAS_BASE).slice().sort((a, b) => (a.orden || 0) - (b.orden || 0)); };
+const catNombre = id => (categorias().find(c => c.id === id) || { nombre: id }).nombre;
+const tipoCat = id => (categorias().find(c => c.id === id) || { tipo: id === "sofas" ? "sofas" : id === "camas" ? "camas" : "otro" }).tipo;
+function pintarCategorias(){
+  const el = $("t-categorias");
+  if (!CONFIG) { el.innerHTML = `<div class="card vacio">Primero carga el catálogo inicial.</div>`; return; }
+  const cats = categorias(), cuenta = id => PRODUCTOS.filter(p => p.cat === id).length;
+  el.innerHTML = `<div class="barra"><h2>Categorías</h2><button class="btn oro" type="button" id="k-guardar">GUARDAR CAMBIOS</button></div>
+    <p class="ayuda" style="margin:0 0 14px">Oculta una categoría cuando no la tengas disponible: sus productos desaparecen de la página hasta que la vuelvas a mostrar. Una categoría visible sin productos no aparece en los filtros.</p>
+    <div class="card wrap-t"><table class="ed"><thead><tr><th>Categoría</th><th>Formulario de cotización</th><th style="width:90px">Productos</th><th style="width:120px">En la página</th><th style="width:150px"></th></tr></thead><tbody>
+    ${cats.map((c, i) => `<tr>
+      <td><input type="text" data-kn="${esc(c.id)}" value="${esc(c.nombre)}"></td>
+      <td><select data-kt="${esc(c.id)}">${Object.entries(TIPOS_CAT).map(([k, n]) => `<option value="${k}" ${c.tipo === k ? "selected" : ""}>${n}</option>`).join("")}</select></td>
+      <td style="text-align:center">${cuenta(c.id)}</td>
+      <td><label class="chk"><input type="checkbox" data-kv="${esc(c.id)}" ${c.visible !== false ? "checked" : ""}> ${c.visible !== false ? "Visible" : "Oculta"}</label></td>
+      <td style="white-space:nowrap"><button class="btn borde mini" type="button" data-ku="${i}" ${i ? "" : "disabled"} aria-label="Subir">↑</button> <button class="btn borde mini" type="button" data-kd="${i}" ${i < cats.length - 1 ? "" : "disabled"} aria-label="Bajar">↓</button>
+        ${cuenta(c.id) ? "" : ` <button class="btn borde mini" type="button" data-kx="${esc(c.id)}">Quitar</button>`}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="bloque" style="margin-top:14px"><h3>Nueva categoría</h3><div class="fila">
+      <label class="f">Nombre<input type="text" id="k-nuevo" placeholder="Ej. Cabeceros"></label>
+      <label class="f">Formulario<select id="k-tipo">${Object.entries(TIPOS_CAT).map(([k, n]) => `<option value="${k}">${n}</option>`).join("")}</select></label></div>
+      <button class="btn borde mini" type="button" id="k-add" style="width:fit-content">+ Agregar categoría</button></div>`;
+  const c = id => CONFIG.categorias.find(x => x.id === id);
+  el.querySelectorAll("[data-kn]").forEach(i => i.addEventListener("input", () => c(i.dataset.kn).nombre = i.value));
+  el.querySelectorAll("[data-kt]").forEach(i => i.addEventListener("change", () => c(i.dataset.kt).tipo = i.value));
+  el.querySelectorAll("[data-kv]").forEach(i => i.addEventListener("change", () => { c(i.dataset.kv).visible = i.checked; pintarCategorias(); }));
+  const mover = (i, d) => { const l = categorias(); [l[i], l[i + d]] = [l[i + d], l[i]]; l.forEach((x, k) => x.orden = k + 1); CONFIG.categorias = l; pintarCategorias(); };
+  el.querySelectorAll("[data-ku]").forEach(b => b.addEventListener("click", () => mover(+b.dataset.ku, -1)));
+  el.querySelectorAll("[data-kd]").forEach(b => b.addEventListener("click", () => mover(+b.dataset.kd, 1)));
+  el.querySelectorAll("[data-kx]").forEach(b => b.addEventListener("click", () => { CONFIG.categorias = CONFIG.categorias.filter(x => x.id !== b.dataset.kx); pintarCategorias(); }));
+  $("k-add").addEventListener("click", () => {
+    const n = $("k-nuevo").value.trim(); if (!n) return toast("Escribe el nombre de la categoría.");
+    let id = n.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "categoria";
+    while (CONFIG.categorias.some(x => x.id === id)) id += "-2";
+    CONFIG.categorias.push({ id, nombre: n, tipo: $("k-tipo").value, visible: true, orden: CONFIG.categorias.length + 1 }); pintarCategorias();
+  });
+  $("k-guardar").addEventListener("click", async () => { try { await guardarConfig(); toast("Categorías guardadas. Ya se ven en la página."); } catch (err) { toast("No se pudo guardar: " + (err.message || err)); } });
+}
+
+/* ===== PRODUCTOS ===== */
+/* Cambio de nombres a ciudades (se aplica una sola vez con el botón; no toca los que ya renombraste a mano) */
+const NOMBRES_CIUDADES = {"chevron": {"antes": ["Cama Chevron", "Cama Caracas"], "ahora": "Cama Milán"}, "abanico": {"antes": ["Cama Abanico", "Cama Mérida"], "ahora": "Cama Florencia"}, "abanico-p": {"antes": ["Cama Abanico Petróleo", "Cama Mérida Petróleo"], "ahora": "Cama Florencia Petróleo"}, "linea": {"antes": ["Cama Línea", "Cama Valencia"], "ahora": "Cama Oslo"}, "arena": {"antes": ["Cama Línea Arena", "Cama Valencia Arena"], "ahora": "Cama Oslo Arena"}, "mosaico": {"antes": ["Cama Mosaico", "Cama Maracaibo"], "ahora": "Cama Lisboa"}, "luna": {"antes": ["Cama Luna", "Cama Coro"], "ahora": "Cama Mónaco"}, "marco": {"antes": ["Cama Marco", "Cama Barquisimeto"], "ahora": "Cama Viena"}, "duo": {"antes": ["Cama Dúo", "Cama Cumaná"], "ahora": "Cama Berlín"}, "nube": {"antes": ["Cama Nube", "Cama Mariara"], "ahora": "Cama París"}, "perla": {"antes": ["Sofá en L Perla", "Sofá en L Maracay", "Sofá en L Roma"], "ahora": "Sofá Modular Roma"}, "noir": {"antes": ["Sofá en L Noir", "Sofá en L San Cristóbal", "Sofá en L Londres"], "ahora": "Sofá Modular Londres"}, "grafito": {"antes": ["Sofá en L Grafito", "Sofá en L Barcelona", "Sofá en L Estocolmo"], "ahora": "Sofá Modular Estocolmo"}};
+const pendientesCiudad = () => PRODUCTOS.filter(p => NOMBRES_CIUDADES[p.id] && NOMBRES_CIUDADES[p.id].antes.includes(p.nombre));
+async function aplicarCiudades(){
+  const ls = pendientesCiudad(), b = $("p-ciudades"); b.disabled = true; b.textContent = "Cambiando…";
+  try {
+    for (const p of ls) {
+      const nuevo = NOMBRES_CIUDADES[p.id].ahora, cambios = { nombre: nuevo };
+      if (p.fab && /en L$/.test(p.fab.tipo || "")) cambios.fab = Object.assign({}, p.fab, { tipo: p.fab.tipo.replace(/ en L$/, "") });
+      if (p.ficha && Array.isArray(p.ficha.feat)) cambios.ficha = Object.assign({}, p.ficha, { feat: p.ficha.feat.map(f => f.replace(/modelo (Abanico|Mérida)/, "modelo Florencia")) });
+      await db.collection("productos").doc(p.id).update(cambios); Object.assign(p, cambios);
+    }
+    toast(`Listo: ${ls.length} productos ahora tienen nombre de ciudad.`);
+  } catch (e) { console.error(e); toast("No se pudieron cambiar los nombres: " + (e.message || e)); }
+  pintarProductos();
+}
+let filtroP = { q: "", cat: "" };
+function pintarProductos(){
+  const el = $("t-productos");
+  const lista = PRODUCTOS.filter(p => (!filtroP.cat || p.cat === filtroP.cat) && (!filtroP.q || p.nombre.toLowerCase().includes(filtroP.q.toLowerCase())));
+  const lineas = (CONFIG && CONFIG.lineas) || {};
+  el.innerHTML = `<div class="barra"><h2>Productos <small style="color:var(--muted);font-size:.9rem">(${PRODUCTOS.length})</small></h2>
+      <input type="text" id="p-q" placeholder="Buscar por nombre" value="${esc(filtroP.q)}">
+      <select id="p-cat"><option value="">Todas las categorías</option>${categorias().map(c => `<option value="${esc(c.id)}" ${filtroP.cat === c.id ? "selected" : ""}>${esc(c.nombre)}${c.visible === false ? " (oculta)" : ""}</option>`).join("")}</select>
+      <button class="btn oro" id="p-nuevo" type="button">+ NUEVO PRODUCTO</button></div>
+    ${pendientesCiudad().length ? `<div class="card" style="padding:16px 18px;margin-bottom:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>Nombres de ciudades</b><br><span class="ayuda">${pendientesCiudad().map(p => `${esc(p.nombre)} → <b>${esc(NOMBRES_CIUDADES[p.id].ahora)}</b>`).join(" · ")}</span></div><button class="btn oro" type="button" id="p-ciudades">CAMBIAR ${pendientesCiudad().length} NOMBRES</button></div>` : ""}
+    ${lista.length ? `<div class="grid-p">${lista.map(p => `<button type="button" class="prod" data-id="${esc(p.id)}">
+      <img src="${esc(resolverImg(p.img))}" alt="" loading="lazy">
+      <span class="i"><b>${esc(p.nombre)}</b><small>${esc(catNombre(p.cat))}${tipoCat(p.cat) === "camas" && p.linea && lineas[p.linea] ? " · Línea " + esc(lineas[p.linea].nombre) : ""}</small>
+      <small>${p.precio !== "" && p.precio != null ? "$" + esc(p.precio) : "Precio a consultar"}</small>
+      <span class="chips">${p.activo === false ? '<span class="chip off">Oculto</span>' : '<span class="chip">Visible</span>'}${p.destacado ? '<span class="chip oro">Más vendido</span>' : ""}${p.tag ? `<span class="chip">${esc(p.tag)}</span>` : ""}</span></span></button>`).join("")}</div>`
+      : `<div class="card vacio">No hay productos${filtroP.q || filtroP.cat ? " con ese filtro" : ""}.</div>`}`;
+  $("p-q").addEventListener("input", e => { filtroP.q = e.target.value; const pos = e.target.selectionStart; pintarProductos(); const n = $("p-q"); n.focus(); n.setSelectionRange(pos, pos); });
+  $("p-cat").addEventListener("change", e => { filtroP.cat = e.target.value; pintarProductos(); });
+  $("p-nuevo").addEventListener("click", () => editarProducto(null));
+  if ($("p-ciudades")) $("p-ciudades").addEventListener("click", aplicarCiudades);
+  el.querySelectorAll(".prod").forEach(b => b.addEventListener("click", () => editarProducto(PRODUCTOS.find(p => p.id === b.dataset.id))));
+}
+
+function editarProducto(p){
+  const nuevo = !p;
+  const x = JSON.parse(JSON.stringify(p || { nombre: "", cat: "camas", linea: "esencial", desc: "", tag: "", destacado: false, activo: true, precio: "", orden: PRODUCTOS.length + 1, img: "", ficha: { feat: [] }, fab: null, materiales: {} }));
+  x.ficha = x.ficha || { feat: [] }; x.materiales = x.materiales || {};
+  const lineas = (CONFIG && CONFIG.lineas) || { esencial: { nombre: "Esencial" }, signature: { nombre: "Signature" }, prestige: { nombre: "Prestige" } };
+  const fabBase = () => ({ tipo: "Sofá modular", ancho: 280, fondo: 170, medidasConfirmadas: false, piezasConfirmadas: false, cojines: 4, piezas: [{ n: "Poltrona", w: 60, d: 95, patas: 4, brazo: true }, { n: "2 puestos", w: 130, d: 95, patas: 4 }, { n: "Diván", w: 90, d: 170, patas: 4 }] });
+  const ed = $("editor-in");
+  function render(){
+    const tipo = tipoCat(x.cat), esSofa = tipo === "sofas", esCama = tipo === "camas";
+    if (esSofa && !x.fab) x.fab = fabBase();
+    ed.innerHTML = `<header><h2>${nuevo ? "Nuevo producto" : "Editar · " + esc(x.nombre)}</h2>
+        <button class="btn borde mini" type="button" data-cerrar>Cancelar</button><button class="btn oro" type="button" id="e-guardar">GUARDAR</button></header>
+      <div class="form">
+        <div class="bloque"><h3>General</h3>
+          <div class="fila">
+            <label class="f">Nombre<input type="text" data-k="nombre" value="${esc(x.nombre)}" placeholder="Ej. Cama Aurora"></label>
+            <label class="f">Categoría<select data-k="cat">${categorias().map(c => `<option value="${esc(c.id)}" ${x.cat === c.id ? "selected" : ""}>${esc(c.nombre)}${c.visible === false ? " (oculta)" : ""}</option>`).join("")}</select></label>
+            ${!esCama ? "" : `<label class="f">Línea<select data-k="linea">${Object.entries(lineas).map(([k, l]) => `<option value="${k}" ${x.linea === k ? "selected" : ""}>${esc(l.nombre)}</option>`).join("")}</select></label>`}
+          </div>
+          <label class="f">Descripción corta<textarea data-k="desc" placeholder="Ej. Cabecero alto con costuras en V. Elegante y moderna.">${esc(x.desc)}</textarea></label>
+          <div class="fila">
+            <label class="f">Precio (USD)<small>Vacío = "Precio a consultar"</small><input type="number" min="0" step="1" data-k="precio" value="${esc(x.precio)}"></label>
+            <label class="f">Etiqueta<small>Ej. Nuevo, Oferta</small><input type="text" data-k="tag" value="${esc(x.tag)}"></label>
+            <label class="f">Orden en el catálogo<small>1 = primero</small><input type="number" min="1" data-k="orden" value="${esc(x.orden)}"></label>
+          </div>
+          <div class="fila"><label class="chk"><input type="checkbox" data-k="activo" ${x.activo !== false ? "checked" : ""}> Visible en la página</label>
+            <label class="chk"><input type="checkbox" data-k="destacado" ${x.destacado ? "checked" : ""}> Más vendido (aparece primero)</label></div>
+        </div>
+
+        <div class="bloque"><h3>Foto</h3>
+          <div class="foto"><img src="${esc(resolverImg(x.img))}" alt="" id="e-img">
+            <div style="display:flex;flex-direction:column;gap:8px"><label class="btn borde" style="width:fit-content">Cambiar foto<input type="file" accept="image/*" id="e-file" hidden></label>
+            <span class="ayuda">Se comprime automáticamente para cargar rápido. Usa una foto horizontal, bien iluminada.</span></div></div>
+        </div>
+
+        <div class="bloque"><h3>Características (una por línea)</h3>
+          <textarea data-k="feat" placeholder="Cabecero acolchado de diseño exclusivo">${esc((x.ficha.feat || []).join("\n"))}</textarea>
+        </div>
+
+        <div class="bloque"><h3>Ficha técnica</h3>
+          ${esSofa ? `<div class="fila"><label class="f">Capacidad<input type="text" data-fk="asiento" value="${esc(x.ficha.asiento || "")}" placeholder="3 puestos + chaise"></label></div>`
+          : !esCama ? `<div class="fila"><label class="f">Medidas<input type="text" data-fk="medidas" value="${esc(x.ficha.medidas || "")}" placeholder="Ej. 180 × 90 cm"></label>
+              <label class="f">Material<input type="text" data-fk="material" value="${esc(x.ficha.material || "")}" placeholder="Ej. Madera de pino y MDF"></label>
+              <label class="f">Acabado<input type="text" data-fk="acabado" value="${esc(x.ficha.acabado || "")}" placeholder="Ej. Laca mate"></label></div>`
+          : `<div class="fila"><label class="f">Cabecero<input type="text" data-fk="cabecero" value="${esc(x.ficha.cabecero || "")}"></label>
+              <label class="f">Base<input type="text" data-fk="base" value="${esc(x.ficha.base || "")}"></label>
+              <label class="f">Patas<input type="text" data-fk="patas" value="${esc(x.ficha.patas || "")}"></label></div>`}
+        </div>
+
+        ${esSofa ? `<div class="bloque"><h3>Fabricación del sofá</h3>
+          <div class="fila">
+            <label class="f">Tipo<input type="text" data-fab="tipo" value="${esc(x.fab.tipo)}"></label>
+            <label class="f">Ancho total (cm)<input type="number" data-fab="ancho" value="${esc(x.fab.ancho)}"></label>
+            <label class="f">Fondo total (cm)<input type="number" data-fab="fondo" value="${esc(x.fab.fondo)}"></label>
+            <label class="f">Cojines de obsequio<input type="number" min="0" data-fab="cojines" value="${esc(x.fab.cojines)}"></label>
+          </div>
+          <div class="fila"><label class="chk"><input type="checkbox" data-fab="medidasConfirmadas" ${x.fab.medidasConfirmadas ? "checked" : ""}> Medidas totales confirmadas</label>
+            <label class="chk"><input type="checkbox" data-fab="piezasConfirmadas" ${x.fab.piezasConfirmadas ? "checked" : ""}> Medidas de cada pieza confirmadas</label></div>
+          <div class="wrap-t"><table class="ed"><thead><tr><th>Pieza (izq. → der., con diván a la derecha)</th><th>Ancho cm</th><th>Fondo cm</th><th>Patas</th><th>Brazo</th><th></th></tr></thead><tbody>
+            ${x.fab.piezas.map((pz, i) => `<tr><td><input type="text" data-pz="${i}" data-c="n" value="${esc(pz.n)}"></td><td><input type="number" data-pz="${i}" data-c="w" value="${pz.w}"></td><td><input type="number" data-pz="${i}" data-c="d" value="${pz.d}"></td><td><input type="number" data-pz="${i}" data-c="patas" value="${pz.patas}"></td><td><input type="checkbox" data-pz="${i}" data-c="brazo" ${pz.brazo ? "checked" : ""}></td><td><button class="btn borde mini" type="button" data-quitar-pz="${i}">Quitar</button></td></tr>`).join("")}
+          </tbody></table></div>
+          <button class="btn borde mini" type="button" id="e-addpz" style="width:fit-content">+ Agregar pieza</button>
+          <p class="ayuda">La suma de los anchos debería dar el ancho total. El plano de la orden de fabricación se dibuja con estas medidas.</p>
+        </div>` : ""}
+
+        <div class="bloque"><h3>Materiales por unidad fabricada</h3>
+          <p class="ayuda">Lo que cargues aquí aparece en la lista de materiales de cada orden de fabricación. Deja vacío lo que aún no sepas.</p>
+          <div class="wrap-t"><table class="ed"><thead><tr><th>Material</th><th style="width:130px">Cantidad</th><th style="width:70px">Unidad</th></tr></thead><tbody>
+            ${MATERIALES.map(([k, n, u]) => `<tr><td>${n}</td><td><input type="number" min="0" step="any" data-mat="${k}" value="${esc(x.materiales[k] != null ? x.materiales[k] : "")}"></td><td>${u}</td></tr>`).join("")}
+          </tbody></table></div>
+        </div>
+
+        ${nuevo ? "" : `<div class="bloque"><h3>Eliminar</h3><div id="e-borrar-box"><button class="btn borde mini" type="button" id="e-borrar">Eliminar este producto</button>
+          <span class="ayuda"> Si solo quieres quitarlo de la página por un tiempo, desmarca "Visible en la página".</span></div></div>`}
+      </div>`;
+    ed.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "checkbox" ? "change" : "input", () => {
+      const k = i.dataset.k;
+      if (k === "feat") x.ficha.feat = i.value.split("\n").map(s => s.trim()).filter(Boolean);
+      else x[k] = i.type === "checkbox" ? i.checked : i.type === "number" ? (i.value === "" ? "" : +i.value) : i.value;
+      if (k === "cat") { if (tipoCat(x.cat) !== "camas") { x.linea = ""; } else if (!x.linea) x.linea = Object.keys(lineas)[0]; render(); }
+    }));
+    ed.querySelectorAll("[data-fk]").forEach(i => i.addEventListener("input", () => x.ficha[i.dataset.fk] = i.value));
+    ed.querySelectorAll("[data-fab]").forEach(i => i.addEventListener(i.type === "checkbox" ? "change" : "input", () => x.fab[i.dataset.fab] = i.type === "checkbox" ? i.checked : i.type === "number" ? +i.value : i.value));
+    ed.querySelectorAll("[data-pz]").forEach(i => i.addEventListener(i.type === "checkbox" ? "change" : "input", () => { const pz = x.fab.piezas[+i.dataset.pz]; pz[i.dataset.c] = i.type === "checkbox" ? i.checked : i.type === "number" ? +i.value : i.value; }));
+    ed.querySelectorAll("[data-quitar-pz]").forEach(b => b.addEventListener("click", () => { x.fab.piezas.splice(+b.dataset.quitarPz, 1); render(); }));
+    if ($("e-addpz")) $("e-addpz").addEventListener("click", () => { x.fab.piezas.push({ n: "Pieza", w: 80, d: 95, patas: 4 }); render(); });
+    ed.querySelectorAll("[data-mat]").forEach(i => i.addEventListener("input", () => { if (i.value === "") delete x.materiales[i.dataset.mat]; else x.materiales[i.dataset.mat] = +i.value; }));
+    $("e-file").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; toast("Procesando foto…"); x.img = await comprimir(f, 1000, .78); $("e-img").src = x.img; toast("Foto lista. Recuerda guardar."); });
+    ed.querySelectorAll("[data-cerrar]").forEach(b => b.addEventListener("click", cerrarEditor));
+    $("e-guardar").addEventListener("click", async () => {
+      if (!x.nombre.trim()) return toast("Escribe el nombre del producto.");
+      const b = $("e-guardar"); b.disabled = true; b.textContent = "Guardando…";
+      try {
+        const id = x.id || (slug(x.nombre) + (PRODUCTOS.some(p => p.id === slug(x.nombre)) ? "-" + Date.now().toString(36).slice(-4) : ""));
+        const { id: _, ...datos } = x; if (tipoCat(datos.cat) !== "sofas") datos.fab = null;
+        await db.collection("productos").doc(id).set(datos);
+        toast("Producto guardado. Ya se ve en la página."); cerrarEditor(); await cargarTodo();
+      } catch (err) { toast("No se pudo guardar: " + (err.message || err)); b.disabled = false; b.textContent = "GUARDAR"; }
+    });
+    if ($("e-borrar")) $("e-borrar").addEventListener("click", () => {
+      $("e-borrar-box").innerHTML = `<div class="confirma"><b>¿Eliminar "${esc(x.nombre)}" para siempre?</b><button class="btn peligro mini" type="button" id="e-borrar-si">Sí, eliminar</button><button class="btn borde mini" type="button" id="e-borrar-no">No</button></div>`;
+      $("e-borrar-no").addEventListener("click", render);
+      $("e-borrar-si").addEventListener("click", async () => { await db.collection("productos").doc(x.id).delete(); toast("Producto eliminado."); cerrarEditor(); await cargarTodo(); });
+    });
+  }
+  render(); $("editor").hidden = false; document.body.style.overflow = "hidden";
+}
+function cerrarEditor(){ $("editor").hidden = true; document.body.style.overflow = ""; }
+$("editor").addEventListener("click", e => { if (e.target === $("editor")) cerrarEditor(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("editor").hidden) cerrarEditor(); });
+
+/* ===== TELAS ===== */
+let nuevaTela = false, borrarTela = null;
+function pintarTelas(){
+  const el = $("t-telas");
+  const total = TELAS.reduce((a, t) => a + (t.colores || []).length, 0), agot = TELAS.reduce((a, t) => a + (t.colores || []).filter(c => c.activo === false).length, 0);
+  el.innerHTML = `<div class="barra"><h2>Telas y colores <small style="color:var(--muted);font-size:.9rem">(${TELAS.length} colecciones · ${total} colores${agot ? ` · ${agot} agotados` : ""})</small></h2>
+      ${TELAS.some(t => (t.colores || []).some(c => !c.nombre)) ? '<button class="btn borde" id="t-nombres" type="button">Poner nombres sugeridos</button>' : ""}
+      <button class="btn oro" id="t-nueva" type="button">+ NUEVA COLECCIÓN</button></div>
+    <p class="ayuda" style="margin:-8px 0 16px">Toca un color para marcarlo <b>agotado</b> (se oculta en la página) o volver a activarlo. Escribe debajo el <b>nombre</b> que verá el cliente; se guarda al salir del campo. El código es solo de referencia para el taller y nunca se repite.</p>
+    ${nuevaTela ? `<div class="card coleccion"><h3 style="font-size:1rem">Nueva colección</h3>
+      <div class="fila"><label class="f">Nombre<input type="text" id="nt-nombre" placeholder="Ej. Velvet Royal"></label>
+        <label class="f">Tipo<select id="nt-tipo"><option>Aterciopelada</option><option>Tipo lino</option><option>Bouclé</option><option>Cuero sintético</option><option>Otra</option></select></label></div>
+      <label class="f">Descripción<input type="text" id="nt-desc" placeholder="Ej. Terciopelo de pelo corto, muy suave."></label>
+      <div class="fila"><label class="chk"><input type="checkbox" id="nt-anti"> Antifluido</label><label class="chk"><input type="checkbox" id="nt-pet"> Pet friendly</label></div>
+      <div style="display:flex;gap:10px"><button class="btn oro" type="button" id="nt-crear">CREAR COLECCIÓN</button><button class="btn borde" type="button" id="nt-cancelar">Cancelar</button></div>
+      <p class="ayuda">Después de crearla, agrega las fotos de cada color (una foto por color, de cerca y con buena luz).</p></div>` : ""}
+    ${TELAS.map(t => {
+      const num = String(t.num || 0).padStart(2, "0");
+      return `<div class="card coleccion" data-t="${esc(t.id)}">
+        <div class="col-h"><h3>${esc(t.nombre)}</h3><span class="num">Colección ${num} · ${esc(t.tipo)}${(t.tags || []).length ? " · " + t.tags.map(esc).join(", ") : ""}</span>
+          ${t.activo === false ? '<span class="chip off">Oculta</span>' : ""}
+          <span class="acc"><button class="btn borde mini" type="button" data-vis="${esc(t.id)}">${t.activo === false ? "Mostrar colección" : "Ocultar colección"}</button>
+          <button class="btn borde mini" type="button" data-borrar-t="${esc(t.id)}">Eliminar</button></span></div>
+        ${borrarTela === t.id ? `<div class="confirma"><b>¿Eliminar la colección ${esc(t.nombre)} y sus ${(t.colores || []).length} colores?</b><button class="btn peligro mini" type="button" data-borrar-si="${esc(t.id)}">Sí, eliminar</button><button class="btn borde mini" type="button" data-borrar-no>No</button></div>` : ""}
+        <div class="sws">${(t.colores || []).map((c, i) => `<div class="sw-cel"><button type="button" class="sw ${c.activo === false ? "agotado" : ""}" style='${estiloColor(c)}' data-t="${esc(t.id)}" data-i="${i}" title="${c.activo === false ? "Agotado · toca para activar" : "Disponible · toca para marcar agotado"}"><span class="cod">${esc(c.codigo)}</span></button><input type="text" class="sw-nom" value="${esc(c.nombre || "")}" placeholder="Nombre" data-nt="${esc(t.id)}" data-ni="${i}" aria-label="Nombre del color ${esc(c.codigo)}"></div>`).join("")}
+          <label class="sw-add">+ Agregar colores<input type="file" accept="image/*" multiple hidden data-add="${esc(t.id)}"></label></div>
+      </div>`; }).join("")}`;
+  if ($("t-nombres")) $("t-nombres").addEventListener("click", async () => {
+    const b = $("t-nombres"); b.disabled = true; b.textContent = "Aplicando…";
+    try {
+      const d = await (await fetch("catalogo-inicial.json")).json(); const N = {};
+      d.telas.forEach(t => t.colores.forEach(c => { if (c.nombre) N[c.codigo] = c.nombre; }));
+      let n = 0;
+      for (const t of TELAS) { let cambio = false; (t.colores || []).forEach(c => { if (!c.nombre && N[c.codigo]) { c.nombre = N[c.codigo]; cambio = true; n++; } }); if (cambio) await db.collection("telas").doc(t.id).update({ colores: t.colores }); }
+      toast(`Listo: ${n} colores con nombre.`); pintarTelas();
+    } catch (err) { toast("No se pudieron aplicar los nombres."); b.disabled = false; b.textContent = "Poner nombres sugeridos"; }
+  });
+  $("t-nueva").addEventListener("click", () => { nuevaTela = true; pintarTelas(); $("nt-nombre").focus(); });
+  if (nuevaTela) {
+    $("nt-cancelar").addEventListener("click", () => { nuevaTela = false; pintarTelas(); });
+    $("nt-crear").addEventListener("click", async () => {
+      const nombre = $("nt-nombre").value.trim(); if (!nombre) return toast("Escribe el nombre de la colección.");
+      const num = TELAS.reduce((m, t) => Math.max(m, t.num || 0), 0) + 1;
+      const id = slug(nombre) + (TELAS.some(t => t.id === slug(nombre)) ? "-" + num : "");
+      const tags = [$("nt-anti").checked && "Antifluido", $("nt-pet").checked && "Pet friendly"].filter(Boolean);
+      await db.collection("telas").doc(id).set({ nombre, tipo: $("nt-tipo").value, desc: $("nt-desc").value.trim(), tags, activo: true, num, orden: num, colores: [] });
+      nuevaTela = false; toast(`Colección ${String(num).padStart(2, "0")} creada. Ahora agrega sus colores.`); await cargarTodo();
+    });
+  }
+  el.querySelectorAll(".sw[data-i]").forEach(b => b.addEventListener("click", async () => {
+    const t = TELAS.find(x => x.id === b.dataset.t), c = t.colores[+b.dataset.i];
+    c.activo = c.activo === false; b.classList.toggle("agotado", c.activo === false);
+    await db.collection("telas").doc(t.id).update({ colores: t.colores }); toast(`Color ${c.codigo} ${c.activo === false ? "marcado como agotado" : "disponible de nuevo"}.`);
+  }));
+  el.querySelectorAll(".sw-nom").forEach(inp => inp.addEventListener("change", async () => {
+    const t = TELAS.find(x => x.id === inp.dataset.nt), c = t.colores[+inp.dataset.ni];
+    c.nombre = inp.value.trim();
+    await db.collection("telas").doc(t.id).update({ colores: t.colores }); toast(`Nombre guardado: ${c.nombre || "(sin nombre)"}`);
+  }));
+  el.querySelectorAll("[data-vis]").forEach(b => b.addEventListener("click", async () => {
+    const t = TELAS.find(x => x.id === b.dataset.vis); t.activo = t.activo === false;
+    await db.collection("telas").doc(t.id).update({ activo: t.activo }); pintarTelas(); toast(t.activo ? "Colección visible." : "Colección oculta en la página.");
+  }));
+  el.querySelectorAll("[data-borrar-t]").forEach(b => b.addEventListener("click", () => { borrarTela = b.dataset.borrarT; pintarTelas(); }));
+  el.querySelectorAll("[data-borrar-no]").forEach(b => b.addEventListener("click", () => { borrarTela = null; pintarTelas(); }));
+  el.querySelectorAll("[data-borrar-si]").forEach(b => b.addEventListener("click", async () => { await db.collection("telas").doc(b.dataset.borrarSi).delete(); borrarTela = null; toast("Colección eliminada."); await cargarTodo(); }));
+  el.querySelectorAll("[data-add]").forEach(inp => inp.addEventListener("change", async () => {
+    const t = TELAS.find(x => x.id === inp.dataset.add); const files = [...inp.files]; if (!files.length) return;
+    toast(`Procesando ${files.length} ${files.length === 1 ? "color" : "colores"}…`);
+    const num = String(t.num || 0).padStart(2, "0");
+    let sig = (t.colores || []).reduce((m, c) => Math.max(m, +String(c.codigo).slice(2) || 0), 0);
+    t.colores = t.colores || [];
+    for (const f of files) { const m = await muestraColor(f); sig++; t.colores.push({ codigo: num + String(sig).padStart(2, "0"), nombre: "Color " + sig, hex: m.hex, img: m.img, activo: true }); }
+    await db.collection("telas").doc(t.id).update({ colores: t.colores }); toast(`Listo: ${files.length} ${files.length === 1 ? "color agregado" : "colores agregados"}. Ponles su nombre debajo de cada muestra.`); pintarTelas();
+  }));
+}
+
+/* ===== PRECIOS Y OPCIONES ===== */
+function pintarPrecios(){
+  const el = $("t-precios");
+  if (!CONFIG) { el.innerHTML = `<div class="card vacio">Primero carga el catálogo inicial.</div>`; return; }
+  const c = CONFIG; c.accesorios = c.accesorios || []; c.preciosExtra = c.preciosExtra || {}; c.tamanosCama = c.tamanosCama || []; c.lineas = c.lineas || {};
+  el.innerHTML = `<div class="barra"><h2>Precios y opciones</h2><button class="btn oro" type="button" id="c-guardar">GUARDAR CAMBIOS</button></div>
+    <div class="form" style="padding:0">
+      <div class="bloque"><h3>Accesorios para sofás</h3><p class="ayuda">Aparecen en la cotización. Deja el precio vacío si se cotiza aparte.</p>
+        <div class="wrap-t"><table class="ed"><thead><tr><th>Accesorio</th><th style="width:150px">Precio (USD)</th><th style="width:90px"></th></tr></thead><tbody>
+        ${c.accesorios.map((a, i) => `<tr><td><input type="text" data-acc="${i}" value="${esc(a)}"></td><td><input type="number" min="0" data-accp="${i}" value="${esc(c.preciosExtra[a] != null ? c.preciosExtra[a] : "")}"></td><td><button class="btn borde mini" type="button" data-accq="${i}">Quitar</button></td></tr>`).join("")}
+        </tbody></table></div><button class="btn borde mini" type="button" id="c-addacc" style="width:fit-content">+ Agregar accesorio</button></div>
+
+      <div class="bloque"><h3>Tamaños de cama</h3><p class="ayuda">Escribe como "Queen 160×190 cm" (ancho × largo del colchón) para que el plano calcule las medidas.</p>
+        <div class="wrap-t"><table class="ed"><tbody>${c.tamanosCama.map((t, i) => `<tr><td><input type="text" data-tam="${i}" value="${esc(t)}"></td><td style="width:90px"><button class="btn borde mini" type="button" data-tamq="${i}">Quitar</button></td></tr>`).join("")}</tbody></table></div>
+        <button class="btn borde mini" type="button" id="c-addtam" style="width:fit-content">+ Agregar tamaño</button></div>
+
+      <div class="bloque"><h3>Líneas de producto</h3>
+        ${Object.entries(c.lineas).map(([k, l]) => `<div class="fila"><label class="f">Nombre<input type="text" data-ln="${k}" value="${esc(l.nombre)}"></label><label class="f" style="grid-column:span 2">Descripción<input type="text" data-ld="${k}" value="${esc(l.desc)}"></label></div>`).join("")}</div>
+
+      <div class="bloque"><h3>Promociones</h3><label class="chk"><input type="checkbox" id="c-envio" ${c.envioGratis ? "checked" : ""}> Despacho gratis activo (la página lo anuncia en la opción Delivery)</label></div>
+    </div>`;
+  el.querySelectorAll("[data-acc]").forEach(i => i.addEventListener("change", () => { const viejo = c.accesorios[+i.dataset.acc], nuevo = i.value.trim(); c.accesorios[+i.dataset.acc] = nuevo; if (viejo in c.preciosExtra) { c.preciosExtra[nuevo] = c.preciosExtra[viejo]; delete c.preciosExtra[viejo]; } }));
+  el.querySelectorAll("[data-accp]").forEach(i => i.addEventListener("input", () => { const a = c.accesorios[+i.dataset.accp]; if (i.value === "") delete c.preciosExtra[a]; else c.preciosExtra[a] = +i.value; }));
+  el.querySelectorAll("[data-accq]").forEach(b => b.addEventListener("click", () => { const a = c.accesorios.splice(+b.dataset.accq, 1)[0]; delete c.preciosExtra[a]; pintarPrecios(); }));
+  $("c-addacc").addEventListener("click", () => { c.accesorios.push("Nuevo accesorio"); pintarPrecios(); });
+  el.querySelectorAll("[data-tam]").forEach(i => i.addEventListener("input", () => c.tamanosCama[+i.dataset.tam] = i.value));
+  el.querySelectorAll("[data-tamq]").forEach(b => b.addEventListener("click", () => { c.tamanosCama.splice(+b.dataset.tamq, 1); pintarPrecios(); }));
+  $("c-addtam").addEventListener("click", () => { c.tamanosCama.splice(Math.max(0, c.tamanosCama.length - 1), 0, "Nuevo 000×000 cm"); pintarPrecios(); });
+  el.querySelectorAll("[data-ln]").forEach(i => i.addEventListener("input", () => c.lineas[i.dataset.ln].nombre = i.value));
+  el.querySelectorAll("[data-ld]").forEach(i => i.addEventListener("input", () => c.lineas[i.dataset.ld].desc = i.value));
+  $("c-envio").addEventListener("change", e => c.envioGratis = e.target.checked);
+  $("c-guardar").addEventListener("click", async () => { try { await guardarConfig(); toast("Cambios guardados. Ya se ven en la página."); } catch (err) { toast("No se pudo guardar: " + (err.message || err)); } });
+}
+
+/* ===== DATOS DE PAGO ===== */
+function pintarPagos(){
+  const el = $("t-pagos");
+  if (!CONFIG) { el.innerHTML = `<div class="card vacio">Primero carga el catálogo inicial.</div>`; return; }
+  const p = CONFIG.pagos = CONFIG.pagos || {};
+  const def = { pagoMovil: { activo: true, banco: "", telefono: "", documento: "" }, transferencia: { activo: true, banco: "", cuenta: "", titular: "", documento: "" }, binance: { activo: true, correo: "" }, efectivo: { activo: true, nota: "" }, zelle: { activo: true, nota: "Solicita los datos de Zelle por WhatsApp." } };
+  Object.keys(def).forEach(k => p[k] = Object.assign({}, def[k], p[k] || {}));
+  const campo = (m, k, label, ph) => `<label class="f">${label}<input type="text" data-m="${m}" data-k="${k}" value="${esc(p[m][k])}" placeholder="${ph || ""}"></label>`;
+  const bloque = (m, titulo, campos, ayuda) => `<div class="bloque"><h3>${titulo}</h3><label class="chk"><input type="checkbox" data-m="${m}" data-k="activo" ${p[m].activo ? "checked" : ""}> Mostrar este método al cliente</label>${ayuda ? `<p class="ayuda">${ayuda}</p>` : ""}<div class="fila">${campos}</div></div>`;
+  el.innerHTML = `<div class="barra"><h2>Datos de pago</h2><button class="btn oro" type="button" id="pg-guardar">GUARDAR CAMBIOS</button></div>
+    <p class="ayuda" style="margin:-8px 0 16px">Estos datos se mostrarán al cliente cuando apruebes su cotización, en la página donde paga y sube su comprobante (próxima fase).</p>
+    <div class="form" style="padding:0">
+      ${bloque("pagoMovil", "Pago Móvil", campo("pagoMovil", "banco", "Banco", "Ej. Banesco (0134)") + campo("pagoMovil", "telefono", "Teléfono", "0414-0000000") + campo("pagoMovil", "documento", "Cédula o RIF", "V-00000000"))}
+      ${bloque("transferencia", "Transferencia bancaria (Bs)", campo("transferencia", "banco", "Banco") + campo("transferencia", "cuenta", "N° de cuenta", "0134-0000-00-0000000000") + campo("transferencia", "titular", "Titular") + campo("transferencia", "documento", "Cédula o RIF"))}
+      ${bloque("binance", "Binance Pay (USDT)", campo("binance", "correo", "Correo o Pay ID de Binance"))}
+      ${bloque("efectivo", "Efectivo", campo("efectivo", "nota", "Indicación para el cliente", "Ej. En nuestro taller en Mariara, de lunes a sábado"))}
+      ${bloque("zelle", "Zelle (a solicitud)", campo("zelle", "nota", "Mensaje para el cliente"), "Tus datos de Zelle no se muestran en la página: el cliente los pide por WhatsApp.")}
+    </div>`;
+  el.querySelectorAll("[data-m]").forEach(i => i.addEventListener(i.type === "checkbox" ? "change" : "input", () => p[i.dataset.m][i.dataset.k] = i.type === "checkbox" ? i.checked : i.value));
+  $("pg-guardar").addEventListener("click", async () => { try { await guardarConfig(); toast("Datos de pago guardados."); } catch (err) { toast("No se pudo guardar: " + (err.message || err)); } });
+}
+</script>
+<script src="menu.js"></script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body>
+</html>

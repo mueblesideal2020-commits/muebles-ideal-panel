@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Personal · Muebles Ideal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Muebles Ideal">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="apple-touch-icon" href="logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Portal del personal: pensado para el teléfono, una mano, luz del taller.
+   Negro y dorado de la marca; verde = pagado / a tiempo, ámbar = pendiente / tarde. */
+:root { --bg:#eeede9; --surface:#fff; --ink:#141414; --muted:#6a655d; --line:#dcd8cf; --gold:#b8913f; --gold-2:#d4ad62; --soft:#f6f1e6;
+  --ok:#2e7d32; --ok-bg:#e8f3e9; --warn:#8a5a00; --warn-bg:#fdf3dc; --bad:#b3261e; --bad-bg:#fbeae8;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif; --body:"Karla","Helvetica Neue",Arial,sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 500; letter-spacing: .04em; cursor: pointer; text-decoration: none; }
+.btn.oro { background: var(--gold-2); color: var(--ink); }
+.btn.borde { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+.btn[disabled] { opacity: .55; cursor: progress; }
+input { width: 100%; min-height: 54px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; font-size: 1.15rem; }
+input:focus { outline: none; border-color: var(--gold); }
+label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .9rem; }
+.msg { padding: 12px 14px; border-radius: 12px; font-size: .95rem; margin: 0; }
+.msg.err { background: var(--bad-bg); color: var(--bad); } .msg.ok { background: var(--ok-bg); color: var(--ok); } .msg.warn { background: var(--warn-bg); color: var(--warn); }
+
+/* Entrada */
+.entrar { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; background: radial-gradient(120% 80% at 50% 0%, #3a3934, #141414 70%); }
+.entrar form { width: min(400px, 100%); background: var(--surface); border-radius: 24px; padding: 30px 24px; display: flex; flex-direction: column; gap: 16px; }
+.entrar img { height: 72px; width: auto; align-self: center; }
+.entrar h1 { text-align: center; font-size: 1.15rem; text-transform: uppercase; letter-spacing: .1em; }
+.entrar p.sub { text-align: center; color: var(--muted); margin: -8px 0 4px; font-size: .95rem; }
+
+/* App */
+.top { position: sticky; top: 0; z-index: 10; background: var(--ink); color: #fff; padding: calc(12px + env(safe-area-inset-top, 0px)) 18px 12px; display: flex; align-items: center; gap: 12px; }
+.top img { height: 30px; width: auto; filter: invert(1); }
+.top .hola { flex: 1; min-width: 0; }
+.top .hola b { display: block; font-family: var(--display); font-weight: 500; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top .hola span { font-size: .8rem; color: #cfc8b8; letter-spacing: .06em; }
+main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.card { background: var(--surface); border-radius: 20px; padding: 18px; }
+.reloj { text-align: center; }
+.reloj .hora { font-family: var(--display); font-size: 3rem; font-weight: 300; letter-spacing: .02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.reloj .fecha { color: var(--muted); }
+.reloj .fecha::first-letter { text-transform: uppercase; }
+.marcas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+.marcas div { background: var(--soft); border-radius: 14px; padding: 12px; text-align: center; }
+.marcas span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+.marcas b { font-family: var(--display); font-weight: 500; font-size: 1.4rem; }
+.marcar { width: 100%; min-height: 76px; font-size: 1.15rem; letter-spacing: .08em; }
+.marcar.salida { background: var(--ink); color: #fff; }
+.nota { font-size: .85rem; color: var(--muted); margin: 10px 0 0; text-align: center; }
+.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.kpi { background: var(--surface); border-radius: 18px; padding: 14px 16px; }
+.kpi span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.kpi b { font-family: var(--display); font-weight: 500; font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+.kpi small { display: block; color: var(--muted); font-size: .8rem; }
+.kpi.oscuro { background: var(--ink); color: #fff; } .kpi.oscuro span, .kpi.oscuro small { color: #cfc8b8; }
+.kpi.ancho { grid-column: 1 / -1; }
+.sec-t { font-size: .78rem; text-transform: uppercase; letter-spacing: .14em; color: var(--gold); font-weight: 600; font-family: var(--display); margin: 6px 4px -6px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; }
+.chips button { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font-weight: 700; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.lista { display: flex; flex-direction: column; gap: 10px; }
+.item { background: var(--surface); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+.item b { font-family: var(--display); font-weight: 500; }
+.item .m { font-family: var(--display); font-size: 1.15rem; text-align: right; font-variant-numeric: tabular-nums; }
+.item .d { color: var(--muted); font-size: .88rem; }
+.chip { display: inline-block; font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; justify-self: end; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.pend { background: var(--warn-bg); color: var(--warn); } .chip.gris { background: #eee; color: #777; }
+.vacio { text-align: center; color: var(--muted); padding: 30px 16px; background: var(--surface); border-radius: 16px; }
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.nav button { border: 0; background: none; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: .74rem; font-weight: 700; color: var(--muted); cursor: pointer; }
+.nav button svg { width: 24px; height: 24px; }
+.nav button[aria-current="page"] { color: var(--ink); }
+.nav button[aria-current="page"] svg { color: var(--gold); }
+.perfil dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; }
+.perfil dt { color: var(--muted); font-size: .88rem; } .perfil dd { margin: 0; font-weight: 700; }
+.cod { font-family: var(--display); font-size: 1.6rem; letter-spacing: .08em; }
+.toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .95rem; max-width: calc(100% - 32px); text-align: center; }
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Muebles Ideal">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+</head>
+<body>
+
+<!-- Entrar con correo y contraseña -->
+<section class="entrar" id="v-entrar" hidden>
+  <form id="f-entrar" novalidate>
+    <img src="logo-v.png" alt="Muebles Ideal">
+    <h1>Personal</h1>
+    <p class="sub">Entra con tu correo y tu contraseña.</p>
+    <label class="f">Correo<input id="correo" type="email" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="tucorreo@gmail.com"></label>
+    <label class="f">Contraseña<input id="clave" type="password" autocomplete="current-password"></label>
+    <button class="btn oro" type="submit" id="b-entrar">ENTRAR</button>
+    <p class="msg" id="m-entrar" hidden></p>
+    <p class="sub" style="margin:0;font-size:.9rem">¿Primera vez u olvidaste la contraseña?<br><button type="button" class="btn borde" id="b-olvide" style="margin-top:10px;min-height:44px">Enviarme un correo para crearla</button></p>
+  </form>
+</section>
+
+<!-- App -->
+<section id="v-app" hidden>
+  <header class="top"><img src="logo-mark.png" alt=""><div class="hola"><b id="t-nombre"></b><span id="t-cod"></span></div></header>
+  <main id="main"></main>
+  <nav class="nav" aria-label="Secciones">
+    <button type="button" data-v="inicio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Marcar</button>
+    <button type="button" data-v="proyectos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M8 9V6a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3"/></svg>Proyectos</button>
+    <button type="button" data-v="asistencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Asistencia</button>
+    <button type="button" data-v="perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Perfil</button>
+  </nav>
+</section>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+});
+const auth = firebase.auth(), db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const toast = t => { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 3200); };
+const fmtU = n => "$" + (Math.round((n || 0) * 100) / 100).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtN = n => (Math.round((n || 0) * 100) / 100).toLocaleString("es-VE", { maximumFractionDigits: 2 });
+const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const hoy = () => iso(new Date());
+const diaMas = (f, k) => { const d = new Date(f + "T12:00:00"); d.setDate(d.getDate() + k); return iso(d); };
+const viernesDe = f => { const d = new Date(f + "T12:00:00"); d.setDate(d.getDate() + (5 - d.getDay() + 7) % 7); return iso(d); };
+const fechaCorta = f => f ? f.slice(8, 10) + "/" + f.slice(5, 7) : "";
+const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const tsDate = t => t && t.toDate ? t.toDate() : (t && t.seconds ? new Date(t.seconds * 1000) : (t ? new Date(t) : null));
+const hhmm = d => d ? d.toLocaleTimeString("es-VE", { hour: "numeric", minute: "2-digit" }) : "—";
+const fmtH = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`; };
+const msg = (id, t, tipo) => { const m = $(id); m.textContent = t; m.className = "msg " + tipo; m.hidden = !t; };
+
+let YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150 }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
+
+function mostrar(v){ ["v-entrar", "v-app"].forEach(k => $(k).hidden = k !== v); }
+
+/* ---- Entrar ---- */
+try { const c = localStorage.getItem("mi-personal-correo"); if (c) $("correo").value = c; } catch (e) {}
+$("f-entrar").addEventListener("submit", async e => {
+  e.preventDefault(); msg("m-entrar", "", "");
+  const correo = $("correo").value.trim().toLowerCase(), clave = $("clave").value;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) return msg("m-entrar", "Escribe tu correo.", "err");
+  if (!clave) return msg("m-entrar", "Escribe tu contraseña.", "err");
+  const b = $("b-entrar"); b.disabled = true; b.textContent = "Entrando…";
+  try {
+    await auth.signInWithEmailAndPassword(correo, clave);
+    try { localStorage.setItem("mi-personal-correo", correo); } catch (er) {}
+    $("clave").value = "";
+  } catch (err) {
+    console.error(err); const c = err.code || "";
+    msg("m-entrar", /invalid-credential|wrong-password|user-not-found|invalid-login|invalid-email/.test(c) ? "Correo o contraseña incorrectos. Si es tu primera vez, toca «Enviarme un correo para crearla»."
+      : /too-many/.test(c) ? "Demasiados intentos. Espera unos minutos." : "No se pudo entrar. Revisa tu conexión.", "err");
+  } finally { b.disabled = false; b.textContent = "ENTRAR"; }
+});
+$("b-olvide").addEventListener("click", async () => {
+  const correo = $("correo").value.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(correo)) return msg("m-entrar", "Escribe primero tu correo arriba.", "err");
+  try { await auth.sendPasswordResetEmail(correo); msg("m-entrar", `Te enviamos un correo a ${correo} para crear tu contraseña. Revisa también la carpeta de spam.`, "ok"); }
+  catch (err) { msg("m-entrar", "No se pudo enviar el correo. Revisa que esté bien escrito.", "err"); }
+});
+
+auth.onAuthStateChanged(async u => {
+  YO = u; E = null;
+  if (!u) { location.replace("index.html"); return; }
+  let motivo = "";
+  try {
+    const q = await db.collection("empleados").where("acceso.email", "==", (u.email || "").toLowerCase()).limit(1).get();
+    if (q.empty) motivo = "Este correo no está registrado como empleado. Habla con el encargado.";
+    else { E = Object.assign({ id: q.docs[0].id }, q.docs[0].data()); if (!E.acceso || E.acceso.activo === false) motivo = "Tu acceso no está activo. Habla con el encargado."; }
+  } catch (e) { console.error(e); motivo = "El portal aún no está activado en el sistema (permisos). Avísale al encargado."; }
+  if (motivo) { await auth.signOut(); msg("m-entrar", motivo, "err"); return; }
+  await entrarApp();
+});
+
+/* ---- Datos ---- */
+async function entrarApp(){
+  mostrar("v-app");
+  $("t-nombre").textContent = "Hola, " + (E.nombre || "").split(" ")[0];
+  $("t-cod").textContent = E.codigo || "";
+  $("main").innerHTML = `<p class="vacio">Cargando…</p>`;
+  await recargar();
+}
+async function recargar(){
+  try {
+    const [c, t, a] = await Promise.all([db.collection("config").doc("personal").get(), db.collection("trabajos").where("email", "==", YO.email).get(), db.collection("asistencias").where("email", "==", YO.email).get()]);
+    if (c.exists) CFG = Object.assign(CFG, c.data());
+    TRAB = t.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((x, y) => (y.fecha || "").localeCompare(x.fecha || ""));
+    ASIS = a.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((x, y) => (y.fecha || "").localeCompare(x.fecha || ""));
+  } catch (e) { console.error(e); toast("No se pudieron cargar tus datos. Revisa tu conexión."); }
+  pintar();
+}
+const horarioDe = f => (CFG.horario || {})[new Date(f + "T12:00:00").getDay()] || null;
+function tardanza(a){
+  const h = horarioDe(a.fecha), e = tsDate(a.entrada); if (!h || !e) return 0;
+  const [H, M] = h.e.split(":").map(Number), prog = new Date(a.fecha + "T00:00:00"); prog.setHours(H, M, 0, 0);
+  const min = Math.round((e - prog) / 60000); return min > (CFG.tolerancia || 0) ? min : 0;
+}
+const horasDe = a => { const e = tsDate(a.entrada), s = tsDate(a.salida); return e && s ? Math.max(0, (s - e) / 3600000) : 0; };
+
+/* ---- Navegación ---- */
+document.querySelectorAll(".nav button").forEach(b => b.addEventListener("click", () => { vista = b.dataset.v; pintar(); window.scrollTo(0, 0); }));
+function pintar(){
+  document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.v === vista ? "page" : "false"));
+  ({ inicio: pintarInicio, proyectos: pintarProyectos, asistencia: pintarAsistencia, perfil: pintarPerfil })[vista]();
+}
+
+/* ---- Marcar ---- */
+let relojT = null;
+function pintarInicio(){
+  const f = hoy(), a = ASIS.find(x => x.fecha === f), h = horarioDe(f);
+  const fin = viernesDe(f), ini = diaMas(fin, -6);
+  const semana = TRAB.filter(t => t.fecha >= ini && t.fecha <= fin), pend = TRAB.filter(t => !t.pagado);
+  const horasSem = ASIS.filter(x => x.fecha >= ini && x.fecha <= fin).reduce((s, x) => s + horasDe(x), 0);
+  const estado = !a ? "entrada" : !a.salida ? "salida" : "listo";
+  const t = a ? tardanza(a) : 0;
+  $("main").innerHTML = `
+    <div class="card reloj">
+      <div class="hora" id="reloj"></div>
+      <div class="fecha">${new Date().toLocaleDateString("es-VE", { weekday: "long", day: "numeric", month: "long" })}</div>
+      <div class="marcas"><div><span>Entrada</span><b>${a ? hhmm(tsDate(a.entrada)) : "—"}</b></div><div><span>Salida</span><b>${a && a.salida ? hhmm(tsDate(a.salida)) : "—"}</b></div></div>
+      ${t ? `<p class="msg warn" style="margin:-4px 0 12px">Hoy llegaste ${t} min tarde.</p>` : ""}
+      ${estado === "listo" ? `<p class="msg ok">Jornada completa: ${fmtH(horasDe(a))}. ¡Buen trabajo!</p>`
+        : `<button class="btn oro marcar ${estado === "salida" ? "salida" : ""}" id="b-marcar">${estado === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA"}</button>`}
+      <p class="nota" id="n-marcar">${h ? `Horario de hoy: ${h.e} a ${h.s}` : "Hoy no es día laboral."}${CFG.taller ? " · Debes estar en el taller para marcar." : ""}</p>
+    </div>
+    <div class="sec-t">Esta semana · ${fechaCorta(ini)} al ${fechaCorta(fin)}</div>
+    <div class="kpis">
+      <div class="kpi oscuro ancho"><span>Por cobrar</span><b>${fmtU(pend.reduce((s, x) => s + (x.monto || 0), 0))}</b><small>${pend.length} trabajo${pend.length === 1 ? "" : "s"} pendiente${pend.length === 1 ? "" : "s"} de pago</small></div>
+      <div class="kpi"><span>Proyectos</span><b>${new Set(semana.map(x => x.ventaId)).size}</b><small>${fmtU(semana.reduce((s, x) => s + (x.monto || 0), 0))} esta semana</small></div>
+      <div class="kpi"><span>Horas</span><b>${fmtN(horasSem)}</b><small>trabajadas</small></div>
+    </div>`;
+  clearInterval(relojT);
+  const tic = () => { const r = $("reloj"); if (!r) return clearInterval(relojT); r.textContent = new Date().toLocaleTimeString("es-VE", { hour: "numeric", minute: "2-digit" }); };
+  tic(); relojT = setInterval(tic, 10000);
+  if ($("b-marcar")) $("b-marcar").addEventListener("click", () => marcar(estado));
+}
+function distanciaM(a, b){ const R = 6371000, r = x => x * Math.PI / 180, dLa = r(b.lat - a.lat), dLo = r(b.lng - a.lng);
+  const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
+const ubicacion = () => new Promise(ok => {
+  if (!navigator.geolocation) return ok({ error: "sin-gps" });
+  navigator.geolocation.getCurrentPosition(p => ok({ lat: p.coords.latitude, lng: p.coords.longitude, prec: Math.round(p.coords.accuracy) }),
+    e => ok({ error: e.code === 1 ? "permiso" : "sin-senal" }), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+});
+async function marcar(tipo){
+  const b = $("b-marcar"), nota = $("n-marcar"); b.disabled = true; b.textContent = "Verificando ubicación…";
+  const u = await ubicacion();
+  let ubic = null;
+  if (!u.error) { ubic = { lat: u.lat, lng: u.lng, prec: u.prec }; if (CFG.taller) ubic.dist = Math.round(distanciaM(CFG.taller, u)); }
+  if (CFG.taller) {
+    if (u.error) { b.disabled = false; b.textContent = tipo === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA";
+      nota.innerHTML = `<span class="msg err" style="display:block">${u.error === "permiso" ? "Debes permitir la ubicación para marcar. Actívala en los ajustes del navegador." : "No se encontró tu ubicación. Sal a un lugar abierto e intenta otra vez."}</span>`; return; }
+    /* Se da margen con la precisión del GPS para no rechazar a quien sí está en el taller */
+    if (ubic.dist > (CFG.radio || 150) + Math.min(u.prec || 0, 100)) { b.disabled = false; b.textContent = tipo === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA";
+      nota.innerHTML = `<span class="msg err" style="display:block">Estás a ${ubic.dist >= 1000 ? fmtN(ubic.dist / 1000) + " km" : ubic.dist + " m"} del taller. Solo puedes marcar estando en la fábrica.</span>`; return; }
+  }
+  b.textContent = "Guardando…";
+  const f = hoy(), id = `${E.id}_${f}`, ref = db.collection("asistencias").doc(id), ahora = firebase.firestore.FieldValue.serverTimestamp();
+  try {
+    if (tipo === "entrada") await ref.set({ empleadoId: E.id, email: YO.email, nombre: E.nombre || "", fecha: f, entrada: ahora, salida: null, ubicEntrada: ubic, ubicSalida: null });
+    else await ref.update({ salida: ahora, ubicSalida: ubic });
+    const d = await ref.get(); const nuevo = Object.assign({ id }, d.data());
+    ASIS = ASIS.filter(x => x.id !== id).concat([nuevo]).sort((x, y) => (y.fecha || "").localeCompare(x.fecha || ""));
+    toast(tipo === "entrada" ? "Entrada marcada. ¡Buen día!" : "Salida marcada. ¡Hasta mañana!"); pintar();
+  } catch (e) {
+    console.error(e); b.disabled = false; b.textContent = tipo === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA";
+    nota.innerHTML = `<span class="msg err" style="display:block">No se pudo marcar. Revisa tu conexión e intenta de nuevo.</span>`;
+  }
+}
+
+/* ---- Proyectos ---- */
+function pintarProyectos(){
+  const tot = TRAB.reduce((s, x) => s + (x.monto || 0), 0), pag = TRAB.filter(x => x.pagado).reduce((s, x) => s + (x.monto || 0), 0);
+  const ls = TRAB.filter(x => filtroP === "todos" || (filtroP === "pend" ? !x.pagado : x.pagado));
+  $("main").innerHTML = `
+    <div class="kpis">
+      <div class="kpi oscuro ancho"><span>Por cobrar</span><b>${fmtU(tot - pag)}</b><small>${TRAB.filter(x => !x.pagado).length} pendiente(s)</small></div>
+      <div class="kpi"><span>Ya cobrado</span><b>${fmtU(pag)}</b></div>
+      <div class="kpi"><span>Proyectos</span><b>${new Set(TRAB.map(x => x.ventaId)).size}</b><small>en total</small></div>
+    </div>
+    <div class="chips">${[["pend", "Pendientes"], ["pag", "Pagados"], ["todos", "Todos"]].map(([k, n]) => `<button type="button" data-f="${k}" aria-pressed="${k === filtroP}">${n}</button>`).join("")}</div>
+    <div class="lista">${ls.length ? ls.map(x => `<div class="item">
+        <b>${esc(x.producto || "Proyecto")}${(x.cantidad || 1) > 1 ? ` × ${x.cantidad}` : ""}</b><span class="m">${fmtU(x.monto)}</span>
+        <span class="d">${fechaCorta(x.fecha)} · ${esc(x.numero || "")} · ${esc(x.rol)} ${fmtN(x.pct)}%</span>
+        <span class="chip ${x.pagado ? "ok" : "pend"}">${x.pagado ? "Pagado " + fechaCorta(x.pagadoFecha) : "Pendiente"}</span></div>`).join("")
+      : `<p class="vacio">${filtroP === "pend" ? "No tienes pagos pendientes." : "Aquí aparecerán tus proyectos."}</p>`}</div>`;
+  document.querySelectorAll(".chips button").forEach(b => b.addEventListener("click", () => { filtroP = b.dataset.f; pintarProyectos(); }));
+}
+
+/* ---- Asistencia ---- */
+function pintarAsistencia(){
+  const mes = hoy().slice(0, 7), delMes = ASIS.filter(a => (a.fecha || "").startsWith(mes));
+  const horas = delMes.reduce((s, a) => s + horasDe(a), 0), tardes = delMes.filter(a => tardanza(a) > 0).length;
+  $("main").innerHTML = `
+    <div class="sec-t">${new Date().toLocaleDateString("es-VE", { month: "long", year: "numeric" })}</div>
+    <div class="kpis">
+      <div class="kpi"><span>Días</span><b>${delMes.length}</b><small>trabajados</small></div>
+      <div class="kpi"><span>Horas</span><b>${fmtN(horas)}</b><small>en el mes</small></div>
+      <div class="kpi ancho"><span>Llegadas tarde</span><b>${tardes}</b><small>Tolerancia de ${CFG.tolerancia || 0} min</small></div>
+    </div>
+    <div class="lista">${ASIS.slice(0, 60).map(a => { const t = tardanza(a), d = new Date(a.fecha + "T12:00:00");
+      return `<div class="item"><b>${DIAS[d.getDay()]} ${fechaCorta(a.fecha)}</b><span class="m">${a.salida ? fmtN(horasDe(a)) + " h" : ""}</span>
+        <span class="d">Entrada ${hhmm(tsDate(a.entrada))} · Salida ${a.salida ? hhmm(tsDate(a.salida)) : "—"}${a.corregido ? " · corregido" : ""}</span>
+        <span class="chip ${t ? "pend" : a.salida ? "ok" : "gris"}">${t ? t + " min tarde" : a.salida ? "Completo" : "Sin salida"}</span></div>`; }).join("") || `<p class="vacio">Aún no tienes asistencias marcadas.</p>`}</div>`;
+}
+
+/* ---- Perfil ---- */
+function pintarPerfil(){
+  $("main").innerHTML = `
+    <div class="card perfil">
+      <p style="margin:0 0 4px;color:var(--muted);font-size:.85rem">Tu código de empleado</p><p class="cod" style="margin:0 0 16px">${esc(E.codigo || "")}</p>
+      <dl><dt>Nombre</dt><dd>${esc(E.nombre || "")}</dd><dt>Correo</dt><dd style="word-break:break-all">${esc(YO.email || "")}</dd><dt>Cargo</dt><dd>${esc((E.roles || []).join(", "))}</dd>${E.telefono ? `<dt>Teléfono</dt><dd>${esc(E.telefono)}</dd>` : ""}</dl>
+    </div>
+    <button class="btn borde" type="button" id="b-cpin">Cambiar mi contraseña</button>
+    <button class="btn" type="button" id="b-salir">Salir</button>
+    <p class="nota">Para entrar más rápido, agrega esta página a tu pantalla de inicio desde el menú del navegador.</p>`;
+  $("b-cpin").addEventListener("click", async () => { try { await auth.sendPasswordResetEmail(YO.email); toast("Te enviamos un correo para cambiar la contraseña."); } catch (e) { toast("No se pudo enviar el correo."); } });
+  $("b-salir").addEventListener("click", () => auth.signOut());
+}
+</script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body>
+</html>

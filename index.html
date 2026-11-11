@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel · Muebles Ideal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+:root { --bg:#eeede9; --surface:#fff; --ink:#141414; --muted:#6a655d; --line:#dcd8cf; --gold:#b8913f; --soft:#f6f1e6; --display:Lexend, system-ui, sans-serif; --body:Karla, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 20px; border-radius: 999px; border: 1.5px solid transparent; font-family: var(--display); font-weight: 500; cursor: pointer; background: var(--ink); color: #fff; text-decoration: none; min-height: 44px; }
+.btn.oro { background: var(--gold); color: var(--ink); }
+.btn.borde { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:disabled { opacity: .6; cursor: default; }
+.link { background: none; border: 0; padding: 0; color: #8a6a2a; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px 130px; background: var(--ink); }
+.login form { width: 100%; max-width: 380px; background: var(--surface); border-radius: 18px; padding: 30px 26px; display: flex; flex-direction: column; gap: 14px; }
+.login img { width: 64px; margin: 0 auto 4px; display: block; }
+.login h1 { text-align: center; font-size: 1.35rem; }
+label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .9rem; }
+input[type=email], input[type=password] { width: 100%; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; min-height: 44px; }
+input:focus { outline: none; border-color: var(--gold); }
+.msg { padding: 10px 12px; border-radius: 10px; font-size: .9rem; margin: 0; }
+.msg.err { background: #fbe9e7; color: #8f2a1d; }
+.msg.ok { background: #e8f3e8; color: #24572a; }
+.ayuda { font-size: .88rem; color: var(--muted); margin: 0; }
+.top { background: var(--ink); color: #fff; padding: 22px 16px 26px; }
+.top .in { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.top img { width: 44px; }
+.top h1 { font-size: 1.35rem; }
+.top .yo { color: #c9c3b6; font-size: .9rem; display: block; }
+.top .sp { flex: 1; }
+.top .btn.borde { color: #fff; border-color: #444; min-height: 38px; padding: 7px 16px; }
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.tarjeta { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink); min-height: 150px; transition: border-color .15s, transform .15s; }
+.tarjeta:hover { border-color: var(--gold); transform: translateY(-2px); }
+.tarjeta svg { width: 30px; height: 30px; color: var(--gold); }
+.tarjeta h2 { font-size: 1.1rem; }
+.tarjeta p { margin: 0; color: var(--muted); font-size: .9rem; }
+.rol { display: inline-block; background: var(--soft); color: #6b5221; border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 700; margin-top: 6px; }
+.sec { font-family: var(--display); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a2a; margin: 26px 0 12px; font-weight: 500; }
+.sin { max-width: 460px; margin: 60px auto; background: var(--surface); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+.instalar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 50; max-width: 460px; margin: 0 auto; background: var(--surface); color: var(--ink); border-radius: 16px; padding: 14px 14px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); display: flex; gap: 12px; align-items: center; }
+.instalar img { width: 44px; height: 44px; border-radius: 10px; flex: none; }
+.instalar p { margin: 0; font-size: .88rem; color: var(--muted); }
+.instalar b { color: var(--ink); display: block; font-size: .95rem; }
+.instalar .btn { min-height: 40px; padding: 8px 16px; flex: none; }
+.instalar .x { background: none; border: 0; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--muted); width: 36px; height: 36px; flex: none; }
+.ios-ico { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; }
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Muebles Ideal">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+</head>
+<body>
+
+<section class="login" id="v-login" hidden>
+  <form id="f-login" novalidate>
+    <img src="logo-mark.png" alt="Muebles Ideal">
+    <h1>Panel Muebles Ideal</h1>
+    <p class="ayuda" style="text-align:center">Administración de la mueblería. Entra con tu correo y contraseña: verás solo lo que te toca. Los empleados también entran aquí.</p>
+    <label class="f">Correo<input type="email" id="l-email" autocomplete="username" required></label>
+    <label class="f">Contraseña<input type="password" id="l-pass" autocomplete="current-password" required></label>
+    <p class="msg" id="l-msg" hidden></p>
+    <button class="btn oro" id="l-btn" type="submit">ENTRAR</button>
+    <p class="ayuda" style="text-align:center">¿Primera vez u olvidaste tu contraseña? <button type="button" class="link" id="l-reset">Enviarme un enlace</button></p>
+  </form>
+</section>
+
+<section id="v-panel" hidden>
+  <div class="top"><div class="in">
+    <img src="logo-mark-blanco.png" alt="">
+    <div><h1 id="hola">Panel</h1><span class="yo" id="yo"></span><span class="rol" id="rol"></span></div>
+    <span class="sp"></span>
+    <button class="btn borde" id="salir" type="button">Salir</button>
+  </div></div>
+  <main id="secciones"></main>
+</section>
+
+<section id="v-sin" hidden>
+  <div class="sin">
+    <h2>Sin acceso al panel</h2>
+    <p class="ayuda" id="sin-msg"></p>
+    <button class="btn borde" id="sin-salir" type="button">Entrar con otra cuenta</button>
+  </div>
+</section>
+
+<aside class="instalar" id="instalar" hidden aria-label="Instalar la app">
+  <img src="icono-192.png" alt="">
+  <p id="ins-txt"><b>Instala la app</b>Ábrela desde tu pantalla de inicio, sin escribir la contraseña cada vez.</p>
+  <button class="btn oro" id="ins-btn" type="button" hidden>INSTALAR</button>
+  <button class="x" id="ins-x" type="button" aria-label="Cerrar">×</button>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+};
+const DUENO = "mueblesideal2020@gmail.com";
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth(), db = firebase.firestore();
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+const ICO = {
+  ventas: '<path d="M4 4h16v4H4z"/><path d="M5 8v12h14V8"/><path d="M9 12h6"/>',
+  equipo: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/>',
+  catalogo: '<path d="M3 10h18v7H3z"/><path d="M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M5 17v2M19 17v2"/>',
+  conta: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 19h0"/>',
+  planos: '<path d="M3 21V3h18v18z"/><path d="M3 9h18M9 21V9"/>',
+  pagina: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  portal: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'
+};
+const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
+const PAGINA = "https://mueblesideal2020-commits.github.io/muebles-ideal/";
+const SECCIONES = [
+  { k: "contabilidad.html#ventas", i: "ventas", t: "Ventas y cobros", roles: ["dueno", "admin"], d: "Registra cada venta, el equipo que la fabrica y los abonos del cliente. Ve quién te debe." },
+  { k: "contabilidad.html#resumen", i: "conta", t: "Dinero y bancos", roles: ["dueno", "admin"], d: "Cuánto entró y salió, Banesco y Mercantil, gastos fijos, reserva y ganancia." },
+  { k: "contabilidad.html#nomina", i: "equipo", t: "Empleados y nómina", roles: ["dueno", "admin"], d: "Lo que se le debe a cada trabajador, pagos de la semana, asistencia y fichas." },
+  { k: "contabilidad.html", i: "conta", t: "Anotar gastos e ingresos", roles: ["ayudante"], d: "Anota las compras y los cobros del día." },
+  { k: "catalogo.html", i: "catalogo", t: "Catálogo de la página", roles: ["dueno"], d: "Productos, fotos, precios, categorías, telas y colores que ven los clientes." },
+  { k: "planos.html", i: "planos", t: "Planos y despieces", roles: ["dueno", "admin"], d: "Estructura de madera, lista de cortes y compras de cada modelo." },
+  { k: PAGINA, i: "pagina", t: "Ver la página", roles: ["dueno", "admin", "ayudante"], d: "La tienda como la ven los clientes.", nueva: true }
+];
+const NOMBRE_ROL = { dueno: "Dueño", admin: "Administrador", ayudante: "Ayudante" };
+
+const msg = (t, tipo) => { const m = $("l-msg"); m.textContent = t; m.className = "msg " + tipo; m.hidden = false; };
+$("f-login").addEventListener("submit", async e => {
+  e.preventDefault(); const b = $("l-btn"); b.disabled = true; b.textContent = "Entrando…";
+  try { await auth.signInWithEmailAndPassword($("l-email").value.trim().toLowerCase(), $("l-pass").value); }
+  catch (err) { msg(/wrong-password|invalid-credential|user-not-found|invalid-login/.test(err.code || "") ? "Correo o contraseña incorrectos." : /too-many/.test(err.code || "") ? "Demasiados intentos. Espera unos minutos." : "No se pudo entrar: " + (err.message || err), "err"); }
+  finally { b.disabled = false; b.textContent = "ENTRAR"; }
+});
+$("l-reset").addEventListener("click", async () => {
+  const em = $("l-email").value.trim().toLowerCase(); if (!em) return msg("Escribe tu correo primero.", "err");
+  try { await auth.sendPasswordResetEmail(em); msg("Te enviamos un enlace a " + em + " para crear tu contraseña.", "ok"); }
+  catch (err) { msg("No se pudo enviar el enlace: " + (err.message || err), "err"); }
+});
+$("salir").addEventListener("click", () => auth.signOut());
+$("sin-salir").addEventListener("click", () => auth.signOut());
+try { const u = localStorage.getItem("mi-contab-email"); if (u) $("l-email").value = u; } catch (e) {}
+
+async function rolDe(em){
+  if (em === DUENO) return "dueno";
+  try { const d = await db.collection("equipo").doc(em).get();
+    if (d.exists && d.data().activo !== false) return d.data().rol === "administrador" ? "admin" : "ayudante"; } catch (e) {}
+  try { const s = await db.collection("empleados").where("acceso.email", "==", em).limit(1).get(); if (!s.empty) return "empleado"; } catch (e) {}
+  return null;
+}
+auth.onAuthStateChanged(async u => {
+  ["v-login", "v-panel", "v-sin"].forEach(k => $(k).hidden = true);
+  if (!u) { $("v-login").hidden = false; return; }
+  const em = (u.email || "").toLowerCase();
+  try { localStorage.setItem("mi-contab-email", em); } catch (e) {}
+  const rol = await rolDe(em);
+  if (rol === "empleado") { location.replace("personal.html"); return; }
+  if (!rol) { $("sin-msg").textContent = `La cuenta ${em} no tiene acceso al panel. Pídele al dueño que te agregue (Dinero y bancos → Cajas y ajustes → Administrador y ayudantes, o Empleados si eres del taller).`; $("v-sin").hidden = false; return; }
+  $("yo").textContent = em; $("rol").textContent = NOMBRE_ROL[rol];
+  $("hola").textContent = rol === "dueno" ? "Panel Muebles Ideal" : "Hola";
+  const ls = SECCIONES.filter(s => s.roles.includes(rol));
+  $("secciones").innerHTML = `<p class="sec">¿Qué quieres hacer?</p><div class="grid">${ls.map(s => `<a class="tarjeta" href="${s.k}"${s.nueva ? ' target="_blank" rel="noopener"' : ""}>${ico(s.i)}<h2>${esc(s.t)}</h2><p>${esc(s.d)}</p></a>`).join("")}</div>`;
+  $("v-panel").hidden = false;
+});
+</script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+<script>
+/* Invitación a instalar la app (Android: botón; iPhone: instrucciones de Safari) */
+(function () {
+  const caja = document.getElementById("instalar"), btn = document.getElementById("ins-btn"), txt = document.getElementById("ins-txt");
+  const instalada = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  let cerrada = false; try { cerrada = localStorage.getItem("mi-instalar-cerrado") === "1"; } catch (e) {}
+  if (instalada || cerrada) return;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let evento = null;
+  addEventListener("beforeinstallprompt", e => { e.preventDefault(); evento = e; btn.hidden = false; caja.hidden = false; });
+  btn.addEventListener("click", async () => { if (!evento) return; evento.prompt(); const r = await evento.userChoice; evento = null; if (r.outcome === "accepted") caja.hidden = true; });
+  document.getElementById("ins-x").addEventListener("click", () => { caja.hidden = true; try { localStorage.setItem("mi-instalar-cerrado", "1"); } catch (e) {} });
+  addEventListener("appinstalled", () => { caja.hidden = true; });
+  if (ios) {
+    const enSafari = /safari/i.test(navigator.userAgent) && !/crios|fxios|edgios/i.test(navigator.userAgent);
+    txt.innerHTML = enSafari
+      ? '<b>Instala la app</b>Toca <svg class="ios-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Compartir"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 11v9h14v-9"/></svg> <b style="display:inline">Compartir</b> y luego <b style="display:inline">Agregar a pantalla de inicio</b>.'
+      : '<b>Instala la app</b>Abre este enlace en <b style="display:inline">Safari</b> y toca Compartir → Agregar a pantalla de inicio.';
+    caja.hidden = false;
+  }
+})();
+</script>
+</body>
+</html>

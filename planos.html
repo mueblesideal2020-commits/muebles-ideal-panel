@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planos de estructura · Muebles Ideal</title>
+<meta name="robots" content="noindex">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Herramienta del taller: tinta negra sobre papel, dorado solo como acento y en las cotas */
+:root { --ink:#141414; --muted:#615d56; --line:#d9d4ca; --soft:#f5f1e8; --gold:#9a7230; --warn:#b3261e; --paper:#fff; --bg:#ebe9e5;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif; --body:"Karla","Helvetica Neue",Arial,sans-serif; color-scheme: light; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 14px; line-height: 1.45; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; letter-spacing: .02em; }
+button, input, select { font: inherit; color: inherit; }
+.barra { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px max(16px, 3vw); background: #141414; color: #fff; }
+.barra h1 { font-size: .95rem; text-transform: uppercase; letter-spacing: .08em; }
+.barra .acc { display: flex; gap: 8px; flex-wrap: wrap; }
+.barra button { font: 600 .85rem var(--display); letter-spacing: .05em; padding: 10px 18px; border-radius: 999px; border: 0; background: #d4ad62; color: #141414; cursor: pointer; }
+.barra button.sec { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.4); }
+.app { display: grid; grid-template-columns: 330px 1fr; gap: 20px; padding: 20px max(16px, 3vw) 60px; max-width: 1400px; margin: 0 auto; align-items: start; }
+.panel { position: sticky; top: 72px; background: var(--paper); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; max-height: calc(100vh - 92px); overflow-y: auto; }
+.panel h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .14em; color: var(--gold); margin-top: 4px; }
+.fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+label.f { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; font-weight: 700; }
+label.f small { font-weight: 400; color: var(--muted); }
+input, select { width: 100%; min-height: 40px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
+input:focus, select:focus { outline: none; border-color: #d4ad62; }
+.chk { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: .88rem; }
+.chk input { width: 18px; height: 18px; min-height: 0; accent-color: #b8913f; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button { padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-size: .8rem; font-weight: 600; }
+.presets button:hover { border-color: #b8913f; }
+.nota { font-size: .8rem; color: var(--muted); margin: 0; }
+.res { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.hoja { background: var(--paper); border-radius: 14px; padding: 20px 22px; }
+.cab { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 14px; }
+.cab img { height: 34px; width: auto; }
+.cab .t { font-family: var(--display); text-transform: uppercase; letter-spacing: .04em; }
+.cab .t b { display: block; font-size: 1.35rem; font-weight: 500; }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+.kpis div { background: var(--soft); border-radius: 10px; padding: 10px 12px; }
+.kpis span { display: block; font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.kpis b { font-family: var(--display); font-weight: 500; font-size: 1.15rem; }
+.aviso { background: #fbeae8; color: var(--warn); border-radius: 8px; padding: 8px 12px; font-size: .86rem; margin: 0 0 10px; }
+.grupo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; align-items: start; }
+.grupo h3 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: .04em; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.grupo h3 em { font-style: normal; background: var(--ink); color: #fff; border-radius: 6px; padding: 1px 9px; font-size: .85rem; }
+.grupo .med { color: var(--muted); font-size: .85rem; margin: 2px 0 10px; }
+.dos { display: grid; grid-template-columns: 1.35fr 1fr; gap: 12px; align-items: center; }
+.dib { border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: #fffdf8; }
+table.t { width: 100%; border-collapse: collapse; font-size: .85rem; }
+table.t th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 5px 6px; border-bottom: 1.5px solid var(--ink); }
+table.t td { padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.t td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 700; }
+table.t td.c { text-align: center; font-weight: 700; }
+table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
+.ck { display: inline-block; width: 13px; height: 13px; border: 1.5px solid var(--ink); border-radius: 3px; }
+.sec-t { font-size: .74rem; text-transform: uppercase; letter-spacing: .12em; color: var(--gold); font-weight: 700; margin: 14px 0 6px; font-family: var(--display); }
+.barras { display: flex; flex-direction: column; gap: 3px; }
+.barra-l { display: flex; height: 18px; border: 1px solid var(--ink); border-radius: 3px; overflow: hidden; font-size: .66rem; font-weight: 700; }
+.barra-l span { background: #e8d3a6; border-right: 1px solid #9a7230; display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
+.barra-l i { flex: 1; background: repeating-linear-gradient(45deg, #f3f0ea 0 4px, #e4dfd5 4px 8px); }
+.pie { font-size: .76rem; color: var(--muted); margin-top: 10px; }
+@media (max-width: 700px) { .dos { grid-template-columns: 1fr; } }
+@media (max-width: 980px) { .app { grid-template-columns: 1fr; } .panel { position: static; max-height: none; } .grupo { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+@page { size: letter; margin: 10mm; }
+@media print {
+  html, body { background: #fff; font-size: 11px; }
+  .barra, .panel { display: none !important; }
+  .app { display: block; padding: 0; }
+  .hoja { border-radius: 0; padding: 0 0 6mm; break-inside: avoid; page-break-inside: avoid; }
+  .hoja + .hoja { border-top: 1px dashed #bbb; padding-top: 5mm; }
+  .hoja.salto { break-before: page; page-break-before: always; }
+  .grupo { grid-template-columns: 1fr 1.15fr; }
+}
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Muebles Ideal">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+</head>
+<body>
+<div class="barra"><h1>Planos de estructura</h1>
+  <div class="acc"><button type="button" class="sec" id="copiar">Copiar enlace</button><button type="button" id="imprimir">IMPRIMIR / PDF</button></div></div>
+<div class="app">
+  <form class="panel" id="f" autocomplete="off">
+    <div class="presets" aria-label="Modelos guardados">
+      <button type="button" data-preset="recto">Sofá 3 puestos 2,20</button>
+      <button type="button" data-preset="divan">Modular con diván</button>
+      <button type="button" data-preset="dos">2 puestos</button>
+    </div>
+    <h2>Sofá</h2>
+    <div class="fila">
+      <label class="f">Tipo<select name="tipo"><option value="recto">Recto</option><option value="divan">Con diván</option></select></label>
+      <label class="f">Puestos <small>módulos</small><input name="puestos" inputmode="numeric"></label>
+      <label class="f">Largo total <small>cm</small><input name="largo" inputmode="decimal"></label>
+      <label class="f">Fondo total <small>cm</small><input name="fondo" inputmode="decimal"></label>
+    </div>
+    <div class="fila" data-solo="divan">
+      <label class="f">Lado del diván<select name="divanLado"><option value="izquierda">Izquierda</option><option value="derecha">Derecha</option></select></label>
+      <label class="f">Largo del diván <small>cm, con espaldar</small><input name="divanLargo" inputmode="decimal"></label>
+      <label class="chk" style="grid-column:1/-1"><input type="checkbox" name="baul"> Diván con baúl</label>
+    </div>
+    <h2>Brazos</h2>
+    <div class="fila">
+      <label class="f" style="grid-column:1/-1">Brazos<select name="brazos"><option value="ambos">Ambos lados</option><option value="izquierdo">Solo izquierdo</option><option value="derecho">Solo derecho</option><option value="ninguno">Sin brazos</option></select></label>
+      <label class="f">Ancho <small>cm</small><input name="anchoBrazo" inputmode="decimal"></label>
+      <label class="f">Alto <small>cm</small><input name="altoBrazo" inputmode="decimal"></label>
+    </div>
+    <h2>Base y asiento</h2>
+    <div class="fila">
+      <label class="f">Alto de la base <small>cm</small><input name="altoBase" inputmode="decimal"></label>
+      <label class="f">Alto bastidor <small>cm, listón de canto</small><input name="altoBastidor" inputmode="decimal"></label>
+      <label class="f">Cincha + saco + tela <small>cm que suman</small><input name="extraBastidor" inputmode="decimal"></label>
+      <label class="f">Goma del asiento <small>pulgadas</small><input name="gomaPulg" inputmode="decimal"></label>
+      <label class="f">Patas <small>cm</small><input name="altoPata" inputmode="decimal"></label>
+      <label class="f">Cincha <small>ancho / separación, cm</small><span style="display:flex;gap:6px"><input name="cinchaAncho" inputmode="decimal"><input name="cinchaSep" inputmode="decimal"></span></label>
+    </div>
+    <h2>Espaldar</h2>
+    <div class="fila">
+      <label class="f">Alto espaldar <small>cm</small><input name="altoEspaldar" inputmode="decimal"></label>
+      <label class="f">Fondo espaldar <small>abajo, cm</small><input name="fondoEspaldar" inputmode="decimal"></label>
+      <label class="f">Grosor arriba <small>cm</small><input name="topeEspaldar" inputmode="decimal"></label>
+    </div>
+    <h2>Material</h2>
+    <div class="fila">
+      <label class="f">Listón grueso <small>cm</small><input name="la" inputmode="decimal"></label>
+      <label class="f">Listón ancho <small>cm</small><input name="lb" inputmode="decimal"></label>
+      <label class="f">Largo del listón <small>cm, compra</small><input name="largoListon" inputmode="decimal"></label>
+      <label class="f">Cartela <small>cm, a 45°</small><input name="cartela" inputmode="decimal"></label>
+      <label class="f">MDF <small>cm de grosor</small><input name="mdf" inputmode="decimal"></label>
+    </div>
+    <p class="nota">Las medidas se guardan en el enlace: cópialo y mándalo al taller.</p>
+  </form>
+  <div class="res" id="res"></div>
+</div>
+<script src="estructura.js"></script>
+<script>
+const $ = id => document.getElementById(id), f = $("f");
+const PRESETS = {
+  recto: { tipo: "recto", puestos: 3, largo: 220, fondo: 85, brazos: "ambos", baul: false },
+  divan: { tipo: "divan", puestos: 3, largo: 280, fondo: 95, divanLargo: 170, divanLado: "izquierda", brazos: "ambos", baul: true },
+  dos: { tipo: "recto", puestos: 2, largo: 160, fondo: 85, brazos: "ambos", baul: false }
+};
+let P = Object.assign({}, Estructura.BASE, Estructura.deHash(location.hash));
+const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = Estructura.fmt;
+function llenar(){
+  for (const el of f.elements) { if (!el.name) continue; if (el.type === "checkbox") el.checked = P[el.name] === true || P[el.name] === "true"; else el.value = String(P[el.name]).replace(".", ","); }
+  f.querySelectorAll('[data-solo="divan"]').forEach(d => d.hidden = P.tipo !== "divan");
+}
+function leer(){
+  for (const el of f.elements) { if (!el.name) continue; P[el.name] = el.type === "checkbox" ? el.checked : el.value; }
+  f.querySelectorAll('[data-solo="divan"]').forEach(d => d.hidden = P.tipo !== "divan");
+}
+function pintar(){
+  const r = Estructura.calcular(P), pl = Estructura.planos(r), general = pl.general;
+  const x = r.x, hoy = new Date().toLocaleDateString("es-VE");
+  const titulo = `Sofá ${x.tipo === "divan" ? "modular con diván " + x.divanLado : "recto"} · ${x.puestos} puesto${x.puestos === 1 ? "" : "s"}`;
+  const tabla = gr => `<table class="t"><thead><tr><th style="width:22px"></th><th>Pieza</th><th style="text-align:center">Cant.</th><th style="text-align:right">Largo</th><th>Corte</th></tr></thead><tbody>
+      ${gr.piezas.map(p => `<tr><td><span class="ck"></span></td><td>${esc(p.n)}<span class="sub">Listón ${p.sec}${p.nota ? " · " + esc(p.nota) : ""}</span></td><td class="c">${p.c * gr.cant}${gr.cant > 1 ? `<span class="sub">${p.c} c/u</span>` : ""}</td><td class="n">${fmt(p.l)} cm</td><td>${esc(p.corte)}</td></tr>`).join("")}
+      ${(gr.tablas || []).map(t => `<tr><td><span class="ck"></span></td><td>${esc(t.n)}<span class="sub">${esc(t.nota)}</span></td><td class="c">${t.c}</td><td class="n" colspan="2" style="text-align:left">${esc(t.med)}</td></tr>`).join("")}
+      ${gr.mdf.map(m => `<tr><td><span class="ck"></span></td><td>${esc(m.n)}<span class="sub">MDF ${fmt(x.mdf * 10)} mm${m.nota ? " · " + esc(m.nota) : ""}</span></td><td class="c">${m.c * gr.cant}</td><td class="n">${fmt(m.an)} × ${fmt(m.al)}</td><td>Lámina</td></tr>`).join("")}
+      ${gr.herrajes.map(h => `<tr><td><span class="ck"></span></td><td>${esc(h.n)}</td><td class="c">${h.c * gr.cant}</td><td></td><td>Herraje</td></tr>`).join("")}
+    </tbody></table>`;
+  const maxCortes = Math.max(...r.barras.map(b => b.cortes.length));
+  $("res").innerHTML = `
+    <section class="hoja">
+      <div class="cab"><img src="logo-v.png" alt="Muebles Ideal" onerror="this.remove()"><div class="t"><span style="font-size:.75rem;color:var(--muted)">Plano de estructura · ${hoy}</span><b>${esc(titulo)}</b></div></div>
+      ${r.avisos.map(a => `<p class="aviso">⚠ ${esc(a)}</p>`).join("")}
+      <div class="kpis"><div><span>Medida total</span><b>${fmt(x.largo)} × ${fmt(x.tipo === "divan" ? x.divanLargo : x.fondo)} cm</b></div><div><span>Alto del asiento</span><b>${fmt(r.alturas.asiento)} cm</b></div>
+        <div><span>Listones ${fmt(x.la)}×${fmt(x.lb)}</span><b>${r.barras.length} de ${fmt(x.largoListon / 100)} m</b></div><div><span>MDF ${fmt(x.mdf * 10)} mm</span><b>${r.laminas} lámina${r.laminas === 1 ? "" : "s"}</b></div></div>
+      <div class="dos"><div class="dib">${general}</div><div class="dib">${pl.alturas}</div></div>
+      <p class="pie">Izquierda: vista desde arriba, espaldar al fondo entre los brazos; cada puesto es un bastidor de ${fmt(r.W)} × ${fmt(r.D)} cm sobre la base completa. Derecha: corte lateral. Medidas en centímetros. Alto del asiento = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} + bastidor ${fmt(r.alturas.bastidor)} + goma ${fmt(r.alturas.goma)} (${fmt(x.gomaPulg)}") = <b>${fmt(r.alturas.asiento)} cm</b>.</p>
+    </section>
+    ${r.grupos.map((gr, i) => `<section class="hoja ${i === 0 ? "salto" : ""}"><div class="grupo">
+      <div><h3>${esc(gr.t)} <em>× ${gr.cant}</em></h3><p class="med">${esc(gr.med)}</p><div class="dib">${gr.svg}</div></div>
+      <div><div class="sec-t">Lista de cortes${gr.cant > 1 ? ` · total para ${gr.cant}` : ""}</div>${tabla(gr)}</div></div></section>`).join("")}
+    <section class="hoja salto">
+      <div class="sec-t" style="margin-top:0">Lista de compra</div>
+      <table class="t"><thead><tr><th style="width:22px"></th><th>Material</th><th style="text-align:center">Cant.</th><th>Detalle</th></tr></thead><tbody>
+        ${r.compra.map(c => `<tr><td><span class="ck"></span></td><td>${esc(c.n)}</td><td class="c">${Number.isInteger(c.c) ? c.c : fmt(c.c)} ${esc(c.u)}</td><td>${esc(c.nota)}</td></tr>`).join("")}</tbody></table>
+      <div class="sec-t">Cómo cortar los listones (${r.barras.length} de ${fmt(x.largoListon)} cm)</div>
+      <div class="barras">${r.barras.map((b, i) => `<div class="barra-l" title="Listón ${i + 1}">${b.cortes.map(l => `<span style="width:${l / Math.max(x.largoListon, b.usado) * 100}%">${fmt(l)}</span>`).join("")}<i></i></div>`).join("")}</div>
+      <p class="pie">Cada barra es un listón: se cortan las piezas de izquierda a derecha, lo rayado es sobrante. Tornillería estimada; ajústala según la práctica del taller.</p>
+    </section>`;
+  history.replaceState(null, "", "#" + Estructura.aHash(Object.fromEntries(Object.keys(Estructura.BASE).map(k => [k, P[k]]))));
+}
+f.addEventListener("input", () => { leer(); pintar(); });
+f.addEventListener("change", () => { leer(); pintar(); });
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { P = Object.assign({}, Estructura.BASE, PRESETS[b.dataset.preset]); llenar(); pintar(); }));
+$("imprimir").addEventListener("click", () => window.print());
+$("copiar").addEventListener("click", async () => { try { await navigator.clipboard.writeText(location.href); $("copiar").textContent = "¡Copiado!"; } catch (e) { prompt("Copia este enlace:", location.href); } setTimeout(() => $("copiar").textContent = "Copiar enlace", 1800); });
+llenar(); pintar();
+</script>
+<script src="menu.js"></script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body>
+</html>
