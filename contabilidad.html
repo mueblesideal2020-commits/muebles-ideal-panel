@@ -127,6 +127,15 @@ table.t tfoot td { font-weight: 700; border-top: 2px solid var(--line); }
 .resumen-v div { background: var(--soft); border-radius: 10px; padding: 10px 12px; }
 .resumen-v span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
 .resumen-v b { font-family: var(--display); font-weight: 500; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.cots { margin-bottom: 14px; }
+.cots h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; }
+.cots .n { display: inline-block; min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--bad); color: #fff; font-size: .75rem; line-height: 22px; text-align: center; }
+.cot-lista { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.cot-item { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.cot-item.desc { opacity: .7; }
+.cot-info { flex: 999 1 280px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cot-prod { font-size: .9rem; overflow-wrap: anywhere; }
+.cot-acc { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .lista-cot { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; }
 .lista-cot button { text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; cursor: pointer; }
 .lista-cot button:hover { border-color: var(--gold); }
@@ -312,7 +321,7 @@ const ROL_VENTAS = "Ejecutivo de ventas";
 const ROLES = [...ROLES_PROD, ROL_VENTAS];
 const CAT_NOMINA = "Nómina y comisiones";
 const COMISIONES_BASE = { equipo: { 1: 5, 2: 10, 3: 15, 4: 20 }, ventas: 8.333 };
-let ROL = null, YO = "", CUENTAS = [], MOVS = [], VENTAS = [], EQUIPO = [], EMPLEADOS = [];
+let ROL = null, YO = "", CUENTAS = [], MOVS = [], VENTAS = [], EQUIPO = [], EMPLEADOS = [], COTS = [];
 let AJ = { categoriasIngreso: CAT_ING, categoriasGasto: CAT_GAS, tasa: { valor: 0, fecha: "" } };
 const BANCOS_BASE = { operativa: "", resguardo: "", pct: { gastos: 5, reserva: 7, dueno: 15 }, desde: "" };
 let PRIV = { sueldo: { monto: 0, frecuencia: "mensual", cuenta: "" }, comisiones: JSON.parse(JSON.stringify(COMISIONES_BASE)), bancos: JSON.parse(JSON.stringify(BANCOS_BASE)) };
@@ -375,6 +384,7 @@ async function cargar(){
       if (!AJ.catsV2) { ["Cincha y saco", "Combustible y transporte"].forEach(c => { if (!AJ.categoriasGasto.includes(c)) AJ.categoriasGasto.splice(Math.max(0, AJ.categoriasGasto.length - 1), 0, c); });
         AJ.catsV2 = true; db.collection("contab").doc("publico").set(AJ).catch(() => {}); }
       await cargarPersonal();
+      try { COTS = lista(await db.collection("cotizaciones").get()).map(q => Object.assign(q, { f: fechaCot(q) })); } catch (e) { console.error(e); COTS = []; }
     } else {
       /* El ayudante no ve ventas ni nómina: solo cajas, categorías y lo que él anota */
       const [cu, pu, mo] = await Promise.all([...comun, db.collection("movimientos").where("creadoPor", "==", YO).get()]);
@@ -456,7 +466,7 @@ const sueldoEsperado = () => num(PRIV.sueldo.monto) * (VECES[PRIV.sueldo.frecuen
 function pintarTabs(){
   const porCobrar = VENTAS.filter(v => saldoVenta(v) > 0.009).length;
   const t = gestor()
-    ? [["resumen", "Resumen"], ["movimientos", "Ingresos y gastos"], ["ventas", "Ventas"], ["cobrar", "Por cobrar" + (porCobrar ? `<span class="n">${porCobrar}</span>` : "")], ["nomina", "Nómina"], ["asistencia", "Asistencia"], ["empleados", "Empleados"]].concat([["ajustes", ROL === "dueno" ? "Cajas y ajustes" : "Tasa del dólar"]])
+    ? [["resumen", "Resumen"], ["movimientos", "Ingresos y gastos"], ["ventas", "Ventas" + (cotsNuevas().length ? `<span class="n">${cotsNuevas().length}</span>` : "")], ["cobrar", "Por cobrar" + (porCobrar ? `<span class="n">${porCobrar}</span>` : "")], ["nomina", "Nómina"], ["asistencia", "Asistencia"], ["empleados", "Empleados"]].concat([["ajustes", ROL === "dueno" ? "Cajas y ajustes" : "Tasa del dólar"]])
     : [["anotar", "Anotar"], ["mios", "Mis registros"]];
   $("tabs").innerHTML = t.map(([k, n]) => `<button class="tab" role="tab" data-t="${k}" aria-selected="${k === tab}">${n}</button>`).join("");
   $("tabs").querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { tab = b.dataset.t; pintarTabs(); pintar(); window.scrollTo(0, 0); }));
@@ -485,6 +495,7 @@ function pintarResumen(){
   const serie = meses.map(m => { const x = totalesMes(m); return { m, i: x.ingreso, g: x.gasto }; });
   const cats = Object.entries(t.cat).sort((a, b) => b[1] - a[1]); const maxCat = cats.length ? cats[0][1] : 1;
   const alertas = [];
+  if (cotsNuevas().length) alertas.push(`<p class="msg ok alerta">Tienes <b>${cotsNuevas().length}</b> ${cotsNuevas().length === 1 ? "cotización nueva" : "cotizaciones nuevas"} de la página. <button type="button" class="link" id="r-cots">Verlas en Ventas</button></p>`);
   if (t.retiro > 0) alertas.push(`<p class="msg warn alerta">Este mes sacaste <b>${fmtU(t.retiro)}</b> en retiros personales fuera de tu sueldo.</p>`);
   if (esp && t.sueldo > esp + 0.01) alertas.push(`<p class="msg warn alerta">Te pagaste <b>${fmtU(t.sueldo)}</b> de sueldo y lo fijado es ${fmtU(esp)} al mes.</p>`);
   if (t.queda < 0 && (t.ingreso || t.gasto)) alertas.push(`<p class="msg err alerta">Este mes salió más dinero del que entró: el negocio quedó en <b>${fmtU(t.queda)}</b>.</p>`);
@@ -520,6 +531,7 @@ function pintarResumen(){
   $("r-mes").addEventListener("change", e => e.target.value && ir(e.target.value));
   $("r-nuevo").addEventListener("click", () => abrirMov(null, { tipo: "gasto" }));
   $("r-xls").addEventListener("click", () => exportar(MES));
+  const rc = $("r-cots"); if (rc) rc.addEventListener("click", () => { tab = "ventas"; refrescar(); });
   el.querySelectorAll("[data-apartar]").forEach(b => b.addEventListener("click", () => abrirApartado(MOVS.find(m => m.id === b.dataset.apartar))));
   const cfg = $("r-bancos"); if (cfg) cfg.addEventListener("click", () => { tab = "ajustes"; refrescar(); setTimeout(() => { const n = $("a-bancos"); if (n) n.scrollIntoView({ behavior: "smooth" }); }, 50); });
 }
@@ -863,6 +875,39 @@ function formMov(el, m, pre, op){
 }
 
 /* ===== VENTAS ===== */
+/* ===== Cotizaciones que llegan de la página ===== */
+function fechaCot(q){ const f = q.fecha; if (!f) return ""; const d = f.toDate ? f.toDate() : new Date(f); return isNaN(d) ? "" : d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+const cotsNuevas = () => COTS.filter(q => !q.venta && !q.descartada).sort((a, b) => (b.f || "").localeCompare(a.f || ""));
+const productosCot = q => q.items && q.items.length ? q.items.map(it => (num(it.cantidad) > 1 ? it.cantidad + " × " : "") + [it.modelo, it.tamano && it.tamano !== "Por definir" ? it.tamano : ""].filter(Boolean).join(" ")).join(" + ") : [q.modelo, q.tamano].filter(Boolean).join(" ");
+const waDe = t => { let d = String(t || "").replace(/\D/g, ""); if (!d) return ""; if (d.startsWith("0")) d = "58" + d.slice(1); else if (!d.startsWith("58") && d.length === 10) d = "58" + d; return "https://wa.me/" + d; };
+function datosDeCot(q){
+  const deCot = (it, n) => Object.assign(nuevoItem(n), { cantidad: num(it.cantidad) || 1,
+    producto: [it.modelo, it.tamano && it.tamano !== "Por definir" ? it.tamano : "", it.medida].filter(Boolean).join(" · "),
+    detalle: [it.color && "Tela: " + it.color, it.colorCojines && "Cojines: " + it.colorCojines, it.lado, it.gavetas, it.piezas, it.soporte && it.soporte + (it.colorPatas ? " " + it.colorPatas : ""), it.accesorios && "Accesorios: " + it.accesorios, it.orden && "Orden: " + it.orden, it.mensaje].filter(Boolean).join("\n") });
+  return { cotizacionId: q.id, numero: q.orden || "", cliente: q.nombre || "", telefono: q.telefono || "", email: q.email || "", ciudad: q.ciudad || "",
+    notas: q.entrega ? "Entrega: " + q.entrega + (q.direccion ? " — " + q.direccion : "") : (q.mensaje || ""),
+    items: q.items && q.items.length ? q.items.map((it, i) => deCot(it, i + 1)) : [deCot(q, 1)] };
+}
+let verDescartadas = false;
+function bloqueCots(){
+  const nuevas = cotsNuevas(), desc = COTS.filter(q => q.descartada && !q.venta).sort((a, b) => (b.f || "").localeCompare(a.f || ""));
+  const fila = (q, desc) => { const wa = waDe(q.telefono), tipo = q.origen === "asesoria" ? "Asesoría" : q.origen === "pedido" ? "Pedido" : "Cotización";
+    return `<div class="cot-item${desc ? " desc" : ""}"><div class="cot-info"><b>${esc(q.nombre || "Sin nombre")}</b>
+      <span class="sub">${tipo}${q.orden ? " · " + esc(q.orden) : ""} · ${q.f ? fechaCorta(q.f) : "sin fecha"}${q.ciudad ? " · " + esc(q.ciudad) : ""}</span>
+      <span class="cot-prod">${esc(productosCot(q) || q.mensaje || "Sin detalle")}</span></div>
+      <div class="cot-acc">${desc ? `<button class="btn borde mini" type="button" data-cot-rec="${q.id}">Recuperar</button>`
+        : `<button class="btn oro mini" type="button" data-cot-v="${q.id}">Convertir en venta</button>${wa ? `<a class="btn borde mini" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>` : ""}<button class="btn borde mini" type="button" data-cot-no="${q.id}">No se vendió</button>`}</div></div>`; };
+  return `<div class="card panel cots"><h3>Cotizaciones nuevas de la página${nuevas.length ? ` <span class="n">${nuevas.length}</span>` : ""}</h3>
+    ${nuevas.length ? `<p class="ayuda">Cuando el cliente confirme, toca <b>Convertir en venta</b>: se copian sus datos y productos. Si no compró, márcala como <b>No se vendió</b>.</p><div class="cot-lista">${nuevas.map(q => fila(q, false)).join("")}</div>`
+      : `<p class="ayuda">No hay cotizaciones pendientes. Las nuevas aparecen aquí solas cuando un cliente pide precio en la página.</p>`}
+    ${desc.length ? `<p style="margin:10px 0 0"><button class="link" type="button" id="cot-ver-desc">${verDescartadas ? "Ocultar" : "Ver"} las que no se vendieron (${desc.length})</button></p>${verDescartadas ? `<div class="cot-lista">${desc.map(q => fila(q, true)).join("")}</div>` : ""}` : ""}</div>`;
+}
+async function marcarCot(id, descartada){
+  const q = COTS.find(z => z.id === id); if (!q) return;
+  const d = descartada ? { descartada: true, descartadaFecha: hoy(), descartadaPor: YO } : { descartada: false };
+  try { await db.collection("cotizaciones").doc(id).update(d); Object.assign(q, d); toast(descartada ? "Marcada como no vendida." : "Cotización recuperada."); refrescar(); }
+  catch (e) { console.error(e); toast("No se pudo guardar. Revisa tu conexión."); }
+}
 function pintarVentas(){
   const el = $("t-ventas");
   const q = filtro.qv.toLowerCase();
@@ -871,6 +916,7 @@ function pintarVentas(){
   const tot = ls.reduce((a, v) => ({ t: a.t + (v.estado === "Anulado" ? 0 : num(v.total)), c: a.c + cobrado(v), s: a.s + saldoVenta(v) }), { t: 0, c: 0, s: 0 });
   el.innerHTML = `
     <div class="barra"><h2>Ventas</h2><button class="btn oro" id="v-nueva">+ NUEVA VENTA</button></div>
+    ${bloqueCots()}
     <div class="barra">
       <select id="v-f-est" aria-label="Estado"><option value="activas">En curso o con saldo</option><option value="todas">Todas</option>${ESTADOS.map(e => `<option ${filtro.estado === e ? "selected" : ""}>${e}</option>`).join("")}</select>
       <input type="text" id="v-f-q" placeholder="Buscar cliente, N° o producto…" value="${esc(filtro.qv)}"></div>
@@ -885,10 +931,14 @@ function pintarVentas(){
   $("v-f-est").addEventListener("change", e => { filtro.estado = e.target.value; pintarVentas(); });
   $("v-f-q").addEventListener("input", e => { filtro.qv = e.target.value; const p = e.target.selectionStart; pintarVentas(); const n = $("v-f-q"); n.focus(); n.setSelectionRange(p, p); });
   el.querySelectorAll("[data-v]").forEach(r => r.addEventListener("click", () => abrirVenta(venta(r.dataset.v))));
+  el.querySelectorAll("[data-cot-v]").forEach(b => b.addEventListener("click", () => abrirVenta(null, COTS.find(q => q.id === b.dataset.cotV))));
+  el.querySelectorAll("[data-cot-no]").forEach(b => b.addEventListener("click", () => marcarCot(b.dataset.cotNo, true)));
+  el.querySelectorAll("[data-cot-rec]").forEach(b => b.addEventListener("click", () => marcarCot(b.dataset.cotRec, false)));
+  const vd = $("cot-ver-desc"); if (vd) vd.addEventListener("click", () => { verDescartadas = !verDescartadas; pintarVentas(); });
 }
 function nuevoItem(n){ return { id: "p" + n + "-" + Date.now().toString(36).slice(-4), producto: "", cantidad: 1, precio: 0, detalle: "", equipo: [], baseComision: 0, pctEquipo: 0, pctIndividual: false, pctEquipoManual: false }; }
 const resumenItems = items => items.filter(it => it.producto).map(it => (it.cantidad > 1 ? it.cantidad + " × " : "") + it.producto).join(" + ");
-function abrirVenta(v0){
+function abrirVenta(v0, cot){
   const nuevo = !v0;
   const x = Object.assign({ numero: "", fecha: hoy(), cliente: "", telefono: "", email: "", ciudad: "", producto: "", total: 0, estado: "Por fabricar", notas: "", cotizacionId: "" }, v0 ? JSON.parse(JSON.stringify(v0)) : {});
   /* Las ventas viejas (un solo producto) se pasan a la lista de productos */
@@ -897,6 +947,7 @@ function abrirVenta(v0){
       baseComision: x.baseComision || 0, pctEquipo: x.pctEquipo || 0, pctEquipoManual: !!x.pctEquipoManual, pctIndividual: !!x.pctIndividual })];
   }
   ["equipo", "detalle", "baseComision", "pctEquipo", "pctEquipoManual", "pctIndividual"].forEach(k => delete x[k]);
+  if (nuevo && cot) { Object.assign(x, datosDeCot(cot)); setTimeout(() => toast(x.items.length > 1 ? `${x.items.length} productos copiados. Escribe el precio de cada uno, elige el equipo y guarda.` : "Datos copiados. Escribe el precio, elige el equipo y guarda."), 50); }
   const ed = $("editor-in"); $("editor").hidden = false; document.body.style.overflow = "hidden"; $("editor").firstElementChild.scrollTop = 0;
   let cots = null, confirmar = false, quitar = -1; ed.innerHTML = "";
   const yo = {}; ed._dueno = yo; /* evita que un redibujo pendiente pise otra ventana abierta después */
@@ -968,18 +1019,13 @@ function abrirVenta(v0){
     ed.querySelectorAll("[data-it-quitar-si]").forEach(b => b.addEventListener("click", () => { x.items.splice(+b.dataset.itQuitarSi, 1); quitar = -1; render(); }));
     on("ve-cot", async () => {
       try { const s = await db.collection("cotizaciones").get();
-        cots = lista(s).filter(q => !q.venta).map(q => Object.assign(q, { f: q.fecha && q.fecha.toDate ? q.fecha.toDate().toISOString().slice(0, 10) : "" })).sort((a, b) => (b.f || "").localeCompare(a.f || "")).slice(0, 40);
+        cots = lista(s).filter(q => !q.venta).map(q => Object.assign(q, { f: fechaCot(q) })).sort((a, b) => (b.f || "").localeCompare(a.f || "")).slice(0, 40);
       } catch (e) { console.error(e); cots = []; toast("No se pudieron leer las cotizaciones."); }
       render();
     });
     ed.querySelectorAll("[data-cot]").forEach(b => b.addEventListener("click", () => {
       const q = cots[+b.dataset.cot];
-      const deCot = (it, n) => Object.assign(nuevoItem(n), { cantidad: num(it.cantidad) || 1,
-        producto: [it.modelo, it.tamano && it.tamano !== "Por definir" ? it.tamano : "", it.medida].filter(Boolean).join(" · "),
-        detalle: [it.color && "Tela: " + it.color, it.colorCojines && "Cojines: " + it.colorCojines, it.lado, it.gavetas, it.piezas, it.soporte && it.soporte + (it.colorPatas ? " " + it.colorPatas : ""), it.accesorios && "Accesorios: " + it.accesorios, it.orden && "Orden: " + it.orden].filter(Boolean).join("\n") });
-      Object.assign(x, { cotizacionId: q.id, numero: q.orden || "", cliente: q.nombre || "", telefono: q.telefono || "", email: q.email || "", ciudad: q.ciudad || "",
-        notas: q.entrega ? "Entrega: " + q.entrega + (q.direccion ? " — " + q.direccion : "") : "",
-        items: q.items && q.items.length ? q.items.map((it, i) => deCot(it, i + 1)) : [deCot(q, 1)] });
+      Object.assign(x, datosDeCot(q));
       cots = null; render(); toast(x.items.length > 1 ? `${x.items.length} productos copiados. Escribe el precio de cada uno y guarda.` : "Datos copiados. Escribe el precio y guarda.");
     }));
     on("ve-abono", () => { cerrarEditor(); abrirMov(null, { tipo: "ingreso", ventaId: x.id, categoria: AJ.categoriasIngreso[0], descripcion: "Abono " + (resumenItems(x.items) || "") }); });
@@ -1000,7 +1046,7 @@ function abrirVenta(v0){
     const id = x.id || nuevoId("v"); const { id: _, ...d } = x;
     try {
       await db.collection("ventas").doc(id).set(d);
-      if (nuevo) { VENTAS.push(Object.assign({ id }, d)); if (d.cotizacionId) db.collection("cotizaciones").doc(d.cotizacionId).update({ venta: id }).catch(() => {}); }
+      if (nuevo) { VENTAS.push(Object.assign({ id }, d)); if (d.cotizacionId) { db.collection("cotizaciones").doc(d.cotizacionId).update({ venta: id, descartada: false }).catch(() => {}); const q = COTS.find(z => z.id === d.cotizacionId); if (q) { q.venta = id; q.descartada = false; } } }
       else { const v = venta(id); Object.keys(v).forEach(k => { if (k !== "id") delete v[k]; }); delete v._legado; Object.assign(v, d); }
       toast("Venta guardada."); cerrarEditor(); refrescar();
       if (nuevo) abrirVenta(venta(id));

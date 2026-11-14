@@ -27,8 +27,15 @@ button, input { font: inherit; color: inherit; }
 .login img { width: 64px; margin: 0 auto 4px; display: block; }
 .login h1 { text-align: center; font-size: 1.35rem; }
 label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .9rem; }
-input[type=email], input[type=password] { width: 100%; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; min-height: 44px; }
+input[type=email], input[type=password], .clave input { width: 100%; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: #fff; min-height: 44px; }
 input:focus { outline: none; border-color: var(--gold); }
+.clave { position: relative; margin-top: -8px; }
+.clave input { padding-right: 112px; }
+.clave button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: #6b5221; font-weight: 700; font-size: .85rem; cursor: pointer; }
+.clave button:hover { background: var(--soft); }
+.clave svg { width: 20px; height: 20px; }
+.clave .ojo-cerrado, .clave button[aria-pressed="true"] .ojo-abierto { display: none; }
+.clave button[aria-pressed="true"] .ojo-cerrado { display: inline; }
 .msg { padding: 10px 12px; border-radius: 10px; font-size: .9rem; margin: 0; }
 .msg.err { background: #fbe9e7; color: #8f2a1d; }
 .msg.ok { background: #e8f3e8; color: #24572a; }
@@ -74,7 +81,12 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
     <h1>Panel Muebles Ideal</h1>
     <p class="ayuda" style="text-align:center">Administración de la mueblería. Entra con tu correo y contraseña: verás solo lo que te toca. Los empleados también entran aquí.</p>
     <label class="f">Correo<input type="email" id="l-email" autocomplete="username" required></label>
-    <label class="f">Contraseña<input type="password" id="l-pass" autocomplete="current-password" required></label>
+    <label class="f" for="l-pass">Contraseña</label>
+    <div class="clave"><input type="password" id="l-pass" autocomplete="current-password" required>
+      <button type="button" id="l-ver" aria-label="Mostrar contraseña" aria-pressed="false" title="Mostrar contraseña">
+        <svg class="ojo-abierto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg class="ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.4-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+        <span>Mostrar</span></button></div>
     <p class="msg" id="l-msg" hidden></p>
     <button class="btn oro" id="l-btn" type="submit">ENTRAR</button>
     <p class="ayuda" style="text-align:center">¿Primera vez u olvidaste tu contraseña? <button type="button" class="link" id="l-reset">Enviarme un enlace</button></p>
@@ -148,7 +160,7 @@ const NOMBRE_ROL = { dueno: "Dueño", admin: "Administrador", ayudante: "Ayudant
 
 const msg = (t, tipo) => { const m = $("l-msg"); m.textContent = t; m.className = "msg " + tipo; m.hidden = false; };
 $("f-login").addEventListener("submit", async e => {
-  e.preventDefault(); const b = $("l-btn"); b.disabled = true; b.textContent = "Entrando…";
+  e.preventDefault(); if ($("l-pass").type === "text") $("l-ver").click(); const b = $("l-btn"); b.disabled = true; b.textContent = "Entrando…";
   try { await auth.signInWithEmailAndPassword($("l-email").value.trim().toLowerCase(), $("l-pass").value); }
   catch (err) { msg(/wrong-password|invalid-credential|user-not-found|invalid-login/.test(err.code || "") ? "Correo o contraseña incorrectos." : /too-many/.test(err.code || "") ? "Demasiados intentos. Espera unos minutos." : "No se pudo entrar: " + (err.message || err), "err"); }
   finally { b.disabled = false; b.textContent = "ENTRAR"; }
@@ -159,6 +171,12 @@ $("l-reset").addEventListener("click", async () => {
   catch (err) { msg("No se pudo enviar el enlace: " + (err.message || err), "err"); }
 });
 $("salir").addEventListener("click", () => auth.signOut());
+$("l-ver").addEventListener("click", () => {
+  const i = $("l-pass"), b = $("l-ver"), ver = i.type === "password";
+  i.type = ver ? "text" : "password"; b.setAttribute("aria-pressed", ver);
+  b.setAttribute("aria-label", ver ? "Ocultar contraseña" : "Mostrar contraseña"); b.title = b.getAttribute("aria-label");
+  b.querySelector("span").textContent = ver ? "Ocultar" : "Mostrar"; i.focus();
+});
 $("sin-salir").addEventListener("click", () => auth.signOut());
 try { const u = localStorage.getItem("mi-contab-email"); if (u) $("l-email").value = u; } catch (e) {}
 
