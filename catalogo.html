@@ -119,6 +119,13 @@ table.ed input[type=text], table.ed input[type=number] { padding: 7px 8px; }
 .fotos-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 150px; border: 1.5px dashed var(--line); border-radius: 12px; cursor: pointer; font-weight: 700; color: var(--muted); }
 .fotos-add span { font-size: 1.8rem; line-height: 1; color: var(--gold); }
 .fotos-add:hover { border-color: var(--gold); color: var(--ink); }
+.sw.sel { outline: 3px solid var(--gold); outline-offset: 2px; }
+.color-ed { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-top: 14px; padding: 14px; border: 1.5px solid var(--gold); border-radius: 14px; background: var(--soft); }
+.ce-prev { width: 120px; height: 120px; border-radius: 12px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.ce-info { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.ce-acc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 4px; }
+.ce-acc .btn { min-height: 40px; }
+.ce-conf { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 700; color: var(--bad); }
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141414">
@@ -224,15 +231,15 @@ async function comprimir(file, lado, calidad, tope = 330000){
   while (url.length > tope && q > .4) { q -= .08; url = c.toDataURL("image/jpeg", q); }
   return url;
 }
-async function muestraColor(file){
+async function muestraColor(file, S = 240, q = .8){
   const im = await leerImagen(file);
-  const s = Math.min(im.width, im.height) * .7, S = 140;
+  const s = Math.min(im.width, im.height) * .7;
   const c = document.createElement("canvas"); c.width = c.height = S; const x = c.getContext("2d");
   x.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, S, S);
   const d = x.getImageData(0, 0, S, S).data; let r = 0, g = 0, b = 0;
   for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
   const n = d.length / 4, hx = v => Math.round(v / n).toString(16).padStart(2, "0");
-  return { img: c.toDataURL("image/jpeg", .78), hex: "#" + hx(r) + hx(g) + hx(b) };
+  return { img: c.toDataURL("image/jpeg", q), hex: "#" + hx(r) + hx(g) + hx(b) };
 }
 const estiloColor = c => c.img ? `background:url("${c.img}") center/cover` : `background-color:${c.hex};background-image:url("${IMG_BASE}${c.sp.f}");background-size:${c.sp.n * 100}% 100%;background-position:${c.sp.n > 1 ? (c.sp.i / (c.sp.n - 1)) * 100 : 0}% 0`;
 
@@ -533,14 +540,31 @@ $("editor").addEventListener("click", e => { if (e.target === $("editor")) cerra
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("editor").hidden) cerrarEditor(); });
 
 /* ===== TELAS ===== */
-let nuevaTela = false, borrarTela = null;
+let nuevaTela = false, borrarTela = null, colorSel = null, borrarColor = false; /* colorSel = { t: id de la colección, i: posición del color } */
+/* Panel de un color: cambiar foto, agotado / disponible, eliminar */
+function editorColor(t, i){
+  const c = t.colores[i];
+  return `<div class="color-ed" id="color-ed">
+    <div class="ce-prev" style='${estiloColor(c)}' role="img" aria-label="Muestra del color ${esc(c.nombre || c.codigo)}"></div>
+    <div class="ce-info">
+      <b>${esc(c.nombre || "Sin nombre")}</b> <span class="ayuda">Código ${esc(c.codigo)} · ${c.activo === false ? "<span style='color:var(--bad)'>Agotado</span>" : "Disponible"}${c.img ? "" : " · foto de muestra"}</span>
+      <div class="ce-acc">
+        <label class="btn oro mini">Cambiar foto<input type="file" accept="image/*" hidden id="ce-foto"></label>
+        <button type="button" class="btn borde mini" id="ce-agotado">${c.activo === false ? "Marcar disponible" : "Marcar agotado"}</button>
+        ${borrarColor ? `<span class="ce-conf">¿Eliminar este color? <button type="button" class="btn peligro mini" id="ce-borrar-si">Sí, eliminar</button><button type="button" class="btn borde mini" id="ce-borrar-no">No</button></span>`
+          : `<button type="button" class="btn borde mini" id="ce-borrar">Eliminar color</button>`}
+        <button type="button" class="btn borde mini" id="ce-cerrar">Listo</button>
+      </div>
+      <p class="ayuda" style="margin:6px 0 0">Para la foto: de cerca, con luz natural y sin flash, que se vea la textura. Se recorta al centro.</p>
+    </div></div>`;
+}
 function pintarTelas(){
   const el = $("t-telas");
   const total = TELAS.reduce((a, t) => a + (t.colores || []).length, 0), agot = TELAS.reduce((a, t) => a + (t.colores || []).filter(c => c.activo === false).length, 0);
   el.innerHTML = `<div class="barra"><h2>Telas y colores <small style="color:var(--muted);font-size:.9rem">(${TELAS.length} colecciones · ${total} colores${agot ? ` · ${agot} agotados` : ""})</small></h2>
       ${TELAS.some(t => (t.colores || []).some(c => !c.nombre)) ? '<button class="btn borde" id="t-nombres" type="button">Poner nombres sugeridos</button>' : ""}
       <button class="btn oro" id="t-nueva" type="button">+ NUEVA COLECCIÓN</button></div>
-    <p class="ayuda" style="margin:-8px 0 16px">Toca un color para marcarlo <b>agotado</b> (se oculta en la página) o volver a activarlo. Escribe debajo el <b>nombre</b> que verá el cliente; se guarda al salir del campo. El código es solo de referencia para el taller y nunca se repite.</p>
+    <p class="ayuda" style="margin:-8px 0 16px">Toca un color para <b>cambiar su foto</b> por una foto real de la tela (desde tu fototeca o la cámara), marcarlo <b>agotado</b> o <b>eliminarlo</b>. Escribe debajo el <b>nombre</b> que verá el cliente. El código es solo de referencia para el taller y nunca se repite.</p>
     ${nuevaTela ? `<div class="card coleccion"><h3 style="font-size:1rem">Nueva colección</h3>
       <div class="fila"><label class="f">Nombre<input type="text" id="nt-nombre" placeholder="Ej. Velvet Royal"></label>
         <label class="f">Tipo<select id="nt-tipo"><option>Aterciopelada</option><option>Tipo lino</option><option>Bouclé</option><option>Cuero sintético</option><option>Otra</option></select></label></div>
@@ -556,8 +580,9 @@ function pintarTelas(){
           <span class="acc"><button class="btn borde mini" type="button" data-vis="${esc(t.id)}">${t.activo === false ? "Mostrar colección" : "Ocultar colección"}</button>
           <button class="btn borde mini" type="button" data-borrar-t="${esc(t.id)}">Eliminar</button></span></div>
         ${borrarTela === t.id ? `<div class="confirma"><b>¿Eliminar la colección ${esc(t.nombre)} y sus ${(t.colores || []).length} colores?</b><button class="btn peligro mini" type="button" data-borrar-si="${esc(t.id)}">Sí, eliminar</button><button class="btn borde mini" type="button" data-borrar-no>No</button></div>` : ""}
-        <div class="sws">${(t.colores || []).map((c, i) => `<div class="sw-cel"><button type="button" class="sw ${c.activo === false ? "agotado" : ""}" style='${estiloColor(c)}' data-t="${esc(t.id)}" data-i="${i}" title="${c.activo === false ? "Agotado · toca para activar" : "Disponible · toca para marcar agotado"}"><span class="cod">${esc(c.codigo)}</span></button><input type="text" class="sw-nom" value="${esc(c.nombre || "")}" placeholder="Nombre" data-nt="${esc(t.id)}" data-ni="${i}" aria-label="Nombre del color ${esc(c.codigo)}"></div>`).join("")}
+        <div class="sws">${(t.colores || []).map((c, i) => `<div class="sw-cel"><button type="button" class="sw ${c.activo === false ? "agotado" : ""}${colorSel && colorSel.t === t.id && colorSel.i === i ? " sel" : ""}" style='${estiloColor(c)}' data-t="${esc(t.id)}" data-i="${i}" aria-expanded="${colorSel && colorSel.t === t.id && colorSel.i === i}" title="Toca para cambiar foto, marcar agotado o eliminar"><span class="cod">${esc(c.codigo)}</span></button><input type="text" class="sw-nom" value="${esc(c.nombre || "")}" placeholder="Nombre" data-nt="${esc(t.id)}" data-ni="${i}" aria-label="Nombre del color ${esc(c.codigo)}"></div>`).join("")}
           <label class="sw-add">+ Agregar colores<input type="file" accept="image/*" multiple hidden data-add="${esc(t.id)}"></label></div>
+        ${colorSel && colorSel.t === t.id && t.colores[colorSel.i] ? editorColor(t, colorSel.i) : ""}
       </div>`; }).join("")}`;
   if ($("t-nombres")) $("t-nombres").addEventListener("click", async () => {
     const b = $("t-nombres"); b.disabled = true; b.textContent = "Aplicando…";
@@ -581,11 +606,33 @@ function pintarTelas(){
       nuevaTela = false; toast(`Colección ${String(num).padStart(2, "0")} creada. Ahora agrega sus colores.`); await cargarTodo();
     });
   }
-  el.querySelectorAll(".sw[data-i]").forEach(b => b.addEventListener("click", async () => {
-    const t = TELAS.find(x => x.id === b.dataset.t), c = t.colores[+b.dataset.i];
-    c.activo = c.activo === false; b.classList.toggle("agotado", c.activo === false);
-    await db.collection("telas").doc(t.id).update({ colores: t.colores }); toast(`Color ${c.codigo} ${c.activo === false ? "marcado como agotado" : "disponible de nuevo"}.`);
+  el.querySelectorAll(".sw[data-i]").forEach(b => b.addEventListener("click", () => {
+    const t = b.dataset.t, i = +b.dataset.i;
+    colorSel = colorSel && colorSel.t === t && colorSel.i === i ? null : { t, i }; borrarColor = false; pintarTelas();
+    const ed = $("color-ed"); if (ed) ed.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }));
+  if (colorSel && $("color-ed")) {
+    const t = TELAS.find(x => x.id === colorSel.t), i = colorSel.i, c = t.colores[i];
+    const guardar = async msg => { await db.collection("telas").doc(t.id).update({ colores: t.colores }); toast(msg); pintarTelas(); };
+    $("ce-foto").addEventListener("change", async e => {
+      const f = e.target.files[0]; if (!f) return; toast("Procesando foto…");
+      try {
+        /* Toda la colección vive en un documento de Firestore (máx. ~1 MB): si se pasa, la foto se guarda más liviana */
+        const antes = { img: c.img, hex: c.hex }; let ok = false;
+        for (const [lado, cal] of [[240, .8], [200, .7], [160, .6]]) {
+          const m = await muestraColor(f, lado, cal); c.img = m.img; c.hex = m.hex;
+          if (JSON.stringify(t.colores).length < 950000) { ok = true; break; }
+        }
+        if (!ok) { if (antes.img) c.img = antes.img; else delete c.img; c.hex = antes.hex; return toast("Esta colección ya tiene demasiadas fotos. Elimina colores que no uses o crea otra colección."); }
+        await guardar(`Foto del color ${c.nombre || c.codigo} actualizada.`); }
+      catch (err) { console.error(err); toast("No se pudo cambiar la foto: " + (err.message || err)); }
+    });
+    $("ce-agotado").addEventListener("click", () => { c.activo = c.activo === false; guardar(`${c.nombre || c.codigo} ${c.activo === false ? "marcado como agotado (no sale en la página)" : "disponible de nuevo"}.`); });
+    $("ce-cerrar").addEventListener("click", () => { colorSel = null; borrarColor = false; pintarTelas(); });
+    if ($("ce-borrar")) $("ce-borrar").addEventListener("click", () => { borrarColor = true; pintarTelas(); });
+    if ($("ce-borrar-no")) $("ce-borrar-no").addEventListener("click", () => { borrarColor = false; pintarTelas(); });
+    if ($("ce-borrar-si")) $("ce-borrar-si").addEventListener("click", () => { const n = c.nombre || c.codigo; t.colores.splice(i, 1); colorSel = null; borrarColor = false; guardar(`Color ${n} eliminado.`); });
+  }
   el.querySelectorAll(".sw-nom").forEach(inp => inp.addEventListener("change", async () => {
     const t = TELAS.find(x => x.id === inp.dataset.nt), c = t.colores[+inp.dataset.ni];
     c.nombre = inp.value.trim();

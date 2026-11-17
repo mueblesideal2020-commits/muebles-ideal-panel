@@ -23,14 +23,19 @@
 [hidden] { display: none !important; }
 html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
 h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
-button, input { font: inherit; color: inherit; }
+button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 500; letter-spacing: .04em; cursor: pointer; text-decoration: none; }
 .btn.oro { background: var(--gold-2); color: var(--ink); }
 .btn.borde { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn[disabled] { opacity: .55; cursor: progress; }
 input { width: 100%; min-height: 54px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; font-size: 1.15rem; }
-input:focus { outline: none; border-color: var(--gold); }
+input:focus, select:focus { outline: none; border-color: var(--gold); }
+select { width: 100%; min-height: 54px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; font-size: 1.05rem; }
+.banco-f { display: flex; flex-direction: column; gap: 14px; }
+.banco-f h2, .banco h2 { font-size: 1.05rem; }
+.banco-f .sub2 { font-size: .8rem; font-weight: 400; color: var(--muted); }
+.resumen-b { background: var(--soft); border-radius: 14px; padding: 12px 14px; }
 label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .9rem; }
 .msg { padding: 12px 14px; border-radius: 12px; font-size: .95rem; margin: 0; }
 .msg.err { background: var(--bad-bg); color: var(--bad); } .msg.ok { background: var(--ok-bg); color: var(--ok); } .msg.warn { background: var(--warn-bg); color: var(--warn); }
@@ -156,7 +161,7 @@ const hhmm = d => d ? d.toLocaleTimeString("es-VE", { hour: "numeric", minute: "
 const fmtH = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`; };
 const msg = (id, t, tipo) => { const m = $(id); m.textContent = t; m.className = "msg " + tipo; m.hidden = !t; };
 
-let YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150 }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
+let BANCO = null, YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150 }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
 
 function mostrar(v){ ["v-entrar", "v-app"].forEach(k => $(k).hidden = k !== v); }
 
@@ -212,6 +217,7 @@ async function recargar(){
     if (c.exists) CFG = Object.assign(CFG, c.data());
     TRAB = t.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((x, y) => (y.fecha || "").localeCompare(x.fecha || ""));
     ASIS = a.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((x, y) => (y.fecha || "").localeCompare(x.fecha || ""));
+    try { const b = await db.collection("bancarios").doc(E.id).get(); BANCO = b.exists ? b.data() : null; } catch (e) { console.error(e); BANCO = null; }
   } catch (e) { console.error(e); toast("No se pudieron cargar tus datos. Revisa tu conexión."); }
   pintar();
 }
@@ -336,11 +342,70 @@ function pintarPerfil(){
       <p style="margin:0 0 4px;color:var(--muted);font-size:.85rem">Tu código de empleado</p><p class="cod" style="margin:0 0 16px">${esc(E.codigo || "")}</p>
       <dl><dt>Nombre</dt><dd>${esc(E.nombre || "")}</dd><dt>Correo</dt><dd style="word-break:break-all">${esc(YO.email || "")}</dd><dt>Cargo</dt><dd>${esc((E.roles || []).join(", "))}</dd>${E.telefono ? `<dt>Teléfono</dt><dd>${esc(E.telefono)}</dd>` : ""}</dl>
     </div>
+    ${bloqueBanco()}
     <button class="btn borde" type="button" id="b-cpin">Cambiar mi contraseña</button>
     <button class="btn" type="button" id="b-salir">Salir</button>
     <p class="nota">Para entrar más rápido, agrega esta página a tu pantalla de inicio desde el menú del navegador.</p>`;
   $("b-cpin").addEventListener("click", async () => { try { await auth.sendPasswordResetEmail(YO.email); toast("Te enviamos un correo para cambiar la contraseña."); } catch (e) { toast("No se pudo enviar el correo."); } });
   $("b-salir").addEventListener("click", () => auth.signOut());
+  eventosBanco();
+}
+
+/* ---- Datos bancarios: el empleado los anota UNA sola vez; si se equivoca, el dueño los borra y los vuelve a anotar ---- */
+const BANCOS = ["Banesco", "Mercantil", "Banco de Venezuela", "BBVA Provincial", "BNC (Nacional de Crédito)", "Bancamiga", "Banco del Tesoro", "Bicentenario", "Bancaribe", "Banco Exterior",
+  "Venezolano de Crédito", "Banplus", "Banco Plaza", "Banco Activo", "Sofitasa", "100% Banco", "Banco Caroní", "Bancrecer", "Mi Banco", "Banfanb", "Banco Agrícola de Venezuela", "Banco Digital de los Trabajadores", "Otro"];
+let bancoForm = { banco: "", tipo: "Corriente", cuenta: "", titular: "", cedula: "", pmTelefono: "", pmBanco: "" }, bancoConfirmar = false;
+const soloDig = t => String(t || "").replace(/\D/g, "");
+const fmtCuenta = c => soloDig(c).replace(/(\d{4})(?=\d)/g, "$1 ");
+function bloqueBanco(){
+  if (BANCO) return `<div class="card banco"><h2>Datos para tu pago</h2>
+    <dl style="display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:12px 0 0">
+      ${BANCO.cuenta ? `<dt>Banco</dt><dd style="margin:0;font-weight:700">${esc(BANCO.banco)} · ${esc(BANCO.tipo)}</dd><dt>Cuenta</dt><dd style="margin:0;font-weight:700;word-break:break-all">${esc(fmtCuenta(BANCO.cuenta))}</dd>` : ""}
+      <dt>Titular</dt><dd style="margin:0;font-weight:700">${esc(BANCO.titular)}</dd><dt>Cédula</dt><dd style="margin:0;font-weight:700">${esc(BANCO.cedula)}</dd>
+      ${BANCO.pmTelefono ? `<dt>Pago móvil</dt><dd style="margin:0;font-weight:700">${esc(BANCO.pmTelefono)}${BANCO.pmBanco ? " · " + esc(BANCO.pmBanco) : ""}</dd>` : ""}</dl>
+    <p class="nota" style="text-align:left">Si algún dato está mal o cambiaste de cuenta, pídele al dueño que los borre y podrás anotarlos de nuevo.</p></div>`;
+  const f = bancoForm, opt = (sel, v) => `<option value="">Elige el banco</option>` + BANCOS.map(b => `<option ${b === v ? "selected" : ""}>${b}</option>`).join("");
+  if (bancoConfirmar) return `<div class="card banco-f"><h2>¿Están correctos tus datos?</h2>
+    <div class="resumen-b">${f.cuenta ? `<b>${esc(f.banco)}</b> · ${esc(f.tipo)}<br><span style="word-break:break-all">${esc(fmtCuenta(f.cuenta))}</span><br>` : ""}${esc(f.titular)} · ${esc(f.cedula)}${f.pmTelefono ? `<br>Pago móvil: ${esc(f.pmTelefono)} · ${esc(f.pmBanco)}` : ""}</div>
+    <p class="msg warn">Solo se pueden registrar <b>una vez</b>. Para cambiarlos después tendrás que pedírselo al dueño.</p>
+    <button class="btn oro" type="button" id="bk-si">SÍ, GUARDAR MIS DATOS</button><button class="btn borde" type="button" id="bk-no">Corregir</button>
+    <p class="msg" id="bk-msg" hidden></p></div>`;
+  return `<div class="card banco-f"><h2>Datos para tu pago <span class="sub2">· nómina</span></h2>
+    <p class="nota" style="text-align:left;margin:0">Anótalos con cuidado: se registran una sola vez y solo los ve el dueño para pagarte.</p>
+    <label class="f">Banco<select id="bk-banco">${opt("bk-banco", f.banco)}</select></label>
+    <label class="f">Tipo de cuenta<select id="bk-tipo">${["Corriente", "Ahorro"].map(t => `<option ${t === f.tipo ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+    <label class="f">Número de cuenta <span class="sub2">20 dígitos</span><input id="bk-cuenta" inputmode="numeric" autocomplete="off" value="${esc(f.cuenta)}" placeholder="0134 0000 0000 0000 0000"></label>
+    <label class="f">Titular de la cuenta<input id="bk-titular" value="${esc(f.titular || E.nombre || "")}"></label>
+    <label class="f">Cédula del titular<input id="bk-cedula" value="${esc(f.cedula || E.cedula || "")}" placeholder="V-12345678"></label>
+    <label class="f">Pago móvil: teléfono <span class="sub2">opcional</span><input id="bk-pmtel" type="tel" inputmode="tel" value="${esc(f.pmTelefono)}" placeholder="0414-0000000"></label>
+    <label class="f">Pago móvil: banco <span class="sub2">opcional</span><select id="bk-pmbanco">${opt("bk-pmbanco", f.pmBanco).replace("Elige el banco", "El mismo de arriba")}</select></label>
+    <button class="btn oro" type="button" id="bk-ok">REVISAR Y GUARDAR</button>
+    <p class="msg" id="bk-msg" hidden></p></div>`;
+}
+function eventosBanco(){
+  const ok = $("bk-ok"), si = $("bk-si"), no = $("bk-no");
+  if (ok) ok.addEventListener("click", () => {
+    const v = id => $(id).value.trim();
+    Object.assign(bancoForm, { banco: v("bk-banco"), tipo: v("bk-tipo"), cuenta: soloDig(v("bk-cuenta")), titular: v("bk-titular"), cedula: v("bk-cedula").toUpperCase(), pmTelefono: v("bk-pmtel"), pmBanco: v("bk-pmbanco") });
+    const f = bancoForm;
+    if (!f.cuenta && !f.pmTelefono) return msg("bk-msg", "Escribe tu número de cuenta o tu teléfono de pago móvil.", "err");
+    if (f.cuenta && !f.banco) return msg("bk-msg", "Elige el banco de tu cuenta.", "err");
+    if (f.cuenta && f.cuenta.length !== 20) return msg("bk-msg", `El número de cuenta debe tener 20 dígitos (tiene ${f.cuenta.length}).`, "err");
+    if (f.pmTelefono && soloDig(f.pmTelefono).length < 10) return msg("bk-msg", "Revisa el teléfono de pago móvil.", "err");
+    if (f.pmTelefono && !f.pmBanco) f.pmBanco = f.banco;
+    if (f.pmTelefono && !f.pmBanco) return msg("bk-msg", "Elige el banco del pago móvil.", "err");
+    if (f.titular.length < 3) return msg("bk-msg", "Escribe el nombre del titular.", "err");
+    if (soloDig(f.cedula).length < 6) return msg("bk-msg", "Escribe la cédula del titular.", "err");
+    bancoConfirmar = true; pintarPerfil();
+  });
+  if (no) no.addEventListener("click", () => { bancoConfirmar = false; pintarPerfil(); });
+  if (si) si.addEventListener("click", async () => {
+    si.disabled = true; si.textContent = "Guardando…";
+    const d = Object.assign({}, bancoForm, { email: (YO.email || "").toLowerCase(), nombre: E.nombre || "", fecha: firebase.firestore.FieldValue.serverTimestamp() });
+    try { await db.collection("bancarios").doc(E.id).set(d); const b = await db.collection("bancarios").doc(E.id).get(); BANCO = b.exists ? b.data() : d; bancoConfirmar = false; toast("Datos guardados. ¡Listo!"); pintarPerfil(); }
+    catch (e) { console.error(e); si.disabled = false; si.textContent = "SÍ, GUARDAR MIS DATOS";
+      msg("bk-msg", /permission/i.test(e.code || e.message || "") ? "Ya tienes datos registrados o el sistema no lo permite. Habla con el dueño." : "No se pudo guardar. Revisa tu conexión.", "err"); }
+  });
 }
 </script>
 <script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>

@@ -32,6 +32,13 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 textarea { min-height: 120px; resize: vertical; }
 label.f { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 700; min-width: 0; }
 label.f small { font-weight: 400; color: var(--muted); }
+.ficha-b { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
+.ficha-b div { background: var(--soft, #f6f1e6); border-radius: 10px; padding: 8px 12px; }
+.ficha-b small { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.ficha-b b { word-break: break-all; }
+.qc { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+.qc h4 { margin: 0; font-family: var(--display); font-weight: 500; font-size: .95rem; }
+.qc.ok h4::after { content: " · Aprobado ✓"; color: var(--ok, #2e7d32); }
 .chk { display: inline-flex; gap: 8px; align-items: center; font-weight: 600; font-size: .9rem; cursor: pointer; }
 .chk input { width: 18px; height: 18px; accent-color: var(--gold); }
 .ayuda { font-size: .86rem; color: var(--muted); margin: 0; }
@@ -319,9 +326,12 @@ const CAJAS_SUGERIDAS = [
 const ROLES_PROD = ["Picador", "Armador", "Tapicero", "Corte y Costura"];
 const ROL_VENTAS = "Ejecutivo de ventas";
 const ROLES = [...ROLES_PROD, ROL_VENTAS];
+/* Control de calidad: es un cargo, pero no cobra % del producto (no entra en la tabla de comisiones) */
+const ROL_QC = "Control de calidad";
+const CARGOS = [...ROLES, ROL_QC];
 const CAT_NOMINA = "Nómina y comisiones";
 const COMISIONES_BASE = { equipo: { 1: 5, 2: 10, 3: 15, 4: 20 }, ventas: 8.333 };
-let ROL = null, YO = "", CUENTAS = [], MOVS = [], VENTAS = [], EQUIPO = [], EMPLEADOS = [], COTS = [];
+let ROL = null, YO = "", CUENTAS = [], MOVS = [], VENTAS = [], EQUIPO = [], EMPLEADOS = [], COTS = [], BANC = {};
 let AJ = { categoriasIngreso: CAT_ING, categoriasGasto: CAT_GAS, tasa: { valor: 0, fecha: "" } };
 const BANCOS_BASE = { operativa: "", resguardo: "", pct: { gastos: 5, reserva: 7, dueno: 15 }, desde: "" };
 let PRIV = { sueldo: { monto: 0, frecuencia: "mensual", cuenta: "" }, comisiones: JSON.parse(JSON.stringify(COMISIONES_BASE)), bancos: JSON.parse(JSON.stringify(BANCOS_BASE)) };
@@ -384,6 +394,7 @@ async function cargar(){
       if (!AJ.catsV2) { ["Cincha y saco", "Combustible y transporte"].forEach(c => { if (!AJ.categoriasGasto.includes(c)) AJ.categoriasGasto.splice(Math.max(0, AJ.categoriasGasto.length - 1), 0, c); });
         AJ.catsV2 = true; db.collection("contab").doc("publico").set(AJ).catch(() => {}); }
       await cargarPersonal();
+      try { BANC = Object.fromEntries(lista(await db.collection("bancarios").get()).map(b => [b.id, b])); } catch (e) { console.error(e); BANC = {}; }
       try { COTS = lista(await db.collection("cotizaciones").get()).map(q => Object.assign(q, { f: fechaCot(q) })); } catch (e) { console.error(e); COTS = []; }
     } else {
       /* El ayudante no ve ventas ni nómina: solo cajas, categorías y lo que él anota */
@@ -884,7 +895,7 @@ function datosDeCot(q){
   const deCot = (it, n) => Object.assign(nuevoItem(n), { cantidad: num(it.cantidad) || 1,
     producto: [it.modelo, it.tamano && it.tamano !== "Por definir" ? it.tamano : "", it.medida].filter(Boolean).join(" · "),
     detalle: [it.color && "Tela: " + it.color, it.colorCojines && "Cojines: " + it.colorCojines, it.lado, it.gavetas, it.piezas, it.soporte && it.soporte + (it.colorPatas ? " " + it.colorPatas : ""), it.accesorios && "Accesorios: " + it.accesorios, it.orden && "Orden: " + it.orden, it.mensaje].filter(Boolean).join("\n") });
-  return { cotizacionId: q.id, numero: q.orden || "", cliente: q.nombre || "", telefono: q.telefono || "", email: q.email || "", ciudad: q.ciudad || "",
+  return { cotizacionId: q.id, numero: q.orden || "", cliente: q.nombre || "", telefono: q.telefono || "", email: q.email || "", ciudad: q.ciudad || "", direccion: q.direccion || "", cedula: q.cedula || "",
     notas: q.entrega ? "Entrega: " + q.entrega + (q.direccion ? " — " + q.direccion : "") : (q.mensaje || ""),
     items: q.items && q.items.length ? q.items.map((it, i) => deCot(it, i + 1)) : [deCot(q, 1)] };
 }
@@ -936,11 +947,25 @@ function pintarVentas(){
   el.querySelectorAll("[data-cot-rec]").forEach(b => b.addEventListener("click", () => marcarCot(b.dataset.cotRec, false)));
   const vd = $("cot-ver-desc"); if (vd) vd.addEventListener("click", () => { verDescartadas = !verDescartadas; pintarVentas(); });
 }
+/* Control de calidad de cada producto: quién lo revisó, cuándo y si quedó aprobado. Al aprobarlo se imprime el ticket. */
+function bloqueQC(it, k, nuevo){
+  if (!gestor()) return "";
+  const q = it.calidad || {}, act = EMPLEADOS.filter(e => e.activo !== false), insp = act.filter(e => (e.roles || []).includes(ROL_QC));
+  const opts = (insp.length ? insp : act).slice(); if (q.empleadoId && !opts.some(e => e.id === q.empleadoId) && empleado(q.empleadoId)) opts.push(empleado(q.empleadoId));
+  return `<div class="qc${q.aprobado ? " ok" : ""}"><h4>Control de calidad</h4>
+    <div class="fila"><label class="f">Revisado por<select data-qc="${k}|empleadoId"><option value="">— Sin revisar —</option>${opts.map(e => `<option value="${e.id}" ${q.empleadoId === e.id ? "selected" : ""}>${esc(e.nombre)}${e.codigo ? " · " + esc(e.codigo) : ""}</option>`).join("")}</select></label>
+      <label class="f">Fecha de revisión<input type="date" data-qc="${k}|fecha" value="${esc(q.fecha || "")}"></label></div>
+    <label class="f">Observaciones <small>opcional</small><input type="text" data-qc="${k}|obs" value="${esc(q.obs || "")}" placeholder="Ej: costuras y patas revisadas"></label>
+    <label class="chk"><input type="checkbox" data-qc="${k}|aprobado" ${q.aprobado ? "checked" : ""}> Aprobado: producto terminado y revisado</label>
+    ${q.aprobado ? `<p style="margin:0"><button type="button" class="btn oro mini" data-ir="documentos.html?v=__ID__&doc=ticket&i=${k}">Imprimir ticket del producto</button></p>`
+      : `<p class="ayuda" style="margin:0">Al aprobarlo puedes imprimir el ticket con el cliente y la dirección de entrega para pegarlo en el mueble.</p>`}
+    ${!insp.length && act.length ? `<p class="ayuda" style="margin:0">Marca el cargo <b>${ROL_QC}</b> a quien revisa (pestaña Empleados) para que aparezca primero.</p>` : ""}</div>`;
+}
 function nuevoItem(n){ return { id: "p" + n + "-" + Date.now().toString(36).slice(-4), producto: "", cantidad: 1, precio: 0, detalle: "", equipo: [], baseComision: 0, pctEquipo: 0, pctIndividual: false, pctEquipoManual: false }; }
 const resumenItems = items => items.filter(it => it.producto).map(it => (it.cantidad > 1 ? it.cantidad + " × " : "") + it.producto).join(" + ");
 function abrirVenta(v0, cot){
   const nuevo = !v0;
-  const x = Object.assign({ numero: "", fecha: hoy(), cliente: "", telefono: "", email: "", ciudad: "", producto: "", total: 0, estado: "Por fabricar", notas: "", cotizacionId: "" }, v0 ? JSON.parse(JSON.stringify(v0)) : {});
+  const x = Object.assign({ numero: "", fecha: hoy(), cliente: "", telefono: "", email: "", ciudad: "", cedula: "", direccion: "", entregaEstimada: "", producto: "", total: 0, estado: "Por fabricar", notas: "", cotizacionId: "" }, v0 ? JSON.parse(JSON.stringify(v0)) : {});
   /* Las ventas viejas (un solo producto) se pasan a la lista de productos */
   if (!x.items || !x.items.length) {
     x.items = [Object.assign(nuevoItem(1), { id: "p1", producto: x.producto || "", precio: num(x.total), detalle: x.detalle || "", equipo: x.equipo || [],
@@ -966,7 +991,7 @@ function abrirVenta(v0, cot){
     ed.querySelector("#ve-tit").textContent = nuevo ? "Nueva venta" : (x.cliente || "Venta");
     const varios = x.items.length > 1;
     /* Recordar el campo con el foco para devolverlo después de redibujar (si no, el toque en otro campo se pierde) */
-    const act = document.activeElement, claves = ["it", "k", "eqBase", "eqPcteq", "eqPct", "eqFecha"];
+    const act = document.activeElement, claves = ["it", "k", "eqBase", "eqPcteq", "eqPct", "eqFecha", "qc"];
     const clave = act && ed.contains(act) ? claves.find(c => act.dataset && act.dataset[c] != null) : null;
     const foco = clave ? { c: clave, v: act.dataset[clave], pos: act.selectionStart } : null;
     ed.querySelector("#ve-cuerpo").innerHTML = `
@@ -978,11 +1003,14 @@ function abrirVenta(v0, cot){
           <label class="f">Nombre<input type="text" data-k="cliente" value="${esc(x.cliente)}"></label>
           <label class="f">Teléfono<input type="tel" data-k="telefono" value="${esc(x.telefono)}"></label>
           <label class="f">Correo<input type="email" data-k="email" value="${esc(x.email)}"></label>
-          <label class="f">Ciudad<input type="text" data-k="ciudad" value="${esc(x.ciudad)}"></label></div></div>
+          <label class="f">Ciudad<input type="text" data-k="ciudad" value="${esc(x.ciudad)}"></label>
+          <label class="f">Cédula o RIF <small>sale en los documentos</small><input type="text" data-k="cedula" value="${esc(x.cedula)}" placeholder="V-12.345.678"></label></div>
+          <label class="f">Dirección de entrega<input type="text" data-k="direccion" value="${esc(x.direccion)}"></label></div>
         <div class="bloque"><h3>Pedido</h3><div class="fila">
           <label class="f">N° de orden o pedido<input type="text" data-k="numero" value="${esc(x.numero)}" placeholder="MI-…"></label>
           <label class="f">Fecha de la venta<input type="date" data-k="fecha" value="${x.fecha}"></label>
-          <label class="f">Estado<select data-k="estado">${ESTADOS.map(e => `<option ${e === x.estado ? "selected" : ""}>${e}</option>`).join("")}</select></label></div>
+          <label class="f">Estado<select data-k="estado">${ESTADOS.map(e => `<option ${e === x.estado ? "selected" : ""}>${e}</option>`).join("")}</select></label>
+          <label class="f">Entrega estimada<input type="date" data-k="entregaEstimada" value="${x.entregaEstimada || ""}"></label></div>
           <label class="f">Notas internas <small>entrega, dirección, acuerdos…</small><input type="text" data-k="notas" value="${esc(x.notas)}"></label></div>
         ${x.items.map((it, i) => { const bloq = (it.equipo || []).some(l => l.pagado);
           return `<div class="bloque"><div style="display:flex;align-items:center;gap:10px"><h3 style="margin-right:auto">${varios ? `Producto ${i + 1} de ${x.items.length}` : "Producto"}</h3>
@@ -993,10 +1021,18 @@ function abrirVenta(v0, cot){
               <label class="f">Cantidad<input type="text" inputmode="numeric" data-it="${i}|cantidad" value="${it.cantidad || 1}"></label>
               <label class="f">Precio de esta línea <small>en dólares, por todas las unidades</small><input type="text" inputmode="decimal" data-it="${i}|precio" value="${inNum(num(it.precio))}"></label></div>
             <label class="f">Detalle <small>tela, color, accesorios…</small><textarea data-it="${i}|detalle" style="min-height:80px">${esc(it.detalle)}</textarea></label>
-            ${bloqueEquipo(it, i)}</div>`; }).join("")}
+            ${bloqueEquipo(it, i)}${bloqueQC(it, i, nuevo)}</div>`; }).join("")}
         <p style="margin:0"><button type="button" class="btn borde" id="ve-item-mas">+ Agregar otro producto a esta venta</button></p>
-        ${!nuevo ? `<div class="bloque"><h3>Abonos del cliente</h3>
+        ${!nuevo ? `<div class="bloque docs-v"><h3>Documentos de esta venta</h3>
+          <p class="ayuda">Con el mismo número ${esc(x.numero || "de la venta")}. Se guarda lo que hayas cambiado y se abren listos para descargar en PDF y enviar por WhatsApp.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button type="button" class="btn oro mini" data-ir="documentos.html?v=${encodeURIComponent(x.id)}&doc=recibo">Recibo de abono</button>
+            <button type="button" class="btn borde mini" data-ir="documentos.html?v=${encodeURIComponent(x.id)}&doc=entrega">Nota de entrega</button>
+            <button type="button" class="btn borde mini" data-ir="documentos.html?v=${encodeURIComponent(x.id)}&doc=orden">Orden de fabricación</button>
+            ${x.items.some(it => it.calidad && it.calidad.aprobado) ? `<button type="button" class="btn borde mini" data-ir="documentos.html?v=${encodeURIComponent(x.id)}&doc=ticket">Tickets de producto terminado</button>` : ""}</div></div>
+          <div class="bloque"><h3>Abonos del cliente</h3>
           ${abonos.length ? `<div class="wrap-t"><table class="t"><tbody>${abonos.map(m => filaMov(m, false)).join("")}</tbody></table></div>` : `<p class="ayuda">Todavía no hay abonos.</p>`}
+          ${abonos.length ? `<p class="ayuda" style="margin-top:8px">Recibo de un abono: ${abonos.slice().reverse().map((m, i) => `<a class="link" href="documentos.html?v=${encodeURIComponent(x.id)}&doc=recibo&m=${encodeURIComponent(m.id)}">R${i + 1} · ${fmtU(m.usd)}</a>`).join(" · ")}</p>` : ""}
           <p><button class="btn oro mini" id="ve-abono">+ Registrar abono</button></p></div>
           <div class="bloque"><h3>Costos de esta venta</h3><p class="ayuda">Material o mano de obra comprados específicamente para este pedido. Así sabes cuánto ganaste.</p>
           ${costos.length ? `<div class="wrap-t"><table class="t"><tbody>${costos.map(m => filaMov(m, false)).join("")}</tbody></table></div>` : ""}
@@ -1012,6 +1048,18 @@ function abrirVenta(v0, cot){
         if (campo === "precio") $("ve-tot").textContent = fmtU(totalItems()); });
       if (campo === "precio" || campo === "cantidad") i.addEventListener("change", () => setTimeout(render, 0)); });
     eventosEquipo(ed, x.items, render);
+    ed.querySelectorAll("[data-qc]").forEach(i => { const [k, campo] = i.dataset.qc.split("|"), it = x.items[+k];
+      i.addEventListener(i.type === "text" ? "input" : "change", () => {
+        const q = it.calidad = Object.assign({ aprobado: false, empleadoId: "", fecha: "", obs: "" }, it.calidad || {});
+        q[campo] = i.type === "checkbox" ? i.checked : i.value;
+        if (campo === "aprobado") {
+          if (q.aprobado && !q.fecha) q.fecha = hoy();
+          if (q.aprobado && !q.empleadoId) toast("Elige quién lo revisó.");
+          if (q.aprobado && x.items.every(z => z.calidad && z.calidad.aprobado) && ["Por fabricar", "En fabricación"].includes(x.estado)) { x.estado = "Listo para entregar"; toast("Todo aprobado: la venta pasa a «Listo para entregar»."); }
+          render();
+        }
+      }); });
+    ed.querySelectorAll("[data-ir]").forEach(b => b.addEventListener("click", () => guardar(b.dataset.ir)));
     const on = (id, f) => { const n = ed.querySelector("#" + id); if (n) n.addEventListener("click", f); };
     on("ve-item-mas", () => { x.items.push(nuevoItem(x.items.length + 1)); render(); const ps = ed.querySelectorAll('[data-it$="|producto"]'); ps[ps.length - 1].focus(); });
     ed.querySelectorAll("[data-it-quitar]").forEach(b => b.addEventListener("click", () => { quitar = +b.dataset.itQuitar; render(); }));
@@ -1037,7 +1085,8 @@ function abrirVenta(v0, cot){
       catch (e) { console.error(e); toast("No se pudo eliminar."); }
     });
   }
-  async function guardar(){
+  async function guardar(ir){
+    if (typeof ir !== "string") ir = "";
     if (!x.cliente.trim()) return toast("Escribe el nombre del cliente.");
     if (x.items.some(it => !String(it.producto).trim())) return toast("Escribe el nombre de cada producto.");
     if (x.items.some(it => !(num(it.precio) > 0))) return toast("Escribe el precio de cada producto.");
@@ -1048,6 +1097,7 @@ function abrirVenta(v0, cot){
       await db.collection("ventas").doc(id).set(d);
       if (nuevo) { VENTAS.push(Object.assign({ id }, d)); if (d.cotizacionId) { db.collection("cotizaciones").doc(d.cotizacionId).update({ venta: id, descartada: false }).catch(() => {}); const q = COTS.find(z => z.id === d.cotizacionId); if (q) { q.venta = id; q.descartada = false; } } }
       else { const v = venta(id); Object.keys(v).forEach(k => { if (k !== "id") delete v[k]; }); delete v._legado; Object.assign(v, d); }
+      if (ir) { location.href = ir.replace("__ID__", encodeURIComponent(id)); return; }
       toast("Venta guardada."); cerrarEditor(); refrescar();
       if (nuevo) abrirVenta(venta(id));
     } catch (e) { console.error(e); toast("No se pudo guardar la venta."); b.disabled = false; b.textContent = "GUARDAR"; }
@@ -1108,6 +1158,13 @@ function pintarAjustes(){
         <p class="ayuda">Se usa para convertir a dólares lo que entra y sale en bolívares. Cada movimiento guarda la tasa de su día.</p>
         <div class="fila"><label class="f">Bs por $1<input type="text" inputmode="decimal" id="a-tasa" value="${inNum(tv.valor)}"></label><label class="f">Fecha<input type="date" id="a-tasa-f" value="${tv.fecha || hoy()}"></label></div>
         <p style="display:flex;gap:10px;flex-wrap:wrap;margin:0"><button class="btn oro" id="a-tasa-ok">GUARDAR TASA</button><button class="btn borde" id="a-bcv">Buscar tasa BCV de hoy</button></p></div>
+
+      <div class="bloque"><h3>Datos para documentos</h3>
+        <p class="ayuda">Salen en el recibo de abono, la nota de entrega y la orden de fabricación. Deja en blanco lo que no quieras mostrar.</p>
+        <div class="fila"><label class="f">RIF del negocio<input type="text" id="a-doc-rif" value="${esc((AJ.docs || {}).rif || "")}" placeholder="J-12345678-9"></label>
+          <label class="f">Dirección<input type="text" id="a-doc-dir" value="${esc((AJ.docs || {}).direccion || "Mariara, Carabobo, Venezuela")}"></label></div>
+        <label class="f">Condiciones del recibo <small>una por línea</small><textarea id="a-doc-cond" style="min-height:90px">${esc((AJ.docs || {}).condiciones || "El pedido se fabrica a su medida a partir de este abono.\nEl saldo pendiente se cancela al momento de la entrega o retiro.\nConserve este documento: es su respaldo del dinero entregado y lo necesitará al recibir su pedido.")}</textarea></label>
+        <p style="margin:0"><button class="btn oro" id="a-doc-ok">GUARDAR DATOS</button></p></div>
 
       <div class="bloque"><h3>Cajas</h3>
         <p class="ayuda">Cada lugar donde está el dinero del negocio. En <b>Saldo inicial</b> escribe cuánto tenía la caja el día que empezaste a anotar. Tu cuenta personal no va aquí.</p>
@@ -1207,6 +1264,8 @@ function pintarAjustes(){
   ejemplo(); el.querySelectorAll('[id^="a-com-"]').forEach(i => i.tagName === "INPUT" && i.addEventListener("input", ejemplo));
   conBoton("a-com-ok", async () => { PRIV.comisiones = { equipo: { 1: num($("a-com-1").value), 2: num($("a-com-2").value), 3: num($("a-com-3").value), 4: num($("a-com-4").value) }, ventas: numP($("a-com-v").value) };
     await db.collection("contab").doc("privado").set(PRIV); toast("Comisiones guardadas."); });
+  conBoton("a-doc-ok", async () => { AJ.docs = { rif: $("a-doc-rif").value.trim(), direccion: $("a-doc-dir").value.trim(), condiciones: $("a-doc-cond").value.trim() };
+    await db.collection("contab").doc("publico").set(AJ); toast("Datos de documentos guardados."); });
   conBoton("a-cat-ok", async () => { const l = id => [...new Set($(id).value.split("\n").map(s => s.trim()).filter(Boolean))];
     const ci = l("a-ci"), cg = l("a-cg"); if (!ci.length || !cg.length) return toast("Deja al menos una categoría de cada tipo."); AJ.categoriasIngreso = ci; AJ.categoriasGasto = cg; await db.collection("contab").doc("publico").set(AJ); toast("Categorías guardadas."); });
   conBoton("a-eq-ok", async () => {
@@ -1379,6 +1438,7 @@ function abrirPagoNomina(g){
     ed.innerHTML = `<header><h2>Pagar a ${esc(g.e.nombre)}</h2><button class="btn borde mini" id="p-x">Cerrar</button></header>
       <div class="form">
         <div class="resumen-v"><div><span>A pagar</span><b>${fmtU(total)}</b></div><div><span>Proyectos</span><b>${nProy}</b></div><div><span>Código</span><b>${esc(g.e.codigo || "")}</b></div><div><span>Semana</span><b>al ${fechaCorta(SEMANA)}</b></div></div>
+        <div class="bloque"><h3>¿A dónde se le paga?</h3>${BANC[g.e.id] ? fichaBanco(BANC[g.e.id]) : `<p class="ayuda" style="margin:0">${esc(g.e.nombre)} todavía no registra sus datos bancarios en su perfil del portal.</p>`}</div>
         <div class="bloque"><h3>¿De dónde sale el pago?</h3><div class="fila">
           <label class="f">Fecha de pago<input type="date" id="p-fecha" value="${x.fecha}"></label>
           <label class="f">Caja<select id="p-cuenta">${activas.map(c => `<option value="${c.id}" ${c.id === x.cuenta ? "selected" : ""}>${esc(c.nombre)} (${c.moneda === "VES" ? "Bs" : "$"})</option>`).join("")}</select></label>
@@ -1430,11 +1490,11 @@ function pintarEmpleados(){
   el.innerHTML = `<div class="barra"><h2>Empleados</h2><button class="btn oro" id="e-nuevo">+ NUEVO EMPLEADO</button></div>
     <div class="card wrap-t">${EMPLEADOS.length ? `<table class="t"><thead><tr><th>Código</th><th>Nombre</th><th class="ocultar-movil">Cargos</th><th class="num">Ganado en ${MESES[+MES.slice(5, 7) - 1].toLowerCase()}</th><th class="num">Por pagar</th><th></th></tr></thead><tbody>
       ${EMPLEADOS.map(e => { const m = todas.filter(l => l.empleadoId === e.id); const mes = m.filter(l => l.fecha.startsWith(MES)).reduce((a, l) => a + l.monto, 0), pp = m.filter(l => !l.pagado).reduce((a, l) => a + l.monto, 0);
-        return `<tr class="clic" data-e="${e.id}" style="${e.activo === false ? "opacity:.5" : ""}"><td><b>${esc(e.codigo || "")}</b></td><td>${esc(e.nombre)}${e.activo === false ? `<span class="sub">Inactivo</span>` : ""}<span class="sub">${esc(e.telefono || "")}</span></td>
+        return `<tr class="clic" data-e="${e.id}" style="${e.activo === false ? "opacity:.5" : ""}"><td><b>${esc(e.codigo || "")}</b></td><td>${esc(e.nombre)}${e.activo === false ? `<span class="sub">Inactivo</span>` : ""}<span class="sub">${esc(e.telefono || "")}${BANC[e.id] ? " · Datos bancarios ✓" : ""}</span></td>
           <td class="ocultar-movil">${(e.roles || []).map(r => `<span class="chip">${esc(r)}${r === ROL_VENTAS ? " " + fmtN(num(e.pctVenta) || num(PRIV.comisiones.ventas)) + "%" : ""}</span>`).join(" ")}</td>
           <td class="num">${fmtU(mes)}</td><td class="num ${pp > 0.009 ? "menos" : ""}">${fmtU(pp)}</td>
           <td style="text-align:right"><button type="button" class="btn borde mini" data-e-del="${e.id}" aria-label="Eliminar a ${esc(e.nombre)}">Eliminar</button></td></tr>`; }).join("")}</tbody></table>`
-      : `<p class="vacio">Registra a tu equipo: picador, armador, tapicero, corte y costura y ejecutivos de ventas.</p>`}</div>`;
+      : `<p class="vacio">Registra a tu equipo: picador, armador, tapicero, corte y costura, control de calidad y ejecutivos de ventas.</p>`}</div>`;
   $("e-nuevo").addEventListener("click", () => abrirEmpleado(null));
   el.querySelectorAll("[data-e]").forEach(r => r.addEventListener("click", ev => { if (ev.target.closest("[data-e-del]")) return; abrirEmpleado(empleado(r.dataset.e)); }));
   el.querySelectorAll("[data-e-del]").forEach(b => b.addEventListener("click", () => confirmarEliminar(empleado(b.dataset.eDel))));
@@ -1458,10 +1518,13 @@ function confirmarEliminar(e){
   $("el-si").addEventListener("click", async () => { const b = $("el-si"); b.disabled = true; b.textContent = "Eliminando…";
     try { await eliminarEmpleado(e); cerrarEditor(); refrescar(); toast(`${e.nombre} fue eliminado.`); } catch (err) { console.error(err); toast("No se pudo eliminar."); b.disabled = false; b.textContent = "SÍ, ELIMINAR"; } });
 }
+const fichaBanco = b => `<div class="ficha-b">${[["Banco", b.banco], ["Tipo de cuenta", b.tipo], ["N° de cuenta", b.cuenta], ["Titular", b.titular], ["Cédula del titular", b.cedula],
+    ["Pago móvil", b.pmTelefono ? b.pmTelefono + (b.pmBanco ? " · " + b.pmBanco : "") : ""]].filter(([, v]) => v).map(([k, v]) => `<div><small>${k}</small><b>${esc(v)}</b></div>`).join("")}</div>
+  <p class="ayuda" style="margin:6px 0 0">Registrados por el empleado${b.fecha && b.fecha.toDate ? " el " + fechaCorta(iso(b.fecha.toDate())) : ""}.</p>`;
 function abrirEmpleado(e0){
   const nuevo = !e0, ed = $("editor-in"); $("editor").hidden = false; document.body.style.overflow = "hidden"; $("editor").firstElementChild.scrollTop = 0;
   const x = Object.assign({ nombre: "", cedula: "", nacimiento: "", telefono: "", roles: [], pctVenta: "", activo: true }, e0 ? JSON.parse(JSON.stringify(e0)) : {});
-  let confirmar = false, avisoAcceso = "";
+  let confirmar = false, avisoAcceso = "", borrarBanco = false;
   function render(){
     const hist = nuevo ? [] : lineasNomina().filter(l => l.empleadoId === x.id).sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 40);
     const cod = codigoEmp(x.cedula, x.nacimiento, x.id);
@@ -1477,11 +1540,15 @@ function abrirEmpleado(e0){
           <p class="codigo-grande" id="e-cod">${cod || "—"}</p>
           <p class="ayuda">Se arma solo: últimos 4 números de la cédula + día, mes y año de nacimiento. Con este código lo eliges en cada proyecto.</p></div>
         <div class="bloque"><h3>Cargos</h3>
-          <div class="chips-sel">${ROLES.map(r => `<label><input type="checkbox" data-rol="${r}" ${x.roles.includes(r) ? "checked" : ""}>${r}</label>`).join("")}</div>
+          <div class="chips-sel">${CARGOS.map(r => `<label><input type="checkbox" data-rol="${r}" ${x.roles.includes(r) ? "checked" : ""}>${r}</label>`).join("")}</div>
           ${x.roles.includes(ROL_VENTAS) ? `<label class="f" style="max-width:280px">Su % por cada venta <small>vacío = ${fmtN(num(PRIV.comisiones.ventas))}% (el general)</small><input type="text" inputmode="decimal" data-k="pctVenta" value="${inPct(num(x.pctVenta))}"></label>` : ""}
           <p class="ayuda">En producción cobra su parte del % del equipo (en <b>Cajas y ajustes → Comisiones</b>).</p>
           ${!nuevo ? `<label class="chk"><input type="checkbox" id="e-activo" ${x.activo !== false ? "checked" : ""}> Activo (aparece para asignar en proyectos)</label>` : ""}</div>
         ${bloqueAcceso(x, nuevo, avisoAcceso)}
+        ${!nuevo ? `<div class="bloque"><h3>Datos bancarios para la nómina</h3>${BANC[x.id] ? fichaBanco(BANC[x.id])
+            + (ROL === "dueno" ? (borrarBanco ? `<div class="confirma"><span>¿Borrar sus datos bancarios? Podrá registrarlos de nuevo desde su perfil.</span><button class="btn peligro mini" id="bn-del-si">Sí, borrar</button><button class="btn borde mini" id="bn-del-no">No</button></div>`
+              : `<p style="margin:0"><button class="btn borde mini" id="bn-del">Borrar datos bancarios</button></p>`) : "")
+          : `<p class="ayuda">Todavía no los registra. Cada empleado los anota <b>una sola vez</b> en su perfil del portal del personal; si se equivoca, aquí los borras y los vuelve a anotar.</p>`}</div>` : ""}
         ${!nuevo ? `<div class="bloque"><h3>Historial de proyectos</h3>${hist.length ? `<div class="wrap-t"><table class="t"><tbody>${hist.map(l => `<tr><td>${fechaCorta(l.fecha)}</td><td><b>${esc(l.venta.numero || "")}</b> · ${esc(l.venta.cliente || "")}<span class="sub">${esc(l.rol)} · ${fmtN(l.pct)}%</span></td><td class="num">${fmtU(l.monto)}</td><td>${l.pagado ? `<span class="chip ingreso">Pagado</span>` : `<span class="chip retiro">Pendiente</span>`}</td></tr>`).join("")}</tbody></table></div>` : `<p class="ayuda">Aún no tiene proyectos.</p>`}
           <p style="margin:0"><button class="btn borde mini" id="e-del">Eliminar empleado</button></p>
           ${confirmar ? (() => { const pend = hist.filter(l => !l.pagado).reduce((t, l) => t + l.monto, 0);
@@ -1492,7 +1559,7 @@ function abrirEmpleado(e0){
         <p class="msg err" id="e-err" hidden></p>
       </div>`;
     ed.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "date" ? "change" : "input", () => { x[i.dataset.k] = i.dataset.k === "pctVenta" ? numP(i.value) : i.value; $("e-cod").textContent = codigoEmp(x.cedula, x.nacimiento, x.id) || "—"; }));
-    ed.querySelectorAll("[data-rol]").forEach(c => c.addEventListener("change", () => { x.roles = ROLES.filter(r => ed.querySelector(`[data-rol="${r}"]`).checked); render(); }));
+    ed.querySelectorAll("[data-rol]").forEach(c => c.addEventListener("change", () => { x.roles = CARGOS.filter(r => ed.querySelector(`[data-rol="${r}"]`).checked); render(); }));
     const on = (id, f) => { const n = ed.querySelector("#" + id); if (n) n.addEventListener("click", f); };
     on("e-x", cerrarEditor); on("e-ok", guardar);
     if ($("e-activo")) $("e-activo").addEventListener("change", ev => x.activo = ev.target.checked);
@@ -1507,6 +1574,10 @@ function abrirEmpleado(e0){
     });
     on("ac-reenviar", async () => { try { await auth.sendPasswordResetEmail(x.acceso.email); avisoAcceso = `Correo reenviado a <b>${esc(x.acceso.email)}</b>.`; render(); } catch (e) { acErr("No se pudo enviar el correo."); } });
     on("ac-estado", async () => { try { await cambiarEstadoAcceso(empleado(x.id), x.acceso.activo === false); x.acceso = empleado(x.id).acceso; render(); } catch (e) { acErr("No se pudo cambiar el acceso."); } });
+    on("bn-del", () => { borrarBanco = true; render(); }); on("bn-del-no", () => { borrarBanco = false; render(); });
+    on("bn-del-si", async () => { const b = $("bn-del-si"); b.disabled = true;
+      try { await db.collection("bancarios").doc(x.id).delete(); delete BANC[x.id]; borrarBanco = false; render(); refrescar(); toast("Datos bancarios borrados. Puede registrarlos de nuevo en su perfil."); }
+      catch (e) { console.error(e); toast("No se pudieron borrar. Revisa las reglas de Firestore."); b.disabled = false; } });
     on("e-del", () => { confirmar = true; render(); }); on("e-del-no", () => { confirmar = false; render(); });
     on("e-del-si", async () => {
       const b = $("e-del-si"); b.disabled = true; b.textContent = "Eliminando…";
