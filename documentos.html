@@ -228,7 +228,7 @@ function recibo(){
   const numero = solo ? `${base()}-R${uno + 1}` : `${base()}-R`;
   const fecha = solo ? m.fecha : (ABONOS[ABONOS.length - 1].fecha || hoy());
   const pct = T > 0 ? Math.round(pagado / T * 100) : 0;
-  const bs = mm => mm.moneda === "VES" && mm.monto ? ` (${fmtB(mm.monto)}${mm.tasa ? ` a ${fmtB(mm.tasa)} por $1` : ""})` : "";
+  const bs = mm => mm.moneda === "VES" && mm.monto ? ` (${fmtB(mm.monto)}${mm.tasa ? ` a tasa ${fmtB(mm.tasa)}` : ""})` : "";
   return `<article class="hoja"><div class="cuerpo">${cabecera(solo ? "Recibo de abono" : "Recibo de abonos", numero, fecha)}
     ${datosCliente([["Fecha estimada de entrega", V.entregaEstimada ? fechaLarga(V.entregaEstimada) : "Por confirmar"]])}
     <div class="destaque">${solo

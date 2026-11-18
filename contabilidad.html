@@ -420,6 +420,30 @@ function saldo(c){
   }
   return s;
 }
+/* Tasa de referencia: el negocio trabaja con la tasa BCV del EURO (o del dólar, si se cambia en ajustes).
+   Los montos siguen en "$" (divisa de referencia de los precios); los bolívares se calculan con esta tasa. */
+const tasaTipo = () => (AJ.tasaTipo === "dolar" ? "dolar" : "euro");
+const tasaNom = () => tasaTipo() === "euro" ? "euro BCV" : "dólar BCV";
+const tasaUnidad = () => `Bs por divisa · ${tasaNom()}`;
+function bloqueTasaHTML(tv){
+  const t = tasaTipo();
+  return `<p class="ayuda">Con esta tasa se pasan a bolívares los precios y pagos en divisas (nómina, ventas, gastos). Cada movimiento guarda la tasa de su día.</p>
+    <div class="chips-sel"><label><input type="radio" name="a-ttipo" value="euro" ${t === "euro" ? "checked" : ""}>Tasa euro BCV</label><label><input type="radio" name="a-ttipo" value="dolar" ${t === "dolar" ? "checked" : ""}>Tasa dólar BCV</label></div>
+    <div class="fila"><label class="f">Bs por divisa <small id="a-tasa-u">(${tasaNom()})</small><input type="text" inputmode="decimal" id="a-tasa" value="${inNum(tv.valor)}"></label><label class="f">Fecha<input type="date" id="a-tasa-f" value="${tv.fecha || hoy()}"></label></div>
+    <p style="display:flex;gap:10px;flex-wrap:wrap;margin:0"><button class="btn oro" id="a-tasa-ok">GUARDAR TASA</button><button class="btn borde" id="a-bcv">Buscar tasa BCV de hoy</button></p>`;
+}
+function eventosTasa(){
+  let tipo = tasaTipo();
+  document.querySelectorAll('[name="a-ttipo"]').forEach(r => r.addEventListener("change", () => { tipo = r.value; $("a-tasa-u").textContent = `(${tipo === "euro" ? "euro BCV" : "dólar BCV"})`;
+    if (tipo !== tasaTipo()) { $("a-tasa").value = ""; toast(`Toca «Buscar tasa BCV de hoy» para traer la tasa del ${tipo === "euro" ? "euro" : "dólar"} y luego guarda.`); } }));
+  const ok = $("a-tasa-ok"); ok.addEventListener("click", async () => { const v = num($("a-tasa").value); if (!(v > 0)) return toast("Escribe la tasa.");
+    ok.disabled = true; try { AJ.tasa = { valor: v, fecha: $("a-tasa-f").value || hoy() }; AJ.tasaTipo = tipo; await db.collection("contab").doc("publico").set(AJ); toast(`Tasa ${tasaNom()} guardada.`); pintarTabs(); }
+    catch (e) { console.error(e); toast("No se pudo guardar."); } finally { if ($("a-tasa-ok")) $("a-tasa-ok").disabled = false; } });
+  const b = $("a-bcv"); b.addEventListener("click", async () => { b.disabled = true; b.textContent = "Buscando…";
+    try { const r = await fetch(`https://ve.dolarapi.com/v1/${tipo === "euro" ? "euros" : "dolares"}/oficial`); const j = await r.json(); const v = num(j.promedio); if (!(v > 0)) throw 0;
+      $("a-tasa").value = inNum(r2(v)); $("a-tasa-f").value = (j.fechaActualizacion || hoy()).slice(0, 10); toast(`Tasa BCV del ${tipo === "euro" ? "euro" : "dólar"} encontrada. Revísala y guarda.`); }
+    catch (e) { toast("No se pudo consultar la tasa. Escríbela a mano."); } finally { b.disabled = false; b.textContent = "Buscar tasa BCV de hoy"; } });
+}
 const aUSD = (monto, mon) => mon === "VES" ? (AJ.tasa && AJ.tasa.valor ? monto / AJ.tasa.valor : 0) : monto;
 const cobrado = v => MOVS.filter(m => m.ventaId === v.id && m.tipo === "ingreso").reduce((a, m) => a + (m.usd || 0), 0);
 const costo = v => MOVS.filter(m => m.ventaId === v.id && m.tipo === "gasto").reduce((a, m) => a + (m.usd || 0), 0);
@@ -477,12 +501,12 @@ const sueldoEsperado = () => num(PRIV.sueldo.monto) * (VECES[PRIV.sueldo.frecuen
 function pintarTabs(){
   const porCobrar = VENTAS.filter(v => saldoVenta(v) > 0.009).length;
   const t = gestor()
-    ? [["resumen", "Resumen"], ["movimientos", "Ingresos y gastos"], ["ventas", "Ventas" + (cotsNuevas().length ? `<span class="n">${cotsNuevas().length}</span>` : "")], ["cobrar", "Por cobrar" + (porCobrar ? `<span class="n">${porCobrar}</span>` : "")], ["nomina", "Nómina"], ["asistencia", "Asistencia"], ["empleados", "Empleados"]].concat([["ajustes", ROL === "dueno" ? "Cajas y ajustes" : "Tasa del dólar"]])
+    ? [["resumen", "Resumen"], ["movimientos", "Ingresos y gastos"], ["ventas", "Ventas" + (cotsNuevas().length ? `<span class="n">${cotsNuevas().length}</span>` : "")], ["cobrar", "Por cobrar" + (porCobrar ? `<span class="n">${porCobrar}</span>` : "")], ["nomina", "Nómina"], ["asistencia", "Asistencia"], ["empleados", "Empleados"]].concat([["ajustes", ROL === "dueno" ? "Cajas y ajustes" : "Tasa del día"]])
     : [["anotar", "Anotar"], ["mios", "Mis registros"]];
   $("tabs").innerHTML = t.map(([k, n]) => `<button class="tab" role="tab" data-t="${k}" aria-selected="${k === tab}">${n}</button>`).join("");
   $("tabs").querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { tab = b.dataset.t; pintarTabs(); pintar(); window.scrollTo(0, 0); }));
   const tv = AJ.tasa || {};
-  $("tasa-top").textContent = tv.valor ? `Tasa: Bs ${fmtN(tv.valor)} · ${fechaCorta(tv.fecha)}` : "Tasa sin definir";
+  $("tasa-top").textContent = tv.valor ? `Tasa ${tasaTipo() === "euro" ? "euro" : "dólar"}: Bs ${fmtN(tv.valor)} · ${fechaCorta(tv.fecha)}` : "Tasa sin definir";
 }
 function pintar(){
   ["resumen", "movimientos", "ventas", "cobrar", "nomina", "asistencia", "empleados", "ajustes", "anotar", "mios"].forEach(k => $("t-" + k).hidden = k !== tab);
@@ -510,7 +534,8 @@ function pintarResumen(){
   if (t.retiro > 0) alertas.push(`<p class="msg warn alerta">Este mes sacaste <b>${fmtU(t.retiro)}</b> en retiros personales fuera de tu sueldo.</p>`);
   if (esp && t.sueldo > esp + 0.01) alertas.push(`<p class="msg warn alerta">Te pagaste <b>${fmtU(t.sueldo)}</b> de sueldo y lo fijado es ${fmtU(esp)} al mes.</p>`);
   if (t.queda < 0 && (t.ingreso || t.gasto)) alertas.push(`<p class="msg err alerta">Este mes salió más dinero del que entró: el negocio quedó en <b>${fmtU(t.queda)}</b>.</p>`);
-  if (!(AJ.tasa && AJ.tasa.valor)) alertas.push(`<p class="msg warn alerta">Define la tasa del dólar en <b>${ROL === "dueno" ? "Cajas y ajustes" : "Tasa del dólar"}</b> para convertir los bolívares.</p>`);
+  if (AJ.tasa && AJ.tasa.valor && !AJ.tasaTipo) alertas.push(`<p class="msg warn alerta">Ahora la app trabaja con la <b>tasa del euro BCV</b>. Ve a <b>${ROL === "dueno" ? "Cajas y ajustes" : "Tasa del día"}</b>, toca <b>Buscar tasa BCV de hoy</b> y luego <b>Guardar tasa</b>.</p>`);
+  if (!(AJ.tasa && AJ.tasa.valor)) alertas.push(`<p class="msg warn alerta">Define la tasa (${tasaNom()}) en <b>${ROL === "dueno" ? "Cajas y ajustes" : "Tasa del día"}</b> para convertir los bolívares.</p>`);
   el.innerHTML = `
     <div class="barra"><h2>${nombreMes(MES)}</h2>
       <button class="btn borde mini" id="r-ant" aria-label="Mes anterior">‹</button>
@@ -556,7 +581,7 @@ function bloqueBancos(){
   return `<div class="card panel" style="margin-top:14px"><h3>${esc(op ? op.nombre : "Banco del día a día")} y ${esc(rs.nombre)}</h3>
     <p class="ayuda">${op ? `<b>${esc(op.nombre)}</b>: cobros, materiales y nómina. ` : ""}<b>${esc(rs.nombre)}</b>: lo apartado de cada venta (${fmtP(pctTotal())} %), separado en potes.</p>
     <div class="kpis" style="margin-top:10px">${Object.keys(POTES).map(k => `<div class="card kpi${pot[k] < -0.009 ? " rojo" : ""}"><span>${POTES[k]} · ${fmtP(num(b.pct[k]))} %</span><b>${fmtU(pot[k])}</b><small>${POTES_AYUDA[k]}</small></div>`).join("")}
-      <div class="card kpi"><span>Saldo real en ${esc(rs.nombre)}</span><b>${fmtM(saldo(rs), rs.moneda)}</b><small>${rs.moneda === "VES" ? "≈ " + fmtU(real) + " a la tasa de hoy" : ""}${rs.moneda === "VES" && dif < -1 ? ` · ${fmtU(-dif)} menos que los potes por la subida del dólar` : ""}</small></div></div>
+      <div class="card kpi"><span>Saldo real en ${esc(rs.nombre)}</span><b>${fmtM(saldo(rs), rs.moneda)}</b><small>${rs.moneda === "VES" ? "≈ " + fmtU(real) + " a la tasa de hoy" : ""}${rs.moneda === "VES" && dif < -1 ? ` · ${fmtU(-dif)} menos que los potes por la subida de la tasa` : ""}</small></div></div>
     ${pend.length ? `<p class="msg warn alerta" style="margin-top:12px">Tienes <b>${pend.length}</b> cobro${pend.length === 1 ? "" : "s"} sin apartar: faltan <b>${fmtU(porApartar)}</b> por pasar a ${esc(rs.nombre)}.</p>
       <div class="wrap-t"><table class="t"><tbody>${pend.slice(0, 6).map(m => { const v = m.ventaId && venta(m.ventaId);
         return `<tr><td>${fechaCorta(m.fecha)}</td><td>${esc(v ? (v.cliente || v.numero || "") : (m.descripcion || m.categoria || "Cobro"))}<span class="sub">Entró a ${esc(nomCuenta(m.cuenta))} · ${fmtU(m.usd)}</span></td>
@@ -585,7 +610,7 @@ function abrirApartado(ing){
           <p class="equiv" id="ap-tot"></p></div>
         <div class="bloque"><h3>Transferencia</h3><div class="fila">
           <label class="f">Fecha<input type="date" id="ap-f" value="${x.fecha}"></label>
-          ${usaBs ? `<label class="f">Tasa <small>Bs por $1</small><input type="text" inputmode="decimal" id="ap-tasa" value="${inNum(x.tasa)}"></label>` : ""}
+          ${usaBs ? `<label class="f">Tasa <small>${tasaUnidad()}</small><input type="text" inputmode="decimal" id="ap-tasa" value="${inNum(x.tasa)}"></label>` : ""}
           <label class="f">Referencia <small>opcional</small><input type="text" id="ap-ref" value=""></label></div></div>
         <p class="msg err" id="ap-err" hidden></p>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -728,7 +753,7 @@ function formMov(el, m, pre, op){
             <label class="f">Fecha<input type="date" id="mv-fecha" value="${x.fecha}"></label>
             <label class="f">${t === "transferencia" ? "Caja de donde sale" : t === "ingreso" || t === "aporte" ? "Caja donde entró" : "Caja de donde salió"}<select id="mv-cuenta">${opCaja(x.cuenta)}</select></label>
             <label class="f">${multi && t === "gasto" ? "Total de la compra" : "Monto"} <small>en ${mon === "VES" ? "bolívares" : "dólares"}${multi && t === "gasto" ? " · se suma solo" : ""}</small><input type="text" inputmode="decimal" id="mv-monto" value="${inNum(x.monto)}" placeholder="0,00" ${multi && t === "gasto" ? "readonly" : ""}></label>
-            ${usaBs ? `<label class="f">Tasa <small>Bs por $1</small><input type="text" inputmode="decimal" id="mv-tasa" value="${inNum(x.tasa)}"></label>` : ""}
+            ${usaBs ? `<label class="f">Tasa <small>${tasaUnidad()}</small><input type="text" inputmode="decimal" id="mv-tasa" value="${inNum(x.tasa)}"></label>` : ""}
           </div>
           <p class="equiv" id="mv-eq"></p></div>
         ${t === "transferencia" ? `<div class="bloque"><h3>Entra a</h3><div class="fila">
@@ -1130,17 +1155,10 @@ function pintarCobrar(){
 /* El administrador solo puede actualizar la tasa; cajas, porcentajes, sueldo y equipo los cambia el dueño */
 function pintarTasaSola(){
   const el = $("t-ajustes"), tv = AJ.tasa || {};
-  el.innerHTML = `<div class="barra"><h2>Tasa del dólar</h2></div><div class="form" style="padding:0">
-    <div class="bloque"><p class="ayuda">Se usa para convertir a dólares lo que entra y sale en bolívares. Cada movimiento guarda la tasa de su día.</p>
-      <div class="fila"><label class="f">Bs por $1<input type="text" inputmode="decimal" id="a-tasa" value="${inNum(tv.valor)}"></label><label class="f">Fecha<input type="date" id="a-tasa-f" value="${tv.fecha || hoy()}"></label></div>
-      <p style="display:flex;gap:10px;flex-wrap:wrap;margin:0"><button class="btn oro" id="a-tasa-ok">GUARDAR TASA</button><button class="btn borde" id="a-bcv">Buscar tasa BCV de hoy</button></p></div>
+  el.innerHTML = `<div class="barra"><h2>Tasa del día</h2></div><div class="form" style="padding:0">
+    <div class="bloque">${bloqueTasaHTML(tv)}</div>
     <p class="ayuda">Las cajas, los porcentajes de comisión y de apartado, el sueldo del dueño y el equipo solo los cambia el dueño.</p></div>`;
-  $("a-tasa-ok").addEventListener("click", async () => { const v = num($("a-tasa").value); if (!(v > 0)) return toast("Escribe la tasa.");
-    try { AJ.tasa = { valor: v, fecha: $("a-tasa-f").value || hoy() }; await db.collection("contab").doc("publico").set(AJ); toast("Tasa guardada."); pintarTabs(); } catch (e) { console.error(e); toast("No se pudo guardar."); } });
-  $("a-bcv").addEventListener("click", async () => { const b = $("a-bcv"); b.disabled = true;
-    try { const r = await fetch("https://ve.dolarapi.com/v1/dolares/oficial"); const j = await r.json(); const v = num(j.promedio); if (!(v > 0)) throw 0;
-      $("a-tasa").value = inNum(v); $("a-tasa-f").value = (j.fechaActualizacion || hoy()).slice(0, 10); toast("Tasa BCV encontrada. Revísala y guarda."); }
-    catch (e) { toast("No se pudo consultar la tasa. Escríbela a mano."); } finally { b.disabled = false; } });
+  eventosTasa();
 }
 async function crearCajasSugeridas(){
   try {
@@ -1154,10 +1172,8 @@ function pintarAjustes(){
   const el = $("t-ajustes"), s = PRIV.sueldo, tv = AJ.tasa || {};
   el.innerHTML = `<div class="barra"><h2>Cajas y ajustes</h2></div>
     <div class="form" style="padding:0">
-      <div class="bloque"><h3>Tasa del dólar</h3>
-        <p class="ayuda">Se usa para convertir a dólares lo que entra y sale en bolívares. Cada movimiento guarda la tasa de su día.</p>
-        <div class="fila"><label class="f">Bs por $1<input type="text" inputmode="decimal" id="a-tasa" value="${inNum(tv.valor)}"></label><label class="f">Fecha<input type="date" id="a-tasa-f" value="${tv.fecha || hoy()}"></label></div>
-        <p style="display:flex;gap:10px;flex-wrap:wrap;margin:0"><button class="btn oro" id="a-tasa-ok">GUARDAR TASA</button><button class="btn borde" id="a-bcv">Buscar tasa BCV de hoy</button></p></div>
+      <div class="bloque"><h3>Tasa del día</h3>
+        ${bloqueTasaHTML(tv)}</div>
 
       <div class="bloque"><h3>Notificaciones a los trabajadores</h3>
         <p class="ayuda">Para que los avisos de pago y los recordatorios les lleguen a la barra de notificaciones del teléfono. Pega aquí la <b>clave pública</b> de Firebase: Configuración del proyecto → Cloud Messaging → Certificados push web.</p>
@@ -1226,14 +1242,7 @@ function pintarAjustes(){
     </div>`;
   const on = (id, f) => { const n = $(id); if (n) n.addEventListener("click", f); };
   const conBoton = (id, f) => on(id, async () => { const b = $(id), t = b.textContent; b.disabled = true; b.textContent = "Guardando…"; try { await f(); } catch (e) { console.error(e); toast("No se pudo guardar. Revisa las reglas de Firestore."); } finally { if ($(id)) { $(id).disabled = false; $(id).textContent = t; } } });
-  conBoton("a-tasa-ok", async () => { const v = num($("a-tasa").value); if (!(v > 0)) return toast("Escribe la tasa."); AJ.tasa = { valor: v, fecha: $("a-tasa-f").value || hoy() }; await db.collection("contab").doc("publico").set(AJ); toast("Tasa guardada."); pintarTabs(); });
-  on("a-bcv", async () => {
-    const b = $("a-bcv"); b.disabled = true; b.textContent = "Buscando…";
-    try { const r = await fetch("https://ve.dolarapi.com/v1/dolares/oficial"); const j = await r.json(); const v = num(j.promedio);
-      if (!(v > 0)) throw 0; $("a-tasa").value = inNum(v); $("a-tasa-f").value = (j.fechaActualizacion || hoy()).slice(0, 10); toast("Tasa BCV encontrada. Revísala y guarda."); }
-    catch (e) { toast("No se pudo consultar la tasa. Escríbela a mano."); }
-    finally { b.disabled = false; b.textContent = "Buscar tasa BCV de hoy"; }
-  });
+  eventosTasa();
   el.querySelectorAll("[data-c]").forEach(i => i.addEventListener("change", () => { const c = cuenta(i.dataset.c), k = i.dataset.k; c[k] = k === "activa" ? i.checked : k === "inicial" ? num(i.value) : i.value; c._cambio = true; }));
   on("a-sug", crearCajasSugeridas);
   conBoton("a-add", async () => { const n = $("a-nc").value.trim(); if (!n) return toast("Escribe el nombre de la caja."); const id = slug(n) + (cuenta(slug(n)) ? "-" + Date.now().toString(36).slice(-3) : "");
@@ -1450,7 +1459,7 @@ function abrirPagoNomina(g){
         <div class="bloque"><h3>¿De dónde sale el pago?</h3><div class="fila">
           <label class="f">Fecha de pago<input type="date" id="p-fecha" value="${x.fecha}"></label>
           <label class="f">Caja<select id="p-cuenta">${activas.map(c => `<option value="${c.id}" ${c.id === x.cuenta ? "selected" : ""}>${esc(c.nombre)} (${c.moneda === "VES" ? "Bs" : "$"})</option>`).join("")}</select></label>
-          ${mon === "VES" ? `<label class="f">Tasa <small>Bs por $1</small><input type="text" inputmode="decimal" id="p-tasa" value="${inNum(x.tasa)}"></label>` : ""}
+          ${mon === "VES" ? `<label class="f">Tasa <small>${tasaUnidad()}</small><input type="text" inputmode="decimal" id="p-tasa" value="${inNum(x.tasa)}"></label>` : ""}
           <label class="f">Referencia <small>opcional</small><input type="text" id="p-ref" value="${esc(x.ref)}"></label></div>
           <p class="equiv" id="p-eq"></p>
           <p class="ayuda">Se anota como gasto <b>${CAT_NOMINA}</b> y los ${g.porPagar.length} trabajos quedan marcados como pagados.</p></div>
