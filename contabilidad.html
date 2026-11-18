@@ -1159,6 +1159,11 @@ function pintarAjustes(){
         <div class="fila"><label class="f">Bs por $1<input type="text" inputmode="decimal" id="a-tasa" value="${inNum(tv.valor)}"></label><label class="f">Fecha<input type="date" id="a-tasa-f" value="${tv.fecha || hoy()}"></label></div>
         <p style="display:flex;gap:10px;flex-wrap:wrap;margin:0"><button class="btn oro" id="a-tasa-ok">GUARDAR TASA</button><button class="btn borde" id="a-bcv">Buscar tasa BCV de hoy</button></p></div>
 
+      <div class="bloque"><h3>Notificaciones a los trabajadores</h3>
+        <p class="ayuda">Para que los avisos de pago y los recordatorios les lleguen a la barra de notificaciones del teléfono. Pega aquí la <b>clave pública</b> de Firebase: Configuración del proyecto → Cloud Messaging → Certificados push web.</p>
+        <label class="f">Clave pública (VAPID)<input type="text" id="a-vapid" autocomplete="off" spellcheck="false" value="${esc(CFGP.vapid || "")}" placeholder="BN…"></label>
+        <p style="margin:0"><button class="btn oro" id="a-vapid-ok">GUARDAR CLAVE</button></p></div>
+
       <div class="bloque"><h3>Datos para documentos</h3>
         <p class="ayuda">Salen en el recibo de abono, la nota de entrega y la orden de fabricación. Deja en blanco lo que no quieras mostrar.</p>
         <div class="fila"><label class="f">RIF del negocio<input type="text" id="a-doc-rif" value="${esc((AJ.docs || {}).rif || "")}" placeholder="J-12345678-9"></label>
@@ -1264,6 +1269,9 @@ function pintarAjustes(){
   ejemplo(); el.querySelectorAll('[id^="a-com-"]').forEach(i => i.tagName === "INPUT" && i.addEventListener("input", ejemplo));
   conBoton("a-com-ok", async () => { PRIV.comisiones = { equipo: { 1: num($("a-com-1").value), 2: num($("a-com-2").value), 3: num($("a-com-3").value), 4: num($("a-com-4").value) }, ventas: numP($("a-com-v").value) };
     await db.collection("contab").doc("privado").set(PRIV); toast("Comisiones guardadas."); });
+  conBoton("a-vapid-ok", async () => { const v = $("a-vapid").value.trim().replace(/\s+/g, "");
+    if (v && !/^[A-Za-z0-9_-]{80,100}$/.test(v)) return toast("Esa clave no parece correcta. Copia la «clave pública» completa.");
+    CFGP.vapid = v; await db.collection("config").doc("personal").set(CFGP); toast(v ? "Clave guardada. Ya pueden activar las notificaciones en su portal." : "Clave borrada."); });
   conBoton("a-doc-ok", async () => { AJ.docs = { rif: $("a-doc-rif").value.trim(), direccion: $("a-doc-dir").value.trim(), condiciones: $("a-doc-cond").value.trim() };
     await db.collection("contab").doc("publico").set(AJ); toast("Datos de documentos guardados."); });
   conBoton("a-cat-ok", async () => { const l = id => [...new Set($(id).value.split("\n").map(s => s.trim()).filter(Boolean))];
@@ -1472,10 +1480,76 @@ function abrirPagoNomina(g){
         if (z) { z.pagado = true; z.pagoMovId = ref.id; z.pagadoFecha = x.fecha; tocadas.add(v); } }
       for (const v of tocadas) await guardarEquipoVenta(v);
       if (!AJ.categoriasGasto.includes(CAT_NOMINA)) { AJ.categoriasGasto = [CAT_NOMINA].concat(AJ.categoriasGasto); db.collection("contab").doc("publico").set(AJ).catch(() => {}); }
-      toast(`Pago a ${g.e.nombre} anotado.`); cerrarEditor(); refrescar();
+      const caja = c.nombre, txt = `Te pagamos ${fmtU(total)} por ${nProy} proyecto${nProy === 1 ? "" : "s"} (semana al ${fechaCorta(SEMANA)}). Pagado por ${caja}${d.ref ? ", ref. " + d.ref : ""}.`;
+      const avisado = await enviarAviso(g.e, "Recibiste tu pago", txt, "pago", { movId: ref.id, usd: total });
+      refrescar(); pagoListo(g.e, txt, avisado);
     } catch (e) { console.error(e); err("No se pudo guardar el pago."); b.disabled = false; b.textContent = "CONFIRMAR PAGO"; }
   }
   render();
+}
+
+/* ===== Avisos a los trabajadores =====
+   Cada aviso es un documento en "avisos". El trabajador lo ve en la campanita de su portal y, si activó
+   las notificaciones, la función del servidor (carpeta functions) se lo manda a la barra de notificaciones. */
+const conPortal = e => !!(e && e.acceso && e.acceso.email && e.acceso.activo !== false);
+async function enviarAviso(e, titulo, texto, tipo, extra){
+  if (!conPortal(e)) return false;
+  try { await db.collection("avisos").add(Object.assign({ empleadoId: e.id, email: e.acceso.email, nombre: e.nombre || "", titulo, texto, tipo: tipo || "aviso",
+      leido: false, de: YO, fecha: firebase.firestore.FieldValue.serverTimestamp() }, extra || {})); return true; }
+  catch (err) { console.error(err); return false; }
+}
+const waTexto = (e, t) => { const w = waDe(e && e.telefono); return w ? w + "?text=" + encodeURIComponent(`Hola ${(e.nombre || "").split(" ")[0]}, ${t.charAt(0).toLowerCase() + t.slice(1)}`) : ""; };
+function pagoListo(e, txt, avisado){
+  const ed = $("editor-in"), wa = waTexto(e, txt);
+  ed.innerHTML = `<header><h2>Pago anotado</h2><button class="btn borde mini" id="pl-x">Cerrar</button></header>
+    <div class="form"><div class="bloque"><h3>${esc(e.nombre)}</h3><p style="margin:0">${esc(txt)}</p>
+      <p class="msg ${avisado ? "ok" : "warn"}" style="margin:0">${avisado ? "Le llegó el aviso en su portal (y en la barra de notificaciones si las activó en su teléfono)." : "No tiene acceso al portal, así que no le llega aviso en la app. Avísale por WhatsApp."}</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${wa ? `<a class="btn oro" href="${wa}" target="_blank" rel="noopener">Avisar también por WhatsApp</a>` : `<span class="ayuda">Agrega su teléfono en su ficha para poder avisarle por WhatsApp.</span>`}<button class="btn borde" id="pl-ok">Listo</button></div></div></div>`;
+  $("pl-x").addEventListener("click", cerrarEditor); $("pl-ok").addEventListener("click", cerrarEditor);
+}
+/* Enviar un aviso o recordatorio a uno o varios trabajadores */
+async function abrirAviso(ids){
+  const ed = $("editor-in"); $("editor").hidden = false; document.body.style.overflow = "hidden"; $("editor").firstElementChild.scrollTop = 0;
+  const act = EMPLEADOS.filter(e => e.activo !== false), sel = new Set(ids && ids.length ? ids : act.filter(conPortal).map(e => e.id));
+  const PLANTILLAS = ["Recordatorio", "Reunión", "Cambio de horario", "Aviso importante"];
+  const x = { titulo: "Recordatorio", texto: "" }; let hist = null, enviando = false;
+  const pintar = () => {
+    ed.innerHTML = `<header><h2>Enviar aviso</h2><button class="btn oro" id="av-ok">ENVIAR</button><button class="btn borde mini" id="av-x">Cerrar</button></header>
+      <div class="form">
+        <div class="bloque"><h3>Mensaje</h3>
+          <div class="chips-sel">${PLANTILLAS.map(t => `<label><input type="radio" name="av-t" value="${t}" ${x.titulo === t ? "checked" : ""}>${t}</label>`).join("")}</div>
+          <label class="f">Título<input type="text" id="av-tit" maxlength="60" value="${esc(x.titulo)}"></label>
+          <label class="f">Texto<textarea id="av-txt" maxlength="400" style="min-height:90px" placeholder="Ej: Mañana entramos a las 7:00 am para despachar los pedidos.">${esc(x.texto)}</textarea></label></div>
+        <div class="bloque"><h3>¿A quién?</h3>
+          ${act.length ? `<div class="chips-sel">${act.map(e => `<label style="${conPortal(e) ? "" : "opacity:.55"}"><input type="checkbox" data-av="${e.id}" ${sel.has(e.id) ? "checked" : ""}>${esc(e.nombre)}${conPortal(e) ? "" : " (sin portal)"}</label>`).join("")}</div>
+          <p class="ayuda">Les llega a su portal (campanita) y a la barra de notificaciones si las activaron en su teléfono. Los que no tienen portal solo reciben WhatsApp.</p>` : `<p class="ayuda">Todavía no hay empleados.</p>`}</div>
+        <p class="msg err" id="av-err" hidden></p>
+        <div class="bloque"><h3>Últimos avisos enviados</h3>${hist === null ? `<p class="ayuda">Cargando…</p>` : hist.length ? `<div class="wrap-t"><table class="t"><tbody>${hist.map(a => `<tr><td>${a.fecha && a.fecha.toDate ? fechaCorta(iso(a.fecha.toDate())) : ""}</td><td><b>${esc(a.titulo)}</b> · ${esc(a.nombre)}<span class="sub">${esc(a.texto)}</span></td><td>${a.leido ? `<span class="chip ingreso">Leído</span>` : `<span class="chip retiro">Sin leer</span>`}${a.enviado ? `<span class="sub">notificación a ${a.enviado} teléfono${a.enviado === 1 ? "" : "s"}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>` : `<p class="ayuda">Aún no has enviado avisos.</p>`}</div>
+      </div>`;
+    $("av-x").addEventListener("click", cerrarEditor);
+    ed.querySelectorAll('[name="av-t"]').forEach(r => r.addEventListener("change", () => { x.titulo = r.value; $("av-tit").value = r.value; }));
+    $("av-tit").addEventListener("input", e => x.titulo = e.target.value); $("av-txt").addEventListener("input", e => x.texto = e.target.value);
+    ed.querySelectorAll("[data-av]").forEach(c => c.addEventListener("change", () => c.checked ? sel.add(c.dataset.av) : sel.delete(c.dataset.av)));
+    $("av-ok").addEventListener("click", enviar);
+  };
+  async function enviar(){
+    const err = t => { $("av-err").textContent = t; $("av-err").hidden = false; };
+    if (enviando) return; if (!x.titulo.trim()) return err("Escribe un título."); if (!x.texto.trim()) return err("Escribe el mensaje.");
+    const dest = act.filter(e => sel.has(e.id)); if (!dest.length) return err("Elige al menos un trabajador.");
+    enviando = true; const b = $("av-ok"); b.disabled = true; b.textContent = "Enviando…";
+    let ok = 0; for (const e of dest) if (await enviarAviso(e, x.titulo.trim(), x.texto.trim(), "recordatorio")) ok++;
+    const sinPortal = dest.filter(e => !conPortal(e));
+    ed.innerHTML = `<header><h2>Aviso enviado</h2><button class="btn borde mini" id="av-x2">Cerrar</button></header>
+      <div class="form"><div class="bloque"><h3>${esc(x.titulo)}</h3><p style="margin:0">${esc(x.texto)}</p>
+        <p class="msg ok" style="margin:0">Enviado a ${ok} trabajador${ok === 1 ? "" : "es"} por el portal.</p>
+        ${sinPortal.length ? `<p class="ayuda" style="margin:0">Sin portal (envíalo por WhatsApp):</p><div style="display:flex;gap:8px;flex-wrap:wrap">${sinPortal.map(e => { const w = waTexto(e, x.titulo + ": " + x.texto); return w ? `<a class="btn borde mini" href="${w}" target="_blank" rel="noopener">WhatsApp a ${esc(e.nombre.split(" ")[0])}</a>` : `<span class="chip">${esc(e.nombre)}: sin teléfono</span>`; }).join("")}</div>` : ""}
+        ${dest.filter(conPortal).length ? `<details><summary class="ayuda" style="cursor:pointer">También por WhatsApp a los demás</summary><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${dest.filter(conPortal).map(e => { const w = waTexto(e, x.titulo + ": " + x.texto); return w ? `<a class="btn borde mini" href="${w}" target="_blank" rel="noopener">${esc(e.nombre.split(" ")[0])}</a>` : ""; }).join("")}</div></details>` : ""}
+      </div></div>`;
+    $("av-x2").addEventListener("click", cerrarEditor); toast("Aviso enviado.");
+  }
+  pintar();
+  try { hist = lista(await db.collection("avisos").get()).sort((a, b) => ((b.fecha && b.fecha.seconds) || 0) - ((a.fecha && a.fecha.seconds) || 0)).slice(0, 15); } catch (e) { console.error(e); hist = []; }
+  if (!enviando && $("av-ok")) pintar();
 }
 
 /* Pestaña Empleados */
@@ -1487,7 +1561,7 @@ function codigoEmp(ced, nac, idAct){
 }
 function pintarEmpleados(){
   const el = $("t-empleados"), todas = lineasNomina();
-  el.innerHTML = `<div class="barra"><h2>Empleados</h2><button class="btn oro" id="e-nuevo">+ NUEVO EMPLEADO</button></div>
+  el.innerHTML = `<div class="barra"><h2>Empleados</h2><button class="btn borde" id="e-aviso">Enviar aviso</button><button class="btn oro" id="e-nuevo">+ NUEVO EMPLEADO</button></div>
     <div class="card wrap-t">${EMPLEADOS.length ? `<table class="t"><thead><tr><th>Código</th><th>Nombre</th><th class="ocultar-movil">Cargos</th><th class="num">Ganado en ${MESES[+MES.slice(5, 7) - 1].toLowerCase()}</th><th class="num">Por pagar</th><th></th></tr></thead><tbody>
       ${EMPLEADOS.map(e => { const m = todas.filter(l => l.empleadoId === e.id); const mes = m.filter(l => l.fecha.startsWith(MES)).reduce((a, l) => a + l.monto, 0), pp = m.filter(l => !l.pagado).reduce((a, l) => a + l.monto, 0);
         return `<tr class="clic" data-e="${e.id}" style="${e.activo === false ? "opacity:.5" : ""}"><td><b>${esc(e.codigo || "")}</b></td><td>${esc(e.nombre)}${e.activo === false ? `<span class="sub">Inactivo</span>` : ""}<span class="sub">${esc(e.telefono || "")}${BANC[e.id] ? " · Datos bancarios ✓" : ""}</span></td>
@@ -1496,6 +1570,7 @@ function pintarEmpleados(){
           <td style="text-align:right"><button type="button" class="btn borde mini" data-e-del="${e.id}" aria-label="Eliminar a ${esc(e.nombre)}">Eliminar</button></td></tr>`; }).join("")}</tbody></table>`
       : `<p class="vacio">Registra a tu equipo: picador, armador, tapicero, corte y costura, control de calidad y ejecutivos de ventas.</p>`}</div>`;
   $("e-nuevo").addEventListener("click", () => abrirEmpleado(null));
+  $("e-aviso").addEventListener("click", () => abrirAviso(null));
   el.querySelectorAll("[data-e]").forEach(r => r.addEventListener("click", ev => { if (ev.target.closest("[data-e-del]")) return; abrirEmpleado(empleado(r.dataset.e)); }));
   el.querySelectorAll("[data-e-del]").forEach(b => b.addEventListener("click", () => confirmarEliminar(empleado(b.dataset.eDel))));
 }
@@ -1550,7 +1625,7 @@ function abrirEmpleado(e0){
               : `<p style="margin:0"><button class="btn borde mini" id="bn-del">Borrar datos bancarios</button></p>`) : "")
           : `<p class="ayuda">Todavía no los registra. Cada empleado los anota <b>una sola vez</b> en su perfil del portal del personal; si se equivoca, aquí los borras y los vuelve a anotar.</p>`}</div>` : ""}
         ${!nuevo ? `<div class="bloque"><h3>Historial de proyectos</h3>${hist.length ? `<div class="wrap-t"><table class="t"><tbody>${hist.map(l => `<tr><td>${fechaCorta(l.fecha)}</td><td><b>${esc(l.venta.numero || "")}</b> · ${esc(l.venta.cliente || "")}<span class="sub">${esc(l.rol)} · ${fmtN(l.pct)}%</span></td><td class="num">${fmtU(l.monto)}</td><td>${l.pagado ? `<span class="chip ingreso">Pagado</span>` : `<span class="chip retiro">Pendiente</span>`}</td></tr>`).join("")}</tbody></table></div>` : `<p class="ayuda">Aún no tiene proyectos.</p>`}
-          <p style="margin:0"><button class="btn borde mini" id="e-del">Eliminar empleado</button></p>
+          <p style="margin:0;display:flex;gap:8px;flex-wrap:wrap"><button class="btn borde mini" id="e-aviso1">Enviarle un aviso</button><button class="btn borde mini" id="e-del">Eliminar empleado</button></p>
           ${confirmar ? (() => { const pend = hist.filter(l => !l.pagado).reduce((t, l) => t + l.monto, 0);
             return `<div class="confirma" style="flex-direction:column;align-items:flex-start"><span><b>¿Eliminar a ${esc(x.nombre)}?</b> Desaparece de la lista de empleados${x.acceso && x.acceso.email ? " y pierde el acceso al portal" : ""}.
               ${hist.length ? ` Sus proyectos ya pagados siguen en las ventas.${pend > 0.009 ? ` <b>Tiene ${fmtU(pend)} pendiente por pagar</b>: ese monto deja de aparecer en la nómina.` : ""}` : ""}
@@ -1578,6 +1653,7 @@ function abrirEmpleado(e0){
     on("bn-del-si", async () => { const b = $("bn-del-si"); b.disabled = true;
       try { await db.collection("bancarios").doc(x.id).delete(); delete BANC[x.id]; borrarBanco = false; render(); refrescar(); toast("Datos bancarios borrados. Puede registrarlos de nuevo en su perfil."); }
       catch (e) { console.error(e); toast("No se pudieron borrar. Revisa las reglas de Firestore."); b.disabled = false; } });
+    on("e-aviso1", () => abrirAviso([x.id]));
     on("e-del", () => { confirmar = true; render(); }); on("e-del-no", () => { confirmar = false; render(); });
     on("e-del-si", async () => {
       const b = $("e-del-si"); b.disabled = true; b.textContent = "Eliminando…";
