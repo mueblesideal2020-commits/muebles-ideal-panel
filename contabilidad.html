@@ -32,6 +32,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 textarea { min-height: 120px; resize: vertical; }
 label.f { display: flex; flex-direction: column; gap: 5px; font-size: .85rem; font-weight: 700; min-width: 0; }
 label.f small { font-weight: 400; color: var(--muted); }
+.chips-sel.col { flex-direction: column; align-items: flex-start; }
+.bloque.cero { border: 1.5px solid #e2b3ae; }
 .ficha-b { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; }
 .ficha-b div { background: var(--soft, #f6f1e6); border-radius: 10px; padding: 8px 12px; }
 .ficha-b small { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
@@ -318,9 +320,12 @@ function articulosConocidos(){
 const resumenLineas = ls => ls.map(l => `${fmtCant(l.cant)} ${l.art}`).join(", ");
 const fmtCant = n => (Math.round((n || 0) * 100) / 100).toLocaleString("es-VE", { maximumFractionDigits: 2 });
 const CAJAS_SUGERIDAS = [
-  { nombre: "Banesco", moneda: "VES" }, { nombre: "Mercantil", moneda: "VES" }, { nombre: "Efectivo en dólares", moneda: "USD" },
-  { nombre: "Efectivo en bolívares", moneda: "VES" }, { nombre: "Binance (USDT)", moneda: "USD" }
+  { nombre: "Mercantil", moneda: "VES" }, { nombre: "Binance (USDT)", moneda: "USD" }
 ];
+/* Modo "una caja principal": todo el dinero del negocio entra a Mercantil (Bs) y Binance (USDT).
+   Banesco es la cuenta PERSONAL del dueño: no es caja; el sueldo se anota como salida de Mercantil hacia Banesco. */
+const modoUno = () => !!(PRIV.bancos && PRIV.bancos.modo === "uno");
+const cuentaPersonal = () => (PRIV.cuentaPersonal || "").trim();
 
 /* ===== Estado ===== */
 const ROLES_PROD = ["Picador", "Armador", "Tapicero", "Corte y Costura"];
@@ -572,6 +577,7 @@ function pintarResumen(){
   const cfg = $("r-bancos"); if (cfg) cfg.addEventListener("click", () => { tab = "ajustes"; refrescar(); setTimeout(() => { const n = $("a-bancos"); if (n) n.scrollIntoView({ behavior: "smooth" }); }, 50); });
 }
 function bloqueBancos(){
+  if (modoUno()) return "";
   if (!bancosListos()) return `<div class="card panel" style="margin-top:14px"><h3>Organiza el dinero con dos bancos</h3>
     <p class="ayuda">Usa <b>Banesco</b> para el día a día (cobros, materiales y nómina) y <b>Mercantil</b> para guardar lo apartado: gastos fijos, reserva y tu ganancia. Así no gastas sin querer lo que le toca a otra cosa.</p>
     ${ROL === "dueno" ? `<p style="margin:12px 0 0"><button class="btn oro" id="r-bancos">CONFIGURAR LOS DOS BANCOS</button></p>` : `<p class="ayuda">El dueño lo activa en Cajas y ajustes.</p>`}</div>`;
@@ -747,7 +753,7 @@ function formMov(el, m, pre, op){
         ${!activas.length ? `<p class="msg warn">Todavía no hay cajas creadas.${ROL === "dueno" ? " Créalas en Cajas y ajustes." : " Pídele al dueño que las cree."}</p>` : ""}
         <div class="bloque"><h3>Tipo</h3>
           <div class="seg">${tiposOk.map(k => `<button type="button" data-tipo="${k}" aria-pressed="${k === t}">${TIPOS[k].n}</button>`).join("")}</div>
-          <p class="ayuda">${TIPOS[t].ayuda}</p>${extra ? `<p class="msg ${t === "sueldo" ? "ok" : "warn"}" style="margin:0">${extra}</p>` : ""}</div>
+          <p class="ayuda">${TIPOS[t].ayuda}${t === "sueldo" && cuentaPersonal() ? ` Transfiere este monto desde la caja del negocio a tu cuenta personal <b>${esc(cuentaPersonal())}</b>.` : ""}</p>${extra ? `<p class="msg ${t === "sueldo" ? "ok" : "warn"}" style="margin:0">${extra}</p>` : ""}</div>
         <div class="bloque"><h3>${t === "transferencia" ? "Sale de" : "Dinero"}</h3>
           <div class="fila">
             <label class="f">Fecha<input type="date" id="mv-fecha" value="${x.fecha}"></label>
@@ -1160,6 +1166,50 @@ function pintarTasaSola(){
     <p class="ayuda">Las cajas, los porcentajes de comisión y de apartado, el sueldo del dueño y el equipo solo los cambia el dueño.</p></div>`;
   eventosTasa();
 }
+/* Borra los datos de prueba elegidos (solo el dueño). Borra en lotes y luego recarga la página. */
+async function empezarDeCero(sel){
+  const msg = (t, c) => { const n = $("z-msg"); n.className = "msg " + (c || ""); n.innerHTML = t; n.hidden = false; };
+  if (ROL !== "dueno") return msg("Solo el dueño puede hacer esto.", "err");
+  if (!sel.length) return msg("Marca al menos una opción.", "err");
+  if ($("z-conf").value.trim().toUpperCase() !== "BORRAR") return msg("Escribe BORRAR para confirmar.", "err");
+  const b = $("z-ok"); b.disabled = true;
+  const cols = [];
+  if (sel.includes("ventas")) cols.push("ventas", "trabajos");
+  ["movimientos", "cotizaciones", "asistencias", "avisos", "club"].forEach(c => sel.includes(c) && cols.push(c));
+  if (sel.includes("empleados")) cols.push("empleados", "accesos", "bancarios", "dispositivos");
+  try {
+    let total = 0;
+    for (const c of cols) {
+      b.textContent = `Borrando ${c}…`;
+      let docs = [];
+      if (c === "accesos") { docs = []; for (const e of EMPLEADOS) if (e.codigo) docs.push(db.collection("accesos").doc(await hashCodigo(e.codigo))); }
+      else docs = (await db.collection(c).get()).docs.map(d => db.collection(c).doc(d.id));
+      for (let i = 0; i < docs.length; i += 400) { const lote = db.batch(); docs.slice(i, i + 400).forEach(r => lote.delete(r)); await lote.commit(); }
+      if (c !== "accesos") total += docs.length;
+    }
+    if (sel.includes("saldos")) { b.textContent = "Poniendo saldos en 0…"; for (const c of CUENTAS) { const { id, _cambio, ...d } = c; d.inicial = 0; await db.collection("cuentas").doc(id).set(d); } }
+    msg(`Listo: se borraron ${total} registros. Recargando…`, "ok"); toast("Datos borrados.");
+    setTimeout(() => location.reload(), 1500);
+  } catch (e) { console.error(e); msg("Se borró una parte, pero algo falló. Revisa tu conexión y vuelve a intentarlo (lo que ya se borró no vuelve).", "err"); b.disabled = false; b.textContent = "BORRAR LO MARCADO"; }
+}
+/* Deja solo Mercantil (Bs, principal) y Binance (USDT) como cajas; Banesco pasa a ser la cuenta personal del dueño. */
+async function usarMercantilBinance(){
+  const guardarCaja = async c => { const { id, _cambio, ...d } = c; await db.collection("cuentas").doc(id).set(d); };
+  const crear = async (nombre, moneda) => { const id = slug(nombre) + (cuenta(slug(nombre)) ? "-" + Date.now().toString(36).slice(-3) : "");
+    const d = { nombre, moneda, inicial: 0, activa: true, orden: 1 }; await db.collection("cuentas").doc(id).set(d); const c = Object.assign({ id }, d); CUENTAS.push(c); return c; };
+  let mer = CUENTAS.find(c => /mercantil/i.test(c.nombre) && c.moneda === "VES") || await crear("Mercantil", "VES");
+  let bin = CUENTAS.find(c => /binance|usdt/i.test(c.nombre) && c.moneda === "USD") || await crear("Binance (USDT)", "USD");
+  mer.activa = true; mer.orden = 1; bin.activa = true; bin.orden = 2;
+  for (const c of CUENTAS) { if (c !== mer && c !== bin) { c.activa = false; c.orden = 10 + (c.orden || 0); } await guardarCaja(c); }
+  const tenia = CUENTAS.find(c => /banesco/i.test(c.nombre));
+  PRIV.bancos = Object.assign({}, PRIV.bancos, { modo: "uno", operativa: mer.id, resguardo: "" });
+  PRIV.sueldo.cuenta = mer.id;
+  if (!cuentaPersonal()) PRIV.cuentaPersonal = "Banesco";
+  await db.collection("contab").doc("privado").set(PRIV);
+  CUENTAS.sort((a, b) => (a.orden || 0) - (b.orden || 0));
+  toast(`Listo: cajas ${mer.nombre} y ${bin.nombre}.${tenia ? " Banesco quedó como tu cuenta personal (oculta de las cajas)." : ""}`);
+  pintarAjustes(); pintarTabs();
+}
 async function crearCajasSugeridas(){
   try {
     let i = CUENTAS.length;
@@ -1187,7 +1237,9 @@ function pintarAjustes(){
         <label class="f">Condiciones del recibo <small>una por línea</small><textarea id="a-doc-cond" style="min-height:90px">${esc((AJ.docs || {}).condiciones || "El pedido se fabrica a su medida a partir de este abono.\nEl saldo pendiente se cancela al momento de la entrega o retiro.\nConserve este documento: es su respaldo del dinero entregado y lo necesitará al recibir su pedido.")}</textarea></label>
         <p style="margin:0"><button class="btn oro" id="a-doc-ok">GUARDAR DATOS</button></p></div>
 
-      <div class="bloque"><h3>Cajas</h3>
+      <div class="bloque"><h3>Cajas del negocio</h3>
+        ${modoUno() ? `<p class="msg ok" style="margin:0">Caja principal: <b>${esc(nomCuenta(PRIV.bancos.operativa))}</b>${CUENTAS.filter(c => c.activa !== false && c.id !== PRIV.bancos.operativa).map(c => ` · también <b>${esc(c.nombre)}</b>`).join("")}.${cuentaPersonal() ? ` Tu cuenta personal es <b>${esc(cuentaPersonal())}</b>: no es caja; tu sueldo se anota como salida hacia ella.` : ""}</p>`
+          : `<div class="msg warn" style="margin:0"><p style="margin:0 0 8px">¿Quieres que todo el dinero del negocio llegue a <b>Mercantil</b> (Bs) y <b>Binance</b> (USDT), y dejar <b>Banesco</b> como tu cuenta personal?</p><button class="btn oro mini" id="a-uno">USAR MERCANTIL + BINANCE</button></div>`}
         <p class="ayuda">Cada lugar donde está el dinero del negocio. En <b>Saldo inicial</b> escribe cuánto tenía la caja el día que empezaste a anotar. Tu cuenta personal no va aquí.</p>
         <div class="wrap-t"><table class="t"><thead><tr><th>Nombre</th><th>Moneda</th><th>Saldo inicial</th><th class="num">Saldo hoy</th><th>Activa</th></tr></thead><tbody>
           ${CUENTAS.map(c => `<tr><td style="min-width:180px"><input type="text" data-c="${c.id}" data-k="nombre" value="${esc(c.nombre)}"></td>
@@ -1199,6 +1251,10 @@ function pintarAjustes(){
         </tbody></table></div>
         <p style="margin:0"><button class="btn oro" id="a-cajas-ok">GUARDAR CAJAS</button></p></div>
 
+      ${modoUno() ? `<div class="bloque" id="a-bancos"><h3>Cuenta personal</h3>
+        <p class="ayuda">Es tu cuenta, no del negocio. Lo que está ahí lo puedes gastar. Para llevarte dinero, anota tu <b>Sueldo</b> (o un <b>Retiro personal</b>) desde la caja del negocio.</p>
+        <div class="fila"><label class="f">Nombre de tu cuenta personal<input type="text" id="a-cp" value="${esc(cuentaPersonal())}" placeholder="Banesco"></label></div>
+        <p style="margin:0;display:flex;gap:10px;flex-wrap:wrap"><button class="btn oro" id="a-cp-ok">GUARDAR</button><button class="btn borde" id="a-dos">Volver a usar dos bancos con potes</button></p></div>` : `
       <div class="bloque" id="a-bancos"><h3>Dos bancos: Banesco y Mercantil</h3>
         <p class="ayuda"><b>Banco del día a día</b> (Banesco): ahí cobras a los clientes y de ahí pagas materiales, nómina y comisiones. <b>Banco de resguardo</b> (Mercantil): ahí pasas, de cada cobro de venta, un porcentaje separado en tres potes. De ahí pagas los servicios y tu sueldo.</p>
         ${!(CUENTAS.some(c => /banesco/i.test(c.nombre)) && CUENTAS.some(c => /mercantil/i.test(c.nombre))) ? `<p style="margin:0"><button class="btn oro" id="a-bn-crear">PREPARAR BANESCO Y MERCANTIL</button></p>
@@ -1210,14 +1266,14 @@ function pintarAjustes(){
         <p class="ayuda" style="margin-bottom:0">De cada cobro de venta se aparta:</p>
         <div class="fila">${Object.keys(POTES).map(k => `<label class="f">${POTES[k]} <small>% del cobro · ${POTES_AYUDA[k].toLowerCase()}</small><input type="text" inputmode="decimal" id="a-bn-${k}" value="${inPct(num(PRIV.bancos.pct[k]))}"></label>`).join("")}</div>
         <p class="ayuda" id="a-bn-ej"></p>
-        <p style="margin:0"><button class="btn oro" id="a-bn-ok">GUARDAR BANCOS</button></p></div>
+        <p style="margin:0"><button class="btn oro" id="a-bn-ok">GUARDAR BANCOS</button></p></div>`}
 
       <div class="bloque"><h3>Sueldo del dueño</h3>
         <p class="ayuda">La regla para separar tu dinero: el negocio te paga un sueldo fijo y tú vives de ese sueldo. Lo demás se queda en el negocio para material, imprevistos y crecer. Si necesitas sacar algo extra, anótalo como <b>Retiro personal</b>.</p>
         <div class="fila">
           <label class="f">Monto por pago <small>en dólares</small><input type="text" inputmode="decimal" id="a-s-monto" value="${inNum(num(s.monto))}"></label>
           <label class="f">Cada cuánto<select id="a-s-frec">${["mensual", "quincenal", "semanal"].map(f => `<option ${s.frecuencia === f ? "selected" : ""}>${f}</option>`).join("")}</select></label>
-          <label class="f">Caja de donde sale<select id="a-s-cuenta"><option value="">Elegir cada vez</option>${CUENTAS.map(c => `<option value="${c.id}" ${s.cuenta === c.id ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select></label></div>
+          <label class="f">Caja de donde sale<select id="a-s-cuenta"><option value="">Elegir cada vez</option>${CUENTAS.filter(c => c.activa !== false || c.id === s.cuenta).map(c => `<option value="${c.id}" ${s.cuenta === c.id ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select></label></div>
         <p style="margin:0"><button class="btn oro" id="a-s-ok">GUARDAR SUELDO</button></p></div>
 
       <div class="bloque"><h3>Comisiones de empleados</h3>
@@ -1239,12 +1295,29 @@ function pintarAjustes(){
         <div class="fila"><label class="f">Nombre<input type="text" id="a-eq-n" placeholder="Ej: María"></label><label class="f">Correo<input type="email" id="a-eq-e" placeholder="correo@gmail.com"></label><label class="f">Rol<select id="a-eq-rol"><option value="administrador">Administrador</option><option value="ayudante">Ayudante</option></select></label></div>
         <p style="margin:0"><button class="btn oro" id="a-eq-ok">AGREGAR AL EQUIPO</button></p>
         <p class="ayuda">Le llegará un correo para crear su contraseña. Luego entra al panel con su correo.</p></div>
+
+      <div class="bloque cero"><h3>Empezar de cero</h3>
+        <p class="ayuda">Borra los datos de prueba para arrancar limpio. <b>No se puede deshacer.</b> El catálogo, las telas, las cajas, la tasa, los porcentajes y estos ajustes <b>no se tocan</b>.</p>
+        <p style="margin:0"><button class="btn borde" id="z-xls">1. Descargar respaldo en Excel (recomendado)</button></p>
+        <div class="chips-sel col">
+          ${[["ventas", "Ventas y proyectos del equipo", true], ["movimientos", "Ingresos, gastos, abonos y pagos de nómina", true], ["cotizaciones", "Cotizaciones que llegaron de la página", true],
+             ["asistencias", "Entradas y salidas del personal", true], ["avisos", "Avisos enviados a los trabajadores", true],
+             ["empleados", "Empleados (con su acceso al portal y datos bancarios)", false], ["club", "Suscriptores del club de la página", false], ["saldos", "Poner en 0 el saldo inicial de las cajas", false]]
+            .map(([k, t, on]) => `<label><input type="checkbox" data-z="${k}" ${on ? "checked" : ""}>${t}</label>`).join("")}</div>
+        <label class="f">2. Para confirmar, escribe <b>BORRAR</b><input type="text" id="z-conf" autocomplete="off" autocapitalize="characters" placeholder="BORRAR"></label>
+        <p style="margin:0"><button class="btn peligro" id="z-ok">BORRAR LO MARCADO</button></p>
+        <p class="msg" id="z-msg" hidden></p></div>
     </div>`;
   const on = (id, f) => { const n = $(id); if (n) n.addEventListener("click", f); };
   const conBoton = (id, f) => on(id, async () => { const b = $(id), t = b.textContent; b.disabled = true; b.textContent = "Guardando…"; try { await f(); } catch (e) { console.error(e); toast("No se pudo guardar. Revisa las reglas de Firestore."); } finally { if ($(id)) { $(id).disabled = false; $(id).textContent = t; } } });
   eventosTasa();
   el.querySelectorAll("[data-c]").forEach(i => i.addEventListener("change", () => { const c = cuenta(i.dataset.c), k = i.dataset.k; c[k] = k === "activa" ? i.checked : k === "inicial" ? num(i.value) : i.value; c._cambio = true; }));
   on("a-sug", crearCajasSugeridas);
+  conBoton("a-uno", usarMercantilBinance);
+  conBoton("a-cp-ok", async () => { PRIV.cuentaPersonal = $("a-cp").value.trim(); await db.collection("contab").doc("privado").set(PRIV); toast("Guardado."); pintarAjustes(); });
+  conBoton("a-dos", async () => { PRIV.bancos.modo = ""; await db.collection("contab").doc("privado").set(PRIV); toast("Puedes configurar los dos bancos abajo."); pintarAjustes(); pintarTabs(); });
+  on("z-xls", () => exportar(null));
+  on("z-ok", () => empezarDeCero([...el.querySelectorAll("[data-z]:checked")].map(i => i.dataset.z)));
   conBoton("a-add", async () => { const n = $("a-nc").value.trim(); if (!n) return toast("Escribe el nombre de la caja."); const id = slug(n) + (cuenta(slug(n)) ? "-" + Date.now().toString(36).slice(-3) : "");
     const d = { nombre: n, moneda: $("a-nm").value, inicial: 0, activa: true, orden: CUENTAS.length + 1 }; await db.collection("cuentas").doc(id).set(d); CUENTAS.push(Object.assign({ id }, d)); toast("Caja agregada."); pintarAjustes(); });
   conBoton("a-cajas-ok", async () => { for (const c of CUENTAS.filter(c => c._cambio)) { const { id, _cambio, ...d } = c; await db.collection("cuentas").doc(id).set(d); delete c._cambio; } toast("Cajas guardadas."); pintarAjustes(); });
@@ -1252,7 +1325,7 @@ function pintarAjustes(){
     const t = g + rv + du, mat = 100 - t - eq - ve;
     $("a-bn-ej").innerHTML = `Ejemplo con un cobro de <b>$300</b>: pasas <b>${fmtU(300 * t / 100)}</b> al banco de resguardo (gastos ${fmtU(300 * g / 100)} · reserva ${fmtU(300 * rv / 100)} · tu ganancia ${fmtU(300 * du / 100)}) y quedan ${fmtU(300 - 300 * t / 100)} en el banco del día a día. `
       + (mat > 0 ? `Después de pagar al equipo (${fmtP(eq)} %) y la comisión (${fmtP(ve)} %), te quedan ${fmtU(300 * mat / 100)} (${fmtP(mat)} %) para los materiales. Si los materiales de un modelo cuestan más que eso, súbele el precio.` : `<b>Con estos porcentajes no queda dinero para materiales.</b> Bájalos.`); };
-  ejBn(); ["gastos", "reserva", "dueno"].forEach(k => $("a-bn-" + k).addEventListener("input", ejBn));
+  if ($("a-bn-ej")) { ejBn(); ["gastos", "reserva", "dueno"].forEach(k => $("a-bn-" + k).addEventListener("input", ejBn)); }
   conBoton("a-bn-crear", async () => {
     const generico = CUENTAS.find(c => /^banco/i.test(c.nombre) && !/banesco|mercantil/i.test(c.nombre));
     let ban = CUENTAS.find(c => /banesco/i.test(c.nombre)), mer = CUENTAS.find(c => /mercantil/i.test(c.nombre));
