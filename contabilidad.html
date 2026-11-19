@@ -923,7 +923,7 @@ const cotsNuevas = () => COTS.filter(q => !q.venta && !q.descartada).sort((a, b)
 const productosCot = q => q.items && q.items.length ? q.items.map(it => (num(it.cantidad) > 1 ? it.cantidad + " × " : "") + [it.modelo, it.tamano && it.tamano !== "Por definir" ? it.tamano : ""].filter(Boolean).join(" ")).join(" + ") : [q.modelo, q.tamano].filter(Boolean).join(" ");
 const waDe = t => { let d = String(t || "").replace(/\D/g, ""); if (!d) return ""; if (d.startsWith("0")) d = "58" + d.slice(1); else if (!d.startsWith("58") && d.length === 10) d = "58" + d; return "https://wa.me/" + d; };
 function datosDeCot(q){
-  const deCot = (it, n) => Object.assign(nuevoItem(n), { cantidad: num(it.cantidad) || 1,
+  const deCot = (it, n) => Object.assign(nuevoItem(n), { cantidad: num(it.cantidad) || 1, precio: num(it.precioUnit) > 0 ? Math.round(num(it.precioUnit) * (num(it.cantidad) || 1) * 100) / 100 : 0,
     producto: [it.modelo, it.tamano && it.tamano !== "Por definir" ? it.tamano : "", it.medida].filter(Boolean).join(" · "),
     detalle: [it.color && "Tela: " + it.color, it.colorCojines && "Cojines: " + it.colorCojines, it.lado, it.gavetas, it.piezas, it.soporte && it.soporte + (it.colorPatas ? " " + it.colorPatas : ""), it.accesorios && "Accesorios: " + it.accesorios, it.orden && "Orden: " + it.orden, it.mensaje].filter(Boolean).join("\n") });
   return { cotizacionId: q.id, numero: q.orden || "", cliente: q.nombre || "", telefono: q.telefono || "", email: q.email || "", ciudad: q.ciudad || "", direccion: q.direccion || "", cedula: q.cedula || "",
