@@ -113,6 +113,7 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
 <body>
+<script src="bloqueo.js"></script>
 
 <!-- Entrar con correo y contraseña -->
 <section class="entrar" id="v-entrar" hidden>
@@ -436,12 +437,14 @@ function pintarPerfil(){
     </div>
     ${bloqueNotif(false)}
     ${bloqueBanco()}
+    ${window.MI_BLOQUEO ? MI_BLOQUEO.bloqueHTML("card") : ""}
     <button class="btn borde" type="button" id="b-cpin">Cambiar mi contraseña</button>
     <button class="btn" type="button" id="b-salir">Salir</button>
     <p class="nota">Para entrar más rápido, agrega esta página a tu pantalla de inicio desde el menú del navegador.</p>`;
   $("b-cpin").addEventListener("click", async () => { try { await auth.sendPasswordResetEmail(YO.email); toast("Te enviamos un correo para cambiar la contraseña."); } catch (e) { toast("No se pudo enviar el correo."); } });
   $("b-salir").addEventListener("click", () => auth.signOut());
   eventosBanco(); eventosNotif();
+  if (window.MI_BLOQUEO) MI_BLOQUEO.conectarUI();
 }
 
 /* ---- Datos bancarios: el empleado los anota UNA sola vez; si se equivoca, el dueño los borra y los vuelve a anotar ---- */
