@@ -708,7 +708,7 @@ function pintarPrecios(){
         ${c.accesorios.map((a, i) => `<tr><td><input type="text" data-acc="${i}" value="${esc(a)}"></td><td><input type="number" min="0" data-accp="${i}" value="${esc(c.preciosExtra[a] != null ? c.preciosExtra[a] : "")}"></td><td><button class="btn borde mini" type="button" data-accq="${i}">Quitar</button></td></tr>`).join("")}
         </tbody></table></div><button class="btn borde mini" type="button" id="c-addacc" style="width:fit-content">+ Agregar accesorio</button></div>
 
-      <div class="bloque"><h3>Tamaños de cama</h3><p class="ayuda">Escribe como "Queen 160×190 cm" (ancho × largo del colchón) para que el plano calcule las medidas.</p>
+      <div class="bloque"><h3>Tamaños de cama</h3><p class="ayuda">Escribe como "Queen 160×200 cm" (ancho interior × largo externo, que es 200 en todas las camas). Ojo: si cambias esta lista, la tienda usa la de aquí, no la del código.</p>
         <div class="wrap-t"><table class="ed"><tbody>${c.tamanosCama.map((t, i) => `<tr><td><input type="text" data-tam="${i}" value="${esc(t)}"></td><td style="width:90px"><button class="btn borde mini" type="button" data-tamq="${i}">Quitar</button></td></tr>`).join("")}</tbody></table></div>
         <button class="btn borde mini" type="button" id="c-addtam" style="width:fit-content">+ Agregar tamaño</button></div>
 

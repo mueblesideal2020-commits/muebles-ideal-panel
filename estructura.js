@@ -11,12 +11,14 @@
    - ESPALDAR: cara trasera vertical + cara frontal inclinada, con una
      cartela lateral de tabla (trapecio) a cada lado que se atornilla al brazo.
    - DIVÁN (opcional): módulo largo con travesaños intermedios; puede llevar BAÚL.
+   - CAMA: base de un solo cajón (largo × ancho del colchón) y cabecero: tablero
+     entre dos cartelas trapecio (fondo abajo, tramo recto, fondo arriba).
    Todas las medidas en centímetros.
    ===================================================================== */
 (function (g) {
   "use strict";
   const BASE = {
-    tipo: "recto",          // "recto" | "divan"
+    tipo: "recto",          // "recto" | "divan" | "cama"
     largo: 220,             // largo total del sofá
     fondo: 85,              // fondo total (asiento + espaldar)
     puestos: 3,             // cantidad de módulos de asiento (en diván, el diván cuenta como uno)
@@ -30,15 +32,23 @@
     cinchaAncho: 5, cinchaSep: 3,   // cincha tejida en ambos sentidos: ancho y separación
     altoEspaldar: 60, fondoEspaldar: 25, topeEspaldar: 10,
     divanLado: "izquierda", divanLargo: 160, baul: false,
+    altoCabecero: 120, anchoCabecero: 145,   // cama: alto del cabecero desde el piso (su ancho = ancho interior + 2 × grosor de la madera)
+    grosorMadera: 2.5,                        // cama: grosor de la madera del marco, por cada lado
+    cantGavetas: 0, altoGaveta: 25, grosorGaveta: 1.5,   // cama: gavetas (cada una en la mitad de los pies, frente hacia los pies), alto y grosor del MDF
+    grosorCabecero: 15, grosorCabeceroArriba: 7, rectoCabecero: 50,   // cama: fondo abajo, fondo arriba y tramo recto de la cartela
     la: 2.5, lb: 5,         // sección del listón (grueso × ancho)
     cartela: 10,            // largo de la cartela (corte a 45°)
     mdf: 0.4,               // grosor del MDF (cm)
     largoListon: 300,       // largo del listón que se compra
     sierra: 0.3             // pérdida por corte
   };
-  const NUM = ["largo", "fondo", "puestos", "anchoBrazo", "altoBrazo", "altoBase", "altoBastidor", "extraBastidor", "gomaPulg", "altoPata", "cinchaAncho", "cinchaSep", "altoEspaldar", "fondoEspaldar", "topeEspaldar", "divanLargo", "la", "lb", "cartela", "mdf", "largoListon", "sierra"];
+  const NUM = ["largo", "fondo", "puestos", "anchoBrazo", "altoBrazo", "altoBase", "altoBastidor", "extraBastidor", "gomaPulg", "altoPata", "cinchaAncho", "cinchaSep", "altoEspaldar", "fondoEspaldar", "topeEspaldar", "divanLargo", "altoCabecero", "anchoCabecero", "grosorCabecero", "grosorCabeceroArriba", "rectoCabecero", "grosorMadera", "cantGavetas", "altoGaveta", "grosorGaveta", "la", "lb", "cartela", "mdf", "largoListon", "sierra"];
   const r1 = n => Math.round(n * 10) / 10;
   const fmt = n => String(r1(n)).replace(".", ",");
+  /* Tamaños estándar de cama (los mismos de la tienda): ancho × largo del colchón */
+  /* Camas de la fábrica: ancho INTERIOR y largo EXTERNO (todas a 2 m). El cabecero y el marco externo suman 5 cm al ancho. */
+  const CAMAS = { individual: { nombre: "Individual", ancho: 100, largo: 200 }, matrimonial: { nombre: "Matrimonial", ancho: 140, largo: 200 }, queen: { nombre: "Queen", ancho: 160, largo: 200 }, king: { nombre: "King", ancho: 200, largo: 200 } };
+  const nombreCama = (largo, ancho) => { const k = Object.values(CAMAS).find(c => c.largo === +largo && c.ancho === +ancho); return k ? k.nombre : "a medida"; };
 
   function normal(p) {
     const q = Object.assign({}, p || {});
@@ -47,7 +57,8 @@
     NUM.forEach(k => { const v = parseFloat(String(x[k]).replace(",", ".")); x[k] = isFinite(v) ? v : BASE[k]; });
     x.puestos = Math.max(1, Math.round(x.puestos));
     x.baul = x.baul === true || x.baul === "1" || x.baul === "true";
-    if (x.tipo !== "divan") x.tipo = "recto";
+    if (x.tipo !== "divan" && x.tipo !== "cama") x.tipo = "recto";
+    if (x.tipo === "cama") { x.puestos = 1; x.brazos = "ninguno"; x.baul = false; x.altoBase = 35; x.anchoCabecero = x.fondo + 2 * x.grosorMadera; x.cantGavetas = Math.max(0, Math.round(x.cantGavetas)); }   /* cama: una base y un cabecero, sin brazos ni asientos; cajas de 35 cm; ancho de la cama = interior */
     return x;
   }
   /* Lados con brazo */
@@ -55,20 +66,22 @@
 
   function calcular(p) {
     const x = normal(p), a = x.la, b = x.lb, sec = `${fmt(a)}×${fmt(b)}`;
+    const cama = x.tipo === "cama";
     const lados = ladosBrazo(x), nb = lados.length, divan = x.tipo === "divan";
     const L = x.largo - nb * x.anchoBrazo;                 // largo de la zona de asientos = largo del espaldar
     const W = L / x.puestos;                               // ancho de cada módulo
-    const D = x.fondo - x.fondoEspaldar;                   // fondo de la base y del bastidor
+    const D = cama ? x.fondo : x.fondo - x.fondoEspaldar;  // fondo de la base y del bastidor (en cama, el ancho de la cama)
     const Dd = divan ? x.divanLargo - x.fondoEspaldar : D; // fondo del diván
     const H = x.altoBase, Hs = x.altoBastidor;
     const goma = x.gomaPulg * 2.54;
-    const alturas = { pata: x.altoPata, base: H, bastidor: Hs + x.extraBastidor, goma: r1(goma) };
+    const alturas = { pata: x.altoPata, base: H, bastidor: cama ? 0 : Hs + x.extraBastidor, goma: cama ? 0 : r1(goma) };
     alturas.asiento = r1(alturas.pata + alturas.base + alturas.bastidor + alturas.goma);
     const avisos = [];
     if (W < 40) avisos.push("Cada puesto queda de menos de 40 cm: revisa el largo o la cantidad de puestos.");
     if (D < 45) avisos.push("El fondo del asiento queda de menos de 45 cm.");
     if (H - 2 * b < 3) avisos.push("La base es muy baja para dos marcos de canto: los parales quedan muy cortos.");
     if (divan && Dd <= D) avisos.push("El largo del diván debe ser mayor que el fondo del sofá.");
+    if (cama && x.altoCabecero <= x.altoPata + H) avisos.push("El cabecero debe quedar más alto que la base.");
 
     const grupos = [];
     const P = (n, c, l, corte, nota) => ({ n, c, l: r1(l), corte: corte || "Recto", sec, nota: nota || "" });
@@ -90,9 +103,10 @@
       return piezas;
     }
     if (nNormales > 0) {
-      const Lb = W * nNormales;
-      grupos.push({ id: "base", comp: nNormales, Lb, t: "Base completa", cant: 1, med: `${fmt(Lb)} × ${fmt(D)} × ${fmt(H)} cm (largo × fondo × alto) · ${nNormales} compartimiento${nNormales === 1 ? "" : "s"} de ${fmt(W)}`,
-        piezas: base(Lb, D, nNormales), mdf: [M("Frente de la base", 1, Lb, H)], herrajes: [] });
+      const cajas = cama ? Math.ceil(x.largo / 100 - 1e-9) : 1;   /* cama: cajas de 1 m como máximo */
+      const Lb = (W * nNormales) / cajas;
+      grupos.push({ id: "base", comp: cama ? 1 : nNormales, Lb, t: cama ? "Caja de la base" : "Base completa", cant: cajas, med: cama ? `${fmt(Lb)} × ${fmt(D)} × ${fmt(H)} cm (largo × ancho × alto) · ${cajas} cajas de ${fmt(Lb)} cm` :`${fmt(Lb)} × ${fmt(D)} × ${fmt(H)} cm (largo × fondo × alto) · ${nNormales} compartimiento${nNormales === 1 ? "" : "s"} de ${fmt(W)}`,
+        piezas: base(Lb, D, cama ? 1 : nNormales), mdf: [M("Frente de la base", 1, Lb, H)], herrajes: [] });
     }
     if (divan) {
       const g2 = { id: "basediv", comp: 1, Lb: W, t: "Base del diván" + (x.baul ? " con baúl" : ""), cant: 1, med: `${fmt(W)} × ${fmt(Dd)} × ${fmt(H)} cm (ancho × fondo × alto)`,
@@ -100,6 +114,18 @@
       if (x.baul) { g2.mdf.push(M("Fondo del baúl", 1, W, Dd)); g2.herrajes.push({ n: "Bisagras (el bastidor del diván hace de tapa)", c: 2 }, { n: "Pistones de gas para baúl", c: 2 }); }
       grupos.push(g2);
     }
+    /* --- Gavetas (solo cama): cada una ocupa la mitad de los pies, pegada a la línea del medio, frente hacia los pies --- */
+    const nGav = cama ? x.cantGavetas : 0;
+    if (nGav > 0) {
+      const bl = grupos.find(gr => gr.id === "base").Lb, pg = bl - x.la, U = D - 2 * x.la, wg = (U - (nGav + 1)) / nGav, Hg = x.altoGaveta, gg = x.grosorGaveta;
+      const MG = (n, c, an, al, nota) => Object.assign(M(n, c, an, al, nota), { g: gg });
+      grupos.push({ id: "gaveta", t: "Gaveta (mitad de los pies)", cant: nGav, Lg: pg, wg, med: `${fmt(wg)} × ${fmt(pg)} × ${fmt(Hg)} cm (ancho × fondo × alto) · frente hacia los pies · MDF ${fmt(gg * 10)} mm`,
+        piezas: [], tablas: [],
+        mdf: [MG("Frente de la gaveta", 1, wg, Hg), MG("Laterales de la gaveta", 2, pg, Hg), MG("Trasera de la gaveta", 1, wg - 2 * gg, Hg), MG("Fondo de la gaveta", 1, wg - 2 * gg, pg)],
+        herrajes: [{ n: `Guía telescópica ${fmt(pg)} cm (par)`, c: 1 }, { n: "Tirador de gaveta", c: 1 }] });
+      if (wg < 40) avisos.push("Las gavetas quedan muy angostas: revisa cuántas son.");
+    }
+
     /* --- Bastidores de asiento (se encinchan, llevan saco y goma, se tapizan) --- */
     function bastidor(ancho, fondo) {
       const k = Math.max(0, Math.ceil(fondo / 65) - 1);
@@ -111,7 +137,7 @@
       return { piezas, cincha, nl, nt, saco: ancho * fondo / 10000 };
     }
     const bastidores = [];
-    if (nNormales > 0) { const bs = bastidor(W, D); bastidores.push(Object.assign({ id: "bastidor", t: "Bastidor de asiento", cant: nNormales, an: W, fo: D }, bs)); }
+    if (nNormales > 0 && !cama) { const bs = bastidor(W, D); bastidores.push(Object.assign({ id: "bastidor", t: "Bastidor de asiento", cant: nNormales, an: W, fo: D }, bs)); }
     if (divan) { const bs = bastidor(W, Dd); bastidores.push(Object.assign({ id: "bastidordiv", t: "Bastidor del diván", cant: 1, an: W, fo: Dd }, bs)); }
     bastidores.forEach(bs => grupos.push({ id: bs.id, t: bs.t, cant: bs.cant, an: bs.an, fo: bs.fo, nl: bs.nl, nt: bs.nt,
       med: `${fmt(bs.an)} × ${fmt(bs.fo)} × ${fmt(Hs)} cm · se encincha, saco y goma ${fmt(x.gomaPulg)}"`,
@@ -139,7 +165,7 @@
     const He = x.altoEspaldar, Fe = x.fondoEspaldar, Ft = Math.min(x.topeEspaldar, Fe);
     const inclinado = Math.hypot(He - b, Fe - Ft), ang = Math.round(Math.atan2(Fe - Ft, He - b) * 180 / Math.PI);
     const nPar = x.puestos + 1;
-    grupos.push({ id: "espaldar", t: "Espaldar", cant: 1, med: `${fmt(L)} × ${fmt(Fe)} × ${fmt(He)} cm (largo × fondo abajo × alto) · arriba ${fmt(Ft)} cm`, ang,
+    if (!cama) grupos.push({ id: "espaldar", t: "Espaldar", cant: 1, med: `${fmt(L)} × ${fmt(Fe)} × ${fmt(He)} cm (largo × fondo abajo × alto) · arriba ${fmt(Ft)} cm`, ang,
       piezas: [
         P("Riel inferior · frente y fondo", 2, L),
         P("Riel superior", 1, L),
@@ -150,6 +176,14 @@
       ],
       tablas: [{ n: "Cartela lateral del espaldar (trapecio)", c: 2, med: `base ${fmt(Fe)} · arriba ${fmt(Ft)} · alto ${fmt(He)} cm`, nota: "Tabla de 2,5 cm. Se atornilla al brazo." }],
       mdf: [M("Forro trasero", 1, L, He)], herrajes: [] });
+    /* --- Cabecero (solo cama): tablero entre dos cartelas trapecio --- */
+    if (cama) {
+      const an = x.anchoCabecero, Hc = x.altoCabecero, g0 = x.grosorCabecero, g1 = Math.min(x.grosorCabeceroArriba, g0), rc = Math.min(x.rectoCabecero, Hc);
+      grupos.push({ id: "cabecero", t: "Cabecero", cant: 1, an, Hc, g0, g1, rc, med: `${fmt(an)} × ${fmt(Hc)} cm (ancho × alto desde el piso)`,
+        piezas: [P("Riel superior · entre cartelas", 1, an - 2 * a), P("Riel inferior · entre cartelas", 1, an - 2 * a)],
+        tablas: [{ n: "Cartela lateral del cabecero (trapecio)", c: 2, med: `base ${fmt(g0)} · tramo recto ${fmt(rc)} · arriba ${fmt(g1)} · alto ${fmt(Hc)} cm`, nota: "Tabla de 2,5 cm. Se atornilla a la base." }],
+        mdf: [M("Tablero del cabecero", 1, an, Hc)], herrajes: [] });
+    }
 
     /* --- Totales --- */
     const cortes = [];
@@ -165,31 +199,34 @@
     const sobreLargo = barras.filter(bb => bb.largo).length;
     if (sobreLargo) avisos.push(`Hay ${sobreLargo} pieza(s) más largas que el listón de ${fmt(x.largoListon)} cm: hay que empatarlas o comprar listón más largo.`);
     const desperdicio = barras.length ? 100 - (cortes.reduce((s, l) => s + l, 0) / (barras.length * x.largoListon)) * 100 : 0;
-    const areaMdf = grupos.reduce((s, gr) => s + gr.mdf.reduce((t, m) => t + m.c * m.an * m.al, 0) * gr.cant, 0);
+    const areaMdf = grupos.filter(gr => gr.id !== "gaveta").reduce((s, gr) => s + gr.mdf.reduce((t, m) => t + m.c * m.an * m.al, 0) * gr.cant, 0);
     const laminas = Math.ceil(areaMdf * 1.15 / (122 * 244));
     const perimetroMdf = grupos.reduce((s, gr) => s + gr.mdf.reduce((t, m) => t + m.c * 2 * (m.an + m.al), 0) * gr.cant, 0);
     const nPiezas = grupos.reduce((s, gr) => s + gr.piezas.filter(pz => !/Cartela/.test(pz.n)).reduce((t, pz) => t + pz.c, 0) * gr.cant, 0);
     const nCartelas = grupos.reduce((s, gr) => s + gr.piezas.filter(pz => /Cartela/.test(pz.n)).reduce((t, pz) => t + pz.c, 0) * gr.cant, 0);
     const nModulos = x.puestos;   /* bastidores */
     const t2 = nPiezas * 4 + nCartelas * 2;
-    const t3 = nb * 4 + x.puestos * 2 + (divan ? 4 : 0);
+    const t3 = cama ? 4 : nb * 4 + x.puestos * 2 + (divan ? 4 : 0);
     const t4 = nb * 2 + (nb < 2 ? 2 : 0);
     const compra = [
       { n: `Listón ${sec} cm de ${fmt(x.largoListon)} cm`, c: barras.length, u: "unid.", nota: `${fmt(metros)} m en cortes · desperdicio aprox. ${Math.round(desperdicio)}%` },
       { n: `Lámina de MDF ${String(x.mdf * 10).replace(".", ",")} mm (1,22 × 2,44 m)`, c: laminas, u: "lám.", nota: `${fmt(areaMdf / 10000)} m² + 15% de desperdicio` },
-      { n: "Tabla de 2,5 cm para cartelas del espaldar", c: 1, u: "pieza", nota: `2 trapecios de ${fmt(Fe)} × ${fmt(He)} cm` },
+      ...(cama ? [{ n: "Tabla de 2,5 cm para cartelas del cabecero", c: 1, u: "pieza", nota: `2 trapecios de ${fmt(x.grosorCabecero)} a ${fmt(x.grosorCabeceroArriba)} × ${fmt(x.altoCabecero)} cm` }]
+        : [{ n: "Tabla de 2,5 cm para cartelas del espaldar", c: 1, u: "pieza", nota: `2 trapecios de ${fmt(Fe)} × ${fmt(He)} cm` }]),
       { n: 'Tornillo drywall 2"', c: Math.ceil(t2 / 10) * 10, u: "unid.", nota: "Marcos, parales y cartelas (≈4 por pieza, 2 por cartela)" },
-      { n: 'Tornillo drywall 3"', c: Math.ceil(t3 / 5) * 5, u: "unid.", nota: "Brazos a la base, espaldar a la base" + (divan ? " y diván a la base" : "") },
-      { n: 'Tornillo 4"', c: t4, u: "unid.", nota: "Cartelas del espaldar a los brazos" },
+      { n: 'Tornillo drywall 3"', c: Math.ceil(t3 / 5) * 5, u: "unid.", nota: cama ? "Cabecero a la base" : "Brazos a la base, espaldar a la base" + (divan ? " y diván a la base" : "") },
+      ...(cama ? [] : [{ n: 'Tornillo 4"', c: t4, u: "unid.", nota: "Cartelas del espaldar a los brazos" }]),
       { n: "Grapas para MDF", c: Math.ceil(perimetroMdf / 8 / 50) * 50, u: "unid.", nota: "Una cada 8 cm de borde" },
       { n: "Cola blanca de carpintería", c: 1, u: "L", nota: "En todas las uniones" }
     ];
+    const gavs = grupos.filter(gr => gr.id === "gaveta"), areaGav = gavs.reduce((s, gr) => s + gr.mdf.reduce((t, m) => t + m.c * m.an * m.al, 0) * gr.cant, 0);
+    if (areaGav) compra.splice(2, 0, { n: "Lámina de MDF 15 mm (1,22 × 2,44 m)", c: Math.ceil(areaGav * 1.15 / (122 * 244)), u: "lám.", nota: `${fmt(areaGav / 10000)} m² de gavetas + 15% de desperdicio` });
     const cinchaTot = bastidores.reduce((t, bs) => t + bs.cincha * bs.cant, 0), sacoTot = bastidores.reduce((t, bs) => t + bs.saco * bs.cant, 0);
-    compra.splice(3, 0, { n: `Cincha de ${fmt(x.cinchaAncho)} cm`, c: Math.ceil(cinchaTot), u: "m", nota: "Bastidores de asiento, tejida en ambos sentidos" },
+    if (bastidores.length) compra.splice(3, 0, { n: `Cincha de ${fmt(x.cinchaAncho)} cm`, c: Math.ceil(cinchaTot), u: "m", nota: "Bastidores de asiento, tejida en ambos sentidos" },
       { n: "Saco (arpillera)", c: Math.ceil(sacoTot * 1.2 * 10) / 10, u: "m²", nota: "Bastidores + 20% para doblar" },
       { n: `Goma espuma ${fmt(x.gomaPulg)}" para asientos`, c: bastidores.reduce((t, bs) => t + bs.cant, 0), u: "piezas", nota: bastidores.map(bs => `${bs.cant} de ${fmt(bs.an)} × ${fmt(bs.fo)}`).join(" + ") });
     grupos.forEach(gr => gr.herrajes.forEach(h => compra.push({ n: h.n, c: h.c * gr.cant, u: "unid.", nota: gr.t })));
-    return { x, W, D, Dd, H, L, nb, lados, divan, grupos, barras, metros, desperdicio, areaMdf, laminas, compra, avisos, alturas };
+    return { x, W, D, Dd, H, L, nb, lados, divan, cama, interno: cama ? { largo: x.largo - 2 * x.grosorMadera, ancho: x.fondo } : null, grupos, barras, metros, desperdicio, areaMdf, laminas, compra, avisos, alturas };
   }
 
   /* ===================== PLANOS (SVG) ===================== */
@@ -330,14 +367,77 @@
     if (divan) s += cota(0, 0, 0, x.divanLargo, -9, fmt(x.divanLargo), 3.2);
     return lienzo(x.largo, fondoMax + 10 * K, 18 * K, s);
   }
+  /* ===================== CAMA: base y cabecero (SVG) ===================== */
+  /* Vista desde arriba: el cabecero va detrás de la cabecera y la base debajo. Horizontal = ancho, vertical = largo. */
+  function dibujarCama(r) {
+    const { x, D, L: Lb } = r, an = x.anchoCabecero, g0 = x.grosorCabecero, e = x.la, Wt = Math.max(an, D), ox = (Wt - D) / 2, cx = (Wt - an) / 2;
+    K = Math.max(1, Math.max(Wt, Lb) / 110);
+    const k = Math.max(0, Math.ceil(D / 65) - 1);
+    let s = txt(Wt / 2, -18 * K, "VISTA DESDE ARRIBA · cabecero arriba", 3.4, "middle", 0, C.gris, 700);
+    s += rect(cx, 0, an, g0, "#cdb88f", C.maderaB, 0.6) + txt(Wt / 2, g0 / 2 + 1 * K, "CABECERO", 2.8, "middle", 0, C.txt, 700);
+    s += rect(ox, g0, D, Lb, C.madera, C.maderaB, 0.6);
+    for (let i = 0; i < k; i++) { const rx = ox + D * (i + 1) / (k + 1); s += rect(rx - e / 2, g0 + e, e, Lb - 2 * e, "#c9b89a", "#8c7a5c", 0.3); }
+    s += txt(Wt / 2, g0 + r.grupos.find(g => g.id === "base").Lb / 2 + 1 * K, "BASE", 3.2, "middle", 0, C.txt, 700);
+    /* Cajas de la base: cortes entre cajas y medida de cada una */
+    const cg = r.grupos.find(g => g.id === "base"), bl = cg.Lb, nc = cg.cant;
+    for (let i = 1; i < nc; i++) s += rect(ox, g0 + i * bl - e / 2, D, e, "#8c7a5c", "#8c7a5c", 0.2);
+    s += cota(cx, 0, cx + an, 0, -8, fmt(an), 3) + cota(ox, g0 + Lb, ox + D, g0 + Lb, 8, fmt(D));
+    for (let i = 0; i < nc; i++) s += cota(ox + D, g0 + i * bl, ox + D, g0 + (i + 1) * bl, 8, fmt(bl));
+    /* Gavetas: en la mitad de los pies, con el frente hacia los pies */
+    const gv = r.grupos.find(g => g.id === "gaveta");
+    if (gv) for (let i = 0; i < gv.cant; i++) {
+      const gx = ox + 1 + i * (gv.wg + 1), gy = g0 + Lb - gv.Lg;
+      s += `<rect x="${r1(gx)}" y="${r1(gy)}" width="${r1(gv.wg)}" height="${r1(gv.Lg)}" fill="rgba(122,92,40,.12)" stroke="#7a5c28" stroke-width="${0.4 * K}" stroke-dasharray="${2 * K} ${1.5 * K}"/>`;
+      s += rect(gx, g0 + Lb - e * 0.6, gv.wg, e * 0.6, "#7a5c28", "#7a5c28", 0.2);
+      s += txt(gx + gv.wg / 2, gy + gv.Lg / 2 + 1 * K, "GAVETA", 2.6, "middle", 0, C.txt, 700);
+    }
+    return lienzo(Wt, g0 + Lb, 22 * K, s);
+  }
+  /* Corte lateral: cabecero (trapecio) a la izquierda y base a su lado, con patas */
+  function dibujarCamaAlturas(r) {
+    const { x, L: Lb, alturas: A } = r, g0 = x.grosorCabecero, g1 = Math.min(x.grosorCabeceroArriba, g0), Hc = x.altoCabecero, rc = Math.min(x.rectoCabecero, Hc), F = g0 + Lb;
+    K = Math.max(1, F / 80);
+    const piso = Math.max(Hc, A.pata + x.altoBase) + 10 * K, y = h => piso - h;
+    let s = txt(F / 2, -6 * K, "CORTE LATERAL · cabecero y base", 3.4, "middle", 0, C.gris, 700);
+    s += `<line x1="${-8 * K}" y1="${r1(piso)}" x2="${r1(F + 6 * K)}" y2="${r1(piso)}" stroke="${C.gris}" stroke-width="${0.5 * K}"/>`;
+    s += poly([[0, piso], [g0, piso], [g0, y(rc)], [g1, y(Hc)], [0, y(Hc)]], "#cdb88f", C.maderaB, 0.5);
+    s += txt(g0 * 0.55, y(Hc / 2), "CABECERO", 2.6, "middle", -90, C.txt, 700);
+    s += rect(g0 + 3 * K, y(A.pata), 3 * K, A.pata, "#555", "#333") + rect(F - 6 * K, y(A.pata), 3 * K, A.pata, "#555", "#333");
+    s += rect(g0, y(A.pata + A.base), Lb, A.base) + txt(g0 + Lb / 2, y(A.pata + A.base / 2) + 1 * K, "BASE", 3, "middle", 0, C.txt, 700);
+    s += cota(0, piso, 0, y(Hc), -6, fmt(Hc), 2.8) + cota(g0, piso, F, piso, 7, fmt(Lb), 2.8) + cota(F, piso, F, y(A.pata + A.base), 8, fmt(A.pata + A.base), 2.8);
+    return lienzo(F, piso + 8 * K, 22 * K, s);
+  }
+  /* Cabecero de frente: tablero MDF, cartelas de canto y rieles */
+  function dibujarCabecero(r, gr) {
+    const { x } = r, w = x.la, an = gr.an, Hc = gr.Hc;
+    K = Math.max(1, Math.max(an, Hc) / 70);
+    let s = txt(an / 2, -10 * K, "VISTA DE FRENTE · cabecero", 3.4, "middle", 0, C.gris, 700);
+    s += rect(0, 0, an, Hc, C.mdf, "#8c7a5c", 0.4);
+    s += rect(0, 0, w, Hc) + rect(an - w, 0, w, Hc);
+    s += rect(w, 0, an - 2 * w, x.lb) + rect(w, Hc - x.lb, an - 2 * w, x.lb);
+    s += cota(0, Hc, an, Hc, 8, fmt(an)) + cota(an, 0, an, Hc, 8, fmt(Hc));
+    return lienzo(an, Hc + 14 * K, 18 * K, s);
+  }
+  /* Gaveta vista desde arriba: frente abajo (hacia los pies) */
+  function dibujarGaveta(r, gr) {
+    const { x } = r, w = gr.wg, l = gr.Lg, gg = x.grosorGaveta, Hg = x.altoGaveta; K = Math.max(1, Math.max(w, l) / 70);
+    let s = txt(w / 2, -10 * K, "VISTA SUPERIOR · gaveta", 3.4, "middle", 0, C.gris, 700);
+    s += rect(0, 0, w, l, "#efe0c0", C.maderaB, 0.5);
+    s += rect(0, l - gg * 2, w, gg * 2, "#8c7a5c", "#8c7a5c", 0.2) + txt(w / 2, l - 3 * K, "frente ↓", 2.6, "middle", 0, C.txt, 700);
+    s += txt(w / 2, l / 2 - 1 * K, "GAVETA", 3, "middle", 0, C.txt, 700) + txt(w / 2, l / 2 + 4 * K, `alto ${fmt(Hg)} cm`, 2.6, "middle", 0, C.gris);
+    s += cota(0, l, w, l, 8, fmt(w)) + cota(w, 0, w, l, 8, fmt(l));
+    return lienzo(w, l, 18 * K, s);
+  }
   function planos(r) {
-    const out = { general: dibujarGeneral(r), alturas: dibujarAlturas(r) };
+    const out = r.cama ? { general: dibujarCama(r), alturas: dibujarCamaAlturas(r) } : { general: dibujarGeneral(r), alturas: dibujarAlturas(r) };
     r.grupos.forEach(gr => {
       if (gr.id === "base") gr.svg = dibujarBase(r, gr, r.D);
       else if (gr.id === "basediv") gr.svg = dibujarBase(r, gr, r.Dd);
       else if (gr.id === "bastidor" || gr.id === "bastidordiv") gr.svg = dibujarBastidor(r, gr);
       else if (gr.id === "brazo") gr.svg = dibujarBrazo(r, gr);
       else if (gr.id === "espaldar") gr.svg = dibujarEspaldar(r);
+      else if (gr.id === "cabecero") gr.svg = dibujarCabecero(r, gr);
+      else if (gr.id === "gaveta") gr.svg = dibujarGaveta(r, gr);
     });
     return out;
   }
@@ -355,5 +455,5 @@
   }
   const aHash = p => Object.entries(p).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
   const deHash = h => { const p = {}; String(h || "").replace(/^#/, "").split("&").filter(Boolean).forEach(kv => { const [k, v] = kv.split("="); if (k in BASE) p[k] = decodeURIComponent(v || ""); }); return p; };
-  g.Estructura = { BASE, calcular, planos, desdeModelo, aHash, deHash, fmt };
+  g.Estructura = { BASE, calcular, planos, desdeModelo, aHash, deHash, fmt, CAMAS, nombreCama };
 })(window);

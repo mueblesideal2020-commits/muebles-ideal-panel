@@ -29,10 +29,10 @@ button, input, select { font: inherit; color: inherit; }
 .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 label.f { display: flex; flex-direction: column; gap: 4px; font-size: .8rem; font-weight: 700; }
 label.f small { font-weight: 400; color: var(--muted); }
-input, select { width: 100%; min-height: 40px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
-input:focus, select:focus { outline: none; border-color: #d4ad62; }
 .chk { display: flex; gap: 8px; align-items: center; font-weight: 600; font-size: .88rem; }
 .chk input { width: 18px; height: 18px; min-height: 0; accent-color: #b8913f; }
+input, select { width: 100%; min-height: 40px; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
+input:focus, select:focus { outline: none; border-color: #d4ad62; }
 .presets { display: flex; flex-wrap: wrap; gap: 6px; }
 .presets button { padding: 7px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-size: .8rem; font-weight: 600; }
 .presets button:hover { border-color: #b8913f; }
@@ -98,36 +98,50 @@ table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
       <button type="button" data-preset="recto">Sofá 3 puestos 2,20</button>
       <button type="button" data-preset="divan">Modular con diván</button>
       <button type="button" data-preset="dos">2 puestos</button>
+      <button type="button" data-preset="cama">Cama matrimonial</button>
     </div>
-    <h2>Sofá</h2>
+    <h2>Modelo</h2>
     <div class="fila">
-      <label class="f">Tipo<select name="tipo"><option value="recto">Recto</option><option value="divan">Con diván</option></select></label>
-      <label class="f">Puestos <small>módulos</small><input name="puestos" inputmode="numeric"></label>
-      <label class="f">Largo total <small>cm</small><input name="largo" inputmode="decimal"></label>
-      <label class="f">Fondo total <small>cm</small><input name="fondo" inputmode="decimal"></label>
+      <label class="f" style="grid-column:1/-1">Tipo<select name="tipo"><option value="recto">Sofá recto</option><option value="divan">Sofá con diván</option><option value="cama">Cama (base y cabecero)</option></select></label>
+      <label class="f" data-solo="cama" style="grid-column:1/-1">Tamaño de cama<select id="camaTam"></select></label>
+      <label class="f" data-no="cama">Puestos <small>módulos</small><input name="puestos" inputmode="numeric"></label>
+      <label class="f"><span id="lblLargo">Largo total</span> <small>cm</small><input name="largo" inputmode="decimal"></label>
+      <label class="f"><span id="lblFondo">Fondo total</span> <small>cm</small><input name="fondo" inputmode="decimal"></label>
     </div>
     <div class="fila" data-solo="divan">
       <label class="f">Lado del diván<select name="divanLado"><option value="izquierda">Izquierda</option><option value="derecha">Derecha</option></select></label>
       <label class="f">Largo del diván <small>cm, con espaldar</small><input name="divanLargo" inputmode="decimal"></label>
       <label class="chk" style="grid-column:1/-1"><input type="checkbox" name="baul"> Diván con baúl</label>
     </div>
-    <h2>Brazos</h2>
-    <div class="fila">
+    <h2 data-no="cama">Brazos</h2>
+    <div class="fila" data-no="cama">
       <label class="f" style="grid-column:1/-1">Brazos<select name="brazos"><option value="ambos">Ambos lados</option><option value="izquierdo">Solo izquierdo</option><option value="derecho">Solo derecho</option><option value="ninguno">Sin brazos</option></select></label>
       <label class="f">Ancho <small>cm</small><input name="anchoBrazo" inputmode="decimal"></label>
       <label class="f">Alto <small>cm</small><input name="altoBrazo" inputmode="decimal"></label>
     </div>
     <h2>Base y asiento</h2>
     <div class="fila">
-      <label class="f">Alto de la base <small>cm</small><input name="altoBase" inputmode="decimal"></label>
-      <label class="f">Alto bastidor <small>cm, listón de canto</small><input name="altoBastidor" inputmode="decimal"></label>
-      <label class="f">Cincha + saco + tela <small>cm que suman</small><input name="extraBastidor" inputmode="decimal"></label>
-      <label class="f">Goma del asiento <small>pulgadas</small><input name="gomaPulg" inputmode="decimal"></label>
+      <label class="f" data-no="cama">Alto de la base <small>cm</small><input name="altoBase" inputmode="decimal"></label>
+      <label class="f" data-no="cama">Alto bastidor <small>cm, listón de canto</small><input name="altoBastidor" inputmode="decimal"></label>
+      <label class="f" data-no="cama">Cincha + saco + tela <small>cm que suman</small><input name="extraBastidor" inputmode="decimal"></label>
+      <label class="f" data-no="cama">Goma del asiento <small>pulgadas</small><input name="gomaPulg" inputmode="decimal"></label>
       <label class="f">Patas <small>cm</small><input name="altoPata" inputmode="decimal"></label>
-      <label class="f">Cincha <small>ancho / separación, cm</small><span style="display:flex;gap:6px"><input name="cinchaAncho" inputmode="decimal"><input name="cinchaSep" inputmode="decimal"></span></label>
+      <label class="f" data-no="cama">Cincha <small>ancho / separación, cm</small><span style="display:flex;gap:6px"><input name="cinchaAncho" inputmode="decimal"><input name="cinchaSep" inputmode="decimal"></span></label>
     </div>
-    <h2>Espaldar</h2>
-    <div class="fila">
+    <h2 data-solo="cama">Cabecero</h2>
+    <div class="fila" data-solo="cama">
+      <label class="f">Alto del cabecero <small>cm, desde el piso</small><input name="altoCabecero" inputmode="decimal"></label>
+      <label class="f">Fondo abajo <small>cm</small><input name="grosorCabecero" inputmode="decimal"></label>
+      <label class="f">Fondo arriba <small>cm</small><input name="grosorCabeceroArriba" inputmode="decimal"></label>
+      <label class="f">Tramo recto <small>cm, desde el piso</small><input name="rectoCabecero" inputmode="decimal"></label>
+    </div>
+    <h2 data-solo="cama">Gavetas</h2>
+    <div class="fila" data-solo="cama">
+      <label class="f">Cantidad <small>la define el cliente; 0 = sin gavetas</small><input name="cantGavetas" inputmode="numeric"></label>
+      <label class="f">Alto de la gaveta <small>cm</small><input name="altoGaveta" inputmode="decimal"></label>
+    </div>
+    <h2 data-no="cama">Espaldar</h2>
+    <div class="fila" data-no="cama">
       <label class="f">Alto espaldar <small>cm</small><input name="altoEspaldar" inputmode="decimal"></label>
       <label class="f">Fondo espaldar <small>abajo, cm</small><input name="fondoEspaldar" inputmode="decimal"></label>
       <label class="f">Grosor arriba <small>cm</small><input name="topeEspaldar" inputmode="decimal"></label>
@@ -146,42 +160,59 @@ table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
 </div>
 <script src="estructura.js"></script>
 <script>
-const $ = id => document.getElementById(id), f = $("f");
+const $ = id => document.getElementById(id), f = $("f"), camaSel = $("camaTam");
 const PRESETS = {
   recto: { tipo: "recto", puestos: 3, largo: 220, fondo: 85, brazos: "ambos", baul: false },
   divan: { tipo: "divan", puestos: 3, largo: 280, fondo: 95, divanLargo: 170, divanLado: "izquierda", brazos: "ambos", baul: true },
-  dos: { tipo: "recto", puestos: 2, largo: 160, fondo: 85, brazos: "ambos", baul: false }
+  dos: { tipo: "recto", puestos: 2, largo: 160, fondo: 85, brazos: "ambos", baul: false },
+  cama: { tipo: "cama", largo: 200, fondo: 140, brazos: "ninguno", baul: false }
 };
 let P = Object.assign({}, Estructura.BASE, Estructura.deHash(location.hash));
 const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmt = Estructura.fmt;
+const num = v => parseFloat(String(v).replace(",", "."));
+Object.entries(Estructura.CAMAS).forEach(([k, c]) => camaSel.add(new Option(`${c.nombre} · ${c.ancho} × ${c.largo} cm`, k)));
+camaSel.add(new Option("A medida", "a medida"));
+/* Muestra u oculta lo que corresponde al tipo de pieza y pone el nombre de las medidas */
+function visibles(){
+  document.querySelectorAll("[data-solo]").forEach(d => d.hidden = P.tipo !== d.dataset.solo);
+  document.querySelectorAll("[data-no]").forEach(d => d.hidden = P.tipo === d.dataset.no);
+  const cama = P.tipo === "cama";
+  $("lblLargo").textContent = cama ? "Largo externo de la cama" : "Largo total";
+  $("lblFondo").textContent = cama ? "Ancho interior de la cama" : "Fondo total";
+  const k = Object.keys(Estructura.CAMAS).find(k => Estructura.CAMAS[k].largo === num(P.largo) && Estructura.CAMAS[k].ancho === num(P.fondo));
+  camaSel.value = k || "a medida";
+}
 function llenar(){
   for (const el of f.elements) { if (!el.name) continue; if (el.type === "checkbox") el.checked = P[el.name] === true || P[el.name] === "true"; else el.value = String(P[el.name]).replace(".", ","); }
-  f.querySelectorAll('[data-solo="divan"]').forEach(d => d.hidden = P.tipo !== "divan");
+  visibles();
 }
 function leer(){
   for (const el of f.elements) { if (!el.name) continue; P[el.name] = el.type === "checkbox" ? el.checked : el.value; }
-  f.querySelectorAll('[data-solo="divan"]').forEach(d => d.hidden = P.tipo !== "divan");
+  visibles();
 }
 function pintar(){
   const r = Estructura.calcular(P), pl = Estructura.planos(r), general = pl.general;
   const x = r.x, hoy = new Date().toLocaleDateString("es-VE");
-  const titulo = `Sofá ${x.tipo === "divan" ? "modular con diván " + x.divanLado : "recto"} · ${x.puestos} puesto${x.puestos === 1 ? "" : "s"}`;
+  const titulo = r.cama ? `Cama ${Estructura.nombreCama(x.largo, x.fondo)} · ${fmt(r.interno.ancho)} × ${fmt(r.interno.largo)} cm interior`
+    : `Sofá ${x.tipo === "divan" ? "modular con diván " + x.divanLado : "recto"} · ${x.puestos} puesto${x.puestos === 1 ? "" : "s"}`;
+  const pie = r.cama
+    ? `Izquierda: vista desde arriba, cabecero arriba y base debajo. Derecha: corte lateral. Medidas en centímetros. Medida interior ${fmt(r.interno.ancho)} × ${fmt(r.interno.largo)} cm; externa ${fmt(x.anchoCabecero)} × ${fmt(x.largo)} cm. Alto de la base = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} = <b>${fmt(r.alturas.asiento)} cm</b>. Base en ${r.grupos.find(g => g.id === "base").cant} cajas de ${fmt(r.grupos.find(g => g.id === "base").Lb)} cm. Cabecero de ${fmt(x.altoCabecero)} cm desde el piso.${r.grupos.find(g => g.id === "gaveta") ? ` Gavetas: ${r.grupos.find(g => g.id === "gaveta").cant}, en la mitad de los pies, frente hacia los pies.` : ""}`
+    : `Izquierda: vista desde arriba, espaldar al fondo entre los brazos; cada puesto es un bastidor de ${fmt(r.W)} × ${fmt(r.D)} cm sobre la base completa. Derecha: corte lateral. Medidas en centímetros. Alto del asiento = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} + bastidor ${fmt(r.alturas.bastidor)} + goma ${fmt(r.alturas.goma)} (${fmt(x.gomaPulg)}") = <b>${fmt(r.alturas.asiento)} cm</b>.`;
   const tabla = gr => `<table class="t"><thead><tr><th style="width:22px"></th><th>Pieza</th><th style="text-align:center">Cant.</th><th style="text-align:right">Largo</th><th>Corte</th></tr></thead><tbody>
       ${gr.piezas.map(p => `<tr><td><span class="ck"></span></td><td>${esc(p.n)}<span class="sub">Listón ${p.sec}${p.nota ? " · " + esc(p.nota) : ""}</span></td><td class="c">${p.c * gr.cant}${gr.cant > 1 ? `<span class="sub">${p.c} c/u</span>` : ""}</td><td class="n">${fmt(p.l)} cm</td><td>${esc(p.corte)}</td></tr>`).join("")}
-      ${(gr.tablas || []).map(t => `<tr><td><span class="ck"></span></td><td>${esc(t.n)}<span class="sub">${esc(t.nota)}</span></td><td class="c">${t.c}</td><td class="n" colspan="2" style="text-align:left">${esc(t.med)}</td></tr>`).join("")}
-      ${gr.mdf.map(m => `<tr><td><span class="ck"></span></td><td>${esc(m.n)}<span class="sub">MDF ${fmt(x.mdf * 10)} mm${m.nota ? " · " + esc(m.nota) : ""}</span></td><td class="c">${m.c * gr.cant}</td><td class="n">${fmt(m.an)} × ${fmt(m.al)}</td><td>Lámina</td></tr>`).join("")}
+      ${(gr.tablas || []).map(t => `<tr><td><span class="ck"></span></td><td>${esc(t.n)}<span class="sub">${esc(t.nota)}</span></td><td class="c">${t.c}</td><td class="n" colspan="2" style="text-align:left;white-space:normal">${esc(t.med)}</td></tr>`).join("")}
+      ${gr.mdf.map(m => `<tr><td><span class="ck"></span></td><td>${esc(m.n)}<span class="sub">MDF ${fmt((m.g || x.mdf) * 10)} mm${m.nota ? " · " + esc(m.nota) : ""}</span></td><td class="c">${m.c * gr.cant}</td><td class="n">${fmt(m.an)} × ${fmt(m.al)}</td><td>Lámina</td></tr>`).join("")}
       ${gr.herrajes.map(h => `<tr><td><span class="ck"></span></td><td>${esc(h.n)}</td><td class="c">${h.c * gr.cant}</td><td></td><td>Herraje</td></tr>`).join("")}
     </tbody></table>`;
-  const maxCortes = Math.max(...r.barras.map(b => b.cortes.length));
   $("res").innerHTML = `
     <section class="hoja">
       <div class="cab"><img src="logo-v.png" alt="Muebles Ideal" onerror="this.remove()"><div class="t"><span style="font-size:.75rem;color:var(--muted)">Plano de estructura · ${hoy}</span><b>${esc(titulo)}</b></div></div>
       ${r.avisos.map(a => `<p class="aviso">⚠ ${esc(a)}</p>`).join("")}
-      <div class="kpis"><div><span>Medida total</span><b>${fmt(x.largo)} × ${fmt(x.tipo === "divan" ? x.divanLargo : x.fondo)} cm</b></div><div><span>Alto del asiento</span><b>${fmt(r.alturas.asiento)} cm</b></div>
+      <div class="kpis"><div><span>${r.cama ? "Medida externa" : "Medida total"}</span><b>${fmt(x.largo)} × ${fmt(r.cama ? x.anchoCabecero : x.tipo === "divan" ? x.divanLargo : x.fondo)} cm</b></div><div><span>${r.cama ? "Alto de la base" : "Alto del asiento"}</span><b>${fmt(r.alturas.asiento)} cm</b></div>
         <div><span>Listones ${fmt(x.la)}×${fmt(x.lb)}</span><b>${r.barras.length} de ${fmt(x.largoListon / 100)} m</b></div><div><span>MDF ${fmt(x.mdf * 10)} mm</span><b>${r.laminas} lámina${r.laminas === 1 ? "" : "s"}</b></div></div>
       <div class="dos"><div class="dib">${general}</div><div class="dib">${pl.alturas}</div></div>
-      <p class="pie">Izquierda: vista desde arriba, espaldar al fondo entre los brazos; cada puesto es un bastidor de ${fmt(r.W)} × ${fmt(r.D)} cm sobre la base completa. Derecha: corte lateral. Medidas en centímetros. Alto del asiento = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} + bastidor ${fmt(r.alturas.bastidor)} + goma ${fmt(r.alturas.goma)} (${fmt(x.gomaPulg)}") = <b>${fmt(r.alturas.asiento)} cm</b>.</p>
+      <p class="pie">${pie}</p>
     </section>
     ${r.grupos.map((gr, i) => `<section class="hoja ${i === 0 ? "salto" : ""}"><div class="grupo">
       <div><h3>${esc(gr.t)} <em>× ${gr.cant}</em></h3><p class="med">${esc(gr.med)}</p><div class="dib">${gr.svg}</div></div>
@@ -196,7 +227,15 @@ function pintar(){
     </section>`;
   history.replaceState(null, "", "#" + Estructura.aHash(Object.fromEntries(Object.keys(Estructura.BASE).map(k => [k, P[k]]))));
 }
-f.addEventListener("input", () => { leer(); pintar(); });
+camaSel.addEventListener("change", () => {
+  const c = Estructura.CAMAS[camaSel.value];
+  if (c) { P.largo = c.largo; P.fondo = c.ancho; llenar(); pintar(); }
+});
+/* Al pasar a cama, se pone matrimonial; el selector de tamaño no se lee en el evento input */
+f.elements.tipo.addEventListener("change", () => {
+  if (f.elements.tipo.value === "cama") { P.tipo = "cama"; P.largo = 200; P.fondo = 140; llenar(); pintar(); }
+});
+f.addEventListener("input", e => { if (e.target === camaSel) return; leer(); pintar(); });
 f.addEventListener("change", () => { leer(); pintar(); });
 document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { P = Object.assign({}, Estructura.BASE, PRESETS[b.dataset.preset]); llenar(); pintar(); }));
 $("imprimir").addEventListener("click", () => window.print());
