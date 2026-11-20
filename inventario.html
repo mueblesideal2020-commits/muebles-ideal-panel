@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inventario · Muebles Ideal</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#141414">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+:root { --bg:#eeede9; --surface:#ffffff; --ink:#141414; --muted:#6a655d; --line:#dcd8cf; --gold:#b8913f; --soft:#f6f1e6;
+  --ok:#2e7d32; --ok-bg:#e8f3e9; --bad:#b3261e; --bad-bg:#fbeae8; --warn-bg:#fdf3dc; --warn:#7a5600;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif; --body:"Karla","Helvetica Neue",Arial,sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 16px; min-height: 42px; border-radius: 999px; border: 1.5px solid transparent; font-family: var(--display); font-weight: 500; font-size: .9rem; cursor: pointer; background: var(--ink); color: #fff; text-decoration: none; white-space: nowrap; }
+.btn.oro { background: var(--gold); color: var(--ink); }
+.btn.borde { background: var(--surface); color: var(--ink); border-color: var(--line); }
+.btn.mini { padding: 6px 12px; min-height: 34px; font-size: .82rem; }
+.btn.peligro { background: var(--bad); color: #fff; }
+.btn:disabled { opacity: .55; cursor: default; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 18px 16px 90px; }
+.cab { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.cab h1 { font-size: 1.45rem; }
+.cab p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
+.estado { font-size: .82rem; color: var(--muted); min-height: 1.2em; }
+.estado.ok { color: var(--ok); } .estado.err { color: var(--bad); }
+.resumen { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: .85rem; }
+.chip b { font-family: var(--display); font-weight: 600; }
+.chip.bajo { background: var(--bad-bg); border-color: #efc4bf; color: var(--bad); cursor: pointer; }
+.chip.bajo[aria-pressed="true"] { background: var(--bad); color: #fff; }
+.barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.barra input[type=search] { flex: 1 1 220px; min-height: 42px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 999px; background: #fff; }
+.hoja { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.fila { display: grid; grid-template-columns: minmax(150px, 2fr) minmax(110px, 1.2fr) 160px minmax(110px, 1fr) 90px minmax(120px, 1.5fr) 72px; gap: 0; align-items: stretch; border-bottom: 1px solid var(--line); }
+.fila:last-child { border-bottom: 0; }
+.fila.titulos { background: var(--soft); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.fila.titulos > div { padding: 9px 10px; }
+.fila > .c { border-right: 1px solid var(--line); display: flex; align-items: center; min-width: 0; }
+.fila > .c:last-child { border-right: 0; justify-content: center; gap: 2px; }
+.c input, .c select { width: 100%; height: 100%; min-height: 44px; border: 0; background: transparent; padding: 0 10px; border-radius: 0; }
+.c input:focus, .c select:focus { outline: 2px solid var(--gold); outline-offset: -2px; background: #fffdf7; }
+.c .lbl { display: none; }
+.cant { display: grid; grid-template-columns: 38px 1fr 38px; width: 100%; height: 100%; }
+.cant button { border: 0; background: var(--soft); font-size: 1.15rem; font-weight: 700; cursor: pointer; min-height: 44px; }
+.cant button:active { background: #eadfc6; }
+.cant input { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; padding: 0 4px; }
+.fila.bajo { background: var(--bad-bg); }
+.fila.bajo .cant input { color: var(--bad); }
+.fila.grupo-ini { border-top: 2px solid #cfc8b8; }
+.ico { width: 34px; height: 34px; border: 0; background: none; border-radius: 8px; cursor: pointer; color: var(--muted); display: grid; place-items: center; }
+.ico:hover { background: var(--soft); color: var(--ink); }
+.ico svg { width: 18px; height: 18px; }
+.confirma { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; background: var(--bad-bg); color: var(--bad); font-weight: 600; }
+.vacio { padding: 34px 20px; text-align: center; color: var(--muted); }
+.vacio p { margin: 0 0 14px; }
+.ayuda { color: var(--muted); font-size: .86rem; margin: 10px 2px 0; }
+.msg { max-width: 520px; margin: 60px auto; background: #fff; padding: 24px; border-radius: 14px; text-align: center; }
+dialog { border: 0; border-radius: 16px; padding: 0; width: min(440px, calc(100% - 32px)); box-shadow: 0 30px 80px -30px rgba(0,0,0,.5); }
+dialog::backdrop { background: rgba(20,20,20,.45); }
+.dlg { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.lista-u { display: flex; flex-wrap: wrap; gap: 6px; }
+.lista-u span { display: inline-flex; align-items: center; gap: 4px; background: var(--soft); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: .88rem; }
+.lista-u button { border: 0; background: none; cursor: pointer; font-size: 1rem; color: var(--muted); width: 26px; height: 26px; border-radius: 50%; }
+.dlg .fila-u { display: flex; gap: 8px; }
+.dlg .fila-u input { flex: 1; min-height: 42px; border: 1.5px solid var(--line); border-radius: 10px; padding: 0 12px; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 11px 18px; border-radius: 999px; font-size: .9rem; z-index: 50; }
+
+/* Teléfono: cada fila es una tarjeta compacta */
+@media (max-width: 760px) {
+  .fila.titulos { display: none; }
+  .fila { grid-template-columns: 1.15fr 1fr; grid-template-areas: "nom med" "can uni" "min not" "acc acc"; gap: 6px; padding: 10px 10px 4px; }
+  .fila > .c.c-acc { min-height: 0; }
+  .fila > .c { border: 1.5px solid var(--line); border-radius: 10px; flex-direction: column; align-items: stretch; overflow: hidden; background: #fff; }
+  .fila > .c:last-child { border: 0; background: none; justify-content: flex-end; flex-direction: row; }
+  .c .lbl { display: block; font-size: .66rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; padding: 6px 10px 0; }
+  .c input, .c select { min-height: 34px; }
+  .c .lbl { padding: 5px 10px 0; }
+  .c-nom { grid-area: nom; } .c-nom input { font-weight: 700; font-size: 1.02rem; }
+  .c-med { grid-area: med; } .c-uni { grid-area: uni; } .c-can { grid-area: can; } .c-min { grid-area: min; } .c-not { grid-area: not; } .c-acc { grid-area: acc; }
+  .cant { grid-template-columns: 44px 1fr 44px; } .cant button, .cant input { min-height: 40px; font-size: 1.1rem; }
+  .fila.grupo-ini { border-top: 2px solid #cfc8b8; }
+}
+@media print { .barra, .mi-menu, .c-acc, .cant button { display: none !important; } body { background: #fff; } }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="msg">Cargando…</p></main>
+<dialog id="dlg-u"><div class="dlg">
+  <h2>Unidades de medida</h2>
+  <p class="ayuda" style="margin:0">Son las opciones del menú "Unidad". Agrega las que uses (por ejemplo: conos, sacos, planchas).</p>
+  <div class="lista-u" id="lista-u"></div>
+  <div class="fila-u"><input type="text" id="nueva-u" placeholder="Nueva unidad" maxlength="24"><button class="btn oro" id="add-u" type="button">Agregar</button></div>
+  <p style="margin:0;text-align:right"><button class="btn borde" id="cerrar-u" type="button">Listo</button></p>
+</div></dialog>
+<datalist id="medidas">
+  <option value='1/4"'><option value='1/2"'><option value='3/4"'><option value='1"'><option value='1 1/4"'><option value='1 1/2"'><option value='2"'><option value='2 1/2"'><option value='3"'><option value='3 1/2"'><option value='4"'><option value="50 mm"><option value="Morada"><option value="Azul"><option value="Rosada">
+</datalist>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+});
+const auth = firebase.auth(), db = firebase.firestore();
+const DUENO = "mueblesideal2020@gmail.com";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+/* Cantidades: acepta coma o punto como decimal ("2,5" o "2.5") */
+const num = v => { if (typeof v === "number") return v; const t = String(v == null ? "" : v).trim().replace(/\s/g, "").replace(",", "."); const n = parseFloat(t); return isFinite(n) ? n : 0; };
+const fmtC = n => (Math.round(num(n) * 100) / 100).toLocaleString("es-VE", { maximumFractionDigits: 2 });
+const toast = t => { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; d.setAttribute("role", "status"); document.body.appendChild(d); setTimeout(() => d.remove(), 2600); };
+const ICO = {
+  dup: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
+  del: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
+};
+const UNIDADES_BASE = ["Unidades", "Cajas", "Paquetes", "Kilos", "Litros", "Galones", "Metros", "Rollos", "Láminas", "Tablas", "Pares", "Conos"];
+/* Lista de ejemplo con los materiales del taller (cantidades en 0 para que cuentes) */
+const EJEMPLO = [
+  ["Madera seca al horno", '2 1/2"', "Tablas"], ["Grapas", "50 mm", "Cajas"],
+  ...['1/2"', '1"', '1 1/2"', '2"', '2 1/2"', '3"', '3 1/2"'].map(m => ["Tornillos", m, "Unidades"]),
+  ["Goma espuma", "Morada", "Láminas"], ["Goma espuma", "Azul", "Láminas"], ["Goma espuma", "Rosada", "Láminas"],
+  ["Pega de contacto", "", "Litros"], ["Tela", "", "Metros"], ["Hilo", "", "Conos"]
+];
+
+let ROL = null, YO = "", ITEMS = [], UNIDADES = UNIDADES_BASE.slice(), filtro = "", soloBajos = false, borrando = null;
+const timers = {};
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { location.replace("index.html"); return; }
+  YO = (u.email || "").toLowerCase();
+  if (YO === DUENO) ROL = "dueno";
+  else { try { const d = await db.collection("equipo").doc(YO).get(); const x = d.exists ? d.data() : null; ROL = x && x.activo !== false ? (x.rol === "administrador" ? "admin" : "ayudante") : null; } catch (e) { ROL = null; } }
+  if (!ROL) { $("app").innerHTML = `<p class="msg">Tu usuario no tiene acceso al inventario. Pídele al dueño que te agregue al equipo.</p>`; return; }
+  await cargar();
+});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && ROL && !Object.keys(timers).length && !document.activeElement.closest(".fila")) cargar(); });
+
+async function cargar(){
+  try {
+    const [s, aj] = await Promise.all([db.collection("inventario").get(), db.collection("invajustes").doc("general").get().catch(() => null)]);
+    ITEMS = s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    if (aj && aj.exists && Array.isArray(aj.data().unidades) && aj.data().unidades.length) UNIDADES = aj.data().unidades;
+    pintar();
+  } catch (e) { console.error(e); $("app").innerHTML = `<p class="msg">No se pudo cargar el inventario. Revisa tu conexión o que las reglas de Firestore estén publicadas.</p>`; }
+}
+
+/* Orden: por material y luego por medida (1/2" antes que 1", que va antes que 2 1/2") */
+const valorMedida = m => { const t = String(m || "").replace(/["”]/g, "").trim(); let r;
+  if ((r = t.match(/^(\d+)\s+(\d+)\/(\d+)/))) return +r[1] + r[2] / r[3];
+  if ((r = t.match(/^(\d+)\/(\d+)/))) return r[1] / r[2];
+  if ((r = t.match(/^(\d+(?:[.,]\d+)?)/))) return +r[1].replace(",", ".");
+  return Infinity; };
+const nid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 9);
+const ordenar = l => l.slice().sort((a, b) => (a.nombre || "~").localeCompare(b.nombre || "~", "es", { sensitivity: "base" }) || valorMedida(a.medida) - valorMedida(b.medida) || String(a.medida || "").localeCompare(String(b.medida || ""), "es") || (a.creado || 0) - (b.creado || 0));
+const esBajo = it => it.minimo !== "" && it.minimo != null && num(it.cantidad) <= num(it.minimo);
+
+function pintar(){
+  const total = ITEMS.length, bajos = ITEMS.filter(esBajo).length;
+  const q = filtro.trim().toLowerCase();
+  const vis = ordenar(ITEMS).filter(it => (!q || `${it.nombre} ${it.medida} ${it.notas} ${it.unidad}`.toLowerCase().includes(q)) && (!soloBajos || esBajo(it)));
+  $("app").innerHTML = `
+    <div class="cab"><div><h1>Inventario del almacén</h1><p>Lo que hay hoy en el taller. Escribe y se guarda solo.</p></div><span class="estado" id="estado" aria-live="polite"></span></div>
+    <div class="resumen"><span class="chip"><b>${total}</b> ${total === 1 ? "artículo" : "artículos"}</span>
+      ${bajos ? `<button type="button" class="chip bajo" id="f-bajos" aria-pressed="${soloBajos}"><b>${bajos}</b> por debajo del mínimo${soloBajos ? " · ver todos" : ""}</button>` : ""}</div>
+    <div class="barra">
+      <input type="search" id="buscar" placeholder="Buscar: tornillos, tela, pega…" value="${esc(filtro)}" aria-label="Buscar en el inventario">
+      <button class="btn oro" id="agregar" type="button">+ Agregar fila</button>
+      <button class="btn borde" id="unidades" type="button">Unidades</button>
+      <button class="btn borde" id="excel" type="button">Descargar Excel</button>
+    </div>
+    <div class="hoja" role="table" aria-label="Inventario">
+      <div class="fila titulos" role="row"><div role="columnheader">Material</div><div role="columnheader">Medida / tipo</div><div role="columnheader">Cantidad</div><div role="columnheader">Unidad</div><div role="columnheader">Mínimo</div><div role="columnheader">Notas</div><div></div></div>
+      ${vis.length ? vis.map((it, k) => fila(it, k > 0 && (vis[k - 1].nombre || "").toLowerCase() !== (it.nombre || "").toLowerCase())).join("")
+        : total ? `<div class="vacio"><p>No hay artículos que coincidan.</p></div>`
+        : `<div class="vacio"><p>El inventario está vacío. Agrega tus materiales uno por uno, o carga una lista de ejemplo con lo que usas en el taller (tornillos de cada medida, grapas, madera, goma espuma, pega, tela, hilo) y solo cuentas.</p>
+            <button class="btn oro" id="ejemplo" type="button">Cargar lista de ejemplo</button></div>`}
+    </div>
+    <p class="ayuda"><b>Mínimo:</b> si la cantidad llega a ese número o menos, la fila se pone roja para que sepas que hay que comprar. Usa <b>⧉</b> para agregar otra medida del mismo material (por ejemplo, tornillos de otra pulgada).</p>`;
+  eventos();
+}
+function fila(it, nuevoGrupo){
+  const u = UNIDADES.includes(it.unidad) || !it.unidad ? UNIDADES : [...UNIDADES, it.unidad];
+  if (borrando === it.id) return `<div class="fila" role="row" data-id="${it.id}"><div class="confirma">¿Borrar ${esc(it.nombre || "esta fila")}${it.medida ? " " + esc(it.medida) : ""}?
+    <button class="btn peligro mini" data-si="${it.id}" type="button">Sí, borrar</button><button class="btn borde mini" data-no type="button">No</button></div></div>`;
+  return `<div class="fila${esBajo(it) ? " bajo" : ""}${nuevoGrupo ? " grupo-ini" : ""}" role="row" data-id="${it.id}">
+    <div class="c c-nom" role="cell"><span class="lbl">Material</span><input type="text" data-c="nombre" value="${esc(it.nombre)}" placeholder="Ej. Tornillos" aria-label="Material"></div>
+    <div class="c c-med" role="cell"><span class="lbl">Medida / tipo</span><input type="text" data-c="medida" list="medidas" value="${esc(it.medida)}" placeholder='Ej. 2"' aria-label="Medida o tipo"></div>
+    <div class="c c-can" role="cell"><span class="lbl">Cantidad</span><div class="cant"><button type="button" data-paso="-1" aria-label="Restar uno">−</button><input type="text" inputmode="decimal" data-c="cantidad" value="${esc(fmtC(it.cantidad))}" aria-label="Cantidad"><button type="button" data-paso="1" aria-label="Sumar uno">+</button></div></div>
+    <div class="c c-uni" role="cell"><span class="lbl">Unidad</span><select data-c="unidad" aria-label="Unidad">${u.map(x => `<option ${x === it.unidad ? "selected" : ""}>${esc(x)}</option>`).join("")}</select></div>
+    <div class="c c-min" role="cell"><span class="lbl">Mínimo</span><input type="text" inputmode="decimal" data-c="minimo" value="${it.minimo === "" || it.minimo == null ? "" : esc(fmtC(it.minimo))}" placeholder="—" aria-label="Cantidad mínima"></div>
+    <div class="c c-not" role="cell"><span class="lbl">Notas</span><input type="text" data-c="notas" value="${esc(it.notas)}" placeholder="Ubicación, proveedor…" aria-label="Notas"></div>
+    <div class="c c-acc" role="cell"><button class="ico" type="button" data-dup title="Agregar otra medida de este material" aria-label="Agregar otra medida">${ICO.dup}</button><button class="ico" type="button" data-del title="Borrar fila" aria-label="Borrar fila">${ICO.del}</button></div>
+  </div>`;
+}
+const estado = (t, c) => { const e = $("estado"); if (e) { e.textContent = t; e.className = "estado " + (c || ""); } };
+const item = id => ITEMS.find(i => i.id === id);
+
+/* Guarda cada fila un momento después de escribir (no hace falta botón) */
+function guardarLuego(id, ms = 700){
+  clearTimeout(timers[id]); estado("Guardando…");
+  timers[id] = setTimeout(async () => { delete timers[id]; const it = item(id); if (!it) return;
+    const { id: _, ...d } = it; d.actualizado = firebase.firestore.FieldValue.serverTimestamp(); d.por = YO;
+    try { await db.collection("inventario").doc(id).set(d); estado("Guardado ✓", "ok"); }
+    catch (e) { console.error(e); estado("No se pudo guardar. Revisa tu conexión.", "err"); } }, ms);
+}
+async function nuevo(base, enfocar){
+  const ref = db.collection("inventario").doc(nid());
+  const d = Object.assign({ nombre: "", medida: "", cantidad: 0, unidad: "Unidades", minimo: "", notas: "", creado: Date.now() }, base || {});
+  ITEMS.push(Object.assign({ id: ref.id }, d)); filtro = ""; soloBajos = false; pintar();
+  const n = document.querySelector(`.fila[data-id="${ref.id}"] [data-c="${enfocar || "nombre"}"]`); if (n) { n.focus(); n.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  guardarLuego(ref.id, 0);
+}
+function eventos(){
+  $("buscar").addEventListener("input", e => { filtro = e.target.value; const p = e.target.selectionStart; pintar(); const b = $("buscar"); b.focus(); try { b.setSelectionRange(p, p); } catch (_) {} });
+  $("agregar").addEventListener("click", () => nuevo());
+  $("unidades").addEventListener("click", abrirUnidades);
+  $("excel").addEventListener("click", excel);
+  const fb = $("f-bajos"); if (fb) fb.addEventListener("click", () => { soloBajos = !soloBajos; pintar(); });
+  const ej = $("ejemplo"); if (ej) ej.addEventListener("click", cargarEjemplo);
+  document.querySelectorAll(".fila[data-id]").forEach(f => {
+    const id = f.dataset.id, it = item(id); if (!it) return;
+    f.querySelectorAll("[data-c]").forEach(i => {
+      const c = i.dataset.c;
+      i.addEventListener(i.tagName === "SELECT" ? "change" : "input", () => {
+        it[c] = c === "cantidad" ? num(i.value) : c === "minimo" ? (i.value.trim() === "" ? "" : num(i.value)) : i.value;
+        if (c === "cantidad" || c === "minimo") f.classList.toggle("bajo", esBajo(it));
+        guardarLuego(id);
+      });
+      if (c === "cantidad" || c === "minimo") i.addEventListener("focus", () => setTimeout(() => i.select(), 0));
+    });
+    f.querySelectorAll("[data-paso]").forEach(b => b.addEventListener("click", () => {
+      it.cantidad = Math.max(0, Math.round((num(it.cantidad) + +b.dataset.paso) * 100) / 100);
+      f.querySelector('[data-c="cantidad"]').value = fmtC(it.cantidad); f.classList.toggle("bajo", esBajo(it)); guardarLuego(id, 900);
+    }));
+    const dup = f.querySelector("[data-dup]"); if (dup) dup.addEventListener("click", () => nuevo({ nombre: it.nombre, unidad: it.unidad, minimo: it.minimo }, "medida"));
+    const del = f.querySelector("[data-del]"); if (del) del.addEventListener("click", () => { borrando = id; pintar(); });
+    const si = f.querySelector("[data-si]"); if (si) si.addEventListener("click", async () => {
+      si.disabled = true; clearTimeout(timers[id]); delete timers[id];
+      try { await db.collection("inventario").doc(id).delete(); ITEMS = ITEMS.filter(x => x.id !== id); borrando = null; pintar(); toast("Fila borrada."); }
+      catch (e) { console.error(e); toast("No se pudo borrar."); si.disabled = false; } });
+    const no = f.querySelector("[data-no]"); if (no) no.addEventListener("click", () => { borrando = null; pintar(); });
+  });
+}
+async function cargarEjemplo(){
+  const b = $("ejemplo"); b.disabled = true; b.textContent = "Cargando…";
+  try { const lote = db.batch(), t = Date.now();
+    EJEMPLO.forEach(([nombre, medida, unidad], k) => { const ref = db.collection("inventario").doc(nid()); const d = { nombre, medida, cantidad: 0, unidad, minimo: "", notas: "", creado: t + k, por: YO };
+      lote.set(ref, d); ITEMS.push(Object.assign({ id: ref.id }, d)); });
+    await lote.commit(); pintar(); toast("Lista cargada. Ahora escribe cuánto hay de cada uno."); }
+  catch (e) { console.error(e); toast("No se pudo cargar la lista."); b.disabled = false; b.textContent = "Cargar lista de ejemplo"; }
+}
+/* Unidades configurables */
+function pintarUnidades(){
+  $("lista-u").innerHTML = UNIDADES.map((u, k) => `<span>${esc(u)}<button type="button" data-qu="${k}" aria-label="Quitar ${esc(u)}">×</button></span>`).join("");
+  $("lista-u").querySelectorAll("[data-qu]").forEach(b => b.addEventListener("click", () => { if (UNIDADES.length <= 1) return; UNIDADES.splice(+b.dataset.qu, 1); guardarUnidades(); pintarUnidades(); }));
+}
+async function guardarUnidades(){ try { await db.collection("invajustes").doc("general").set({ unidades: UNIDADES }); } catch (e) { console.error(e); toast("No se pudo guardar la lista de unidades."); } }
+function abrirUnidades(){ pintarUnidades(); $("dlg-u").showModal(); setTimeout(() => $("nueva-u").focus(), 50); }
+$("add-u").addEventListener("click", () => { const v = $("nueva-u").value.trim(); if (!v) return; if (!UNIDADES.some(u => u.toLowerCase() === v.toLowerCase())) { UNIDADES.push(v); guardarUnidades(); } $("nueva-u").value = ""; pintarUnidades(); });
+$("nueva-u").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("add-u").click(); } });
+$("cerrar-u").addEventListener("click", () => { $("dlg-u").close(); pintar(); });
+/* Excel (CSV que abre Excel/Numbers) */
+function excel(){
+  const filas = [["Material", "Medida / tipo", "Cantidad", "Unidad", "Mínimo", "Notas"], ...ordenar(ITEMS).map(it => [it.nombre, it.medida, fmtC(it.cantidad), it.unidad, it.minimo === "" || it.minimo == null ? "" : fmtC(it.minimo), it.notas])];
+  const csv = "﻿" + filas.map(r => r.map(v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`).join(";")).join("\r\n");
+  const d = new Date(), nombre = `Inventario-Muebles-Ideal-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}.csv`;
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" }), file = new File([blob], nombre, { type: "text/csv" });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) navigator.share({ files: [file], title: "Inventario" }).catch(() => {});
+  else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nombre; document.body.appendChild(a); a.click(); a.remove(); }
+}
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+<script src="menu.js"></script>
+</body>
+</html>

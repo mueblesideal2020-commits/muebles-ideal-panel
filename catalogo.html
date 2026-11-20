@@ -317,7 +317,7 @@ const TALLAS_P = ["Individual", "Matrimonial", "Queen", "King"];
 const PRECIOS_CAMA_BASE = { estandar: { Individual: 200, Matrimonial: 280, Queen: 320, King: 410 }, nube: { Individual: 250, Matrimonial: 300, Queen: 350, King: 440 } };
 const preciosCama = () => { const c = (CONFIG && CONFIG.preciosCama) || {}; return { estandar: Object.assign({}, PRECIOS_CAMA_BASE.estandar, c.estandar || {}), nube: Object.assign({}, PRECIOS_CAMA_BASE.nube, c.nube || {}) }; };
 const tablaDe = p => p.tablaPrecio || (/nube/i.test(`${p.id || ""} ${p.nombre || ""} ${p.desc || ""}`) ? "nube" : "estandar");
-const mapaPrecios = p => { const t = tablaDe(p); return t === "ninguna" ? null : t === "propia" ? (p.preciosTalla || {}) : preciosCama()[t]; };
+const mapaPrecios = p => { const t = tablaDe(p); return t === "ninguna" || t === "unico" ? null : t === "propia" ? (p.preciosTalla || {}) : preciosCama()[t]; };
 const desdeCama = p => { const m = mapaPrecios(p); const v = m ? Object.values(m).map(Number).filter(x => x > 0) : []; return v.length ? Math.min(...v) : null; };
 const tipoCat = id => (categorias().find(c => c.id === id) || { tipo: id === "sofas" ? "sofas" : id === "camas" ? "camas" : "otro" }).tipo;
 function pintarCategorias(){
@@ -399,7 +399,7 @@ function pintarProductos(){
     ${lista.length ? `<div class="grid-p">${lista.map(p => `<button type="button" class="prod" data-id="${esc(p.id)}">
       <img src="${esc(resolverImg(p.img))}" alt="" loading="lazy">
       <span class="i"><b>${esc(p.nombre)}</b><small>${esc(catNombre(p.cat))}${tipoCat(p.cat) === "camas" && p.linea && lineas[p.linea] ? " · Línea " + esc(lineas[p.linea].nombre) : ""}</small>
-      <small>${tipoCat(p.cat) === "camas" && desdeCama(p) ? `Desde $${desdeCama(p)} · ${({ estandar: "tabla Estándar", nube: "tabla Nube", propia: "precios propios" })[tablaDe(p)] || ""}` : p.precio !== "" && p.precio != null ? "$" + esc(p.precio) : "Precio a consultar"}</small>
+      <small>${tipoCat(p.cat) === "camas" && tablaDe(p) === "unico" ? (p.precio !== "" && p.precio != null ? "$" + esc(p.precio) + " · precio único" : "Precio a consultar") : tipoCat(p.cat) === "camas" && desdeCama(p) ? `Desde $${desdeCama(p)} · ${({ estandar: "tabla Estándar", nube: "tabla Nube", propia: "precios propios" })[tablaDe(p)] || ""}` : p.precio !== "" && p.precio != null ? "$" + esc(p.precio) : "Precio a consultar"}</small>
       <span class="chips">${p.activo === false ? '<span class="chip off">Oculto</span>' : '<span class="chip">Visible</span>'}${p.destacado ? '<span class="chip oro">Más vendido</span>' : ""}${p.tag ? `<span class="chip">${esc(p.tag)}</span>` : ""}</span></span></button>`).join("")}</div>`
       : `<div class="card vacio">No hay productos${filtroP.q || filtroP.cat ? " con ese filtro" : ""}.</div>`}`;
   $("p-q").addEventListener("input", e => { filtroP.q = e.target.value; const pos = e.target.selectionStart; pintarProductos(); const n = $("p-q"); n.focus(); n.setSelectionRange(pos, pos); });
@@ -419,6 +419,11 @@ function editarProducto(p){
   const ed = $("editor-in");
   /* Varias fotos por producto: la primera es la principal */
   const fotos = () => (x.fotos && x.fotos.length ? x.fotos.slice() : (x.img ? [x.img] : []));
+  const notaPrecios = () => tablaDe(x) === "propia" ? `<p class="ayuda" style="margin:0">Precios solo de este modelo.</p>`
+    : x._ed ? `<p class="ayuda" style="margin:0">Estos precios quedan <b>solo para este modelo</b>.</p><label class="chk"><input type="checkbox" id="e-todas" ${x._todas ? "checked" : ""}> En vez de eso, cambiar el precio de <b>todas las camas</b> con la tabla ${tablaDe(x) === "nube" ? "Nube" : "Estándar"}</label>`
+    : `<p class="ayuda" style="margin:0">Usa los precios de la tabla ${tablaDe(x) === "nube" ? "Nube" : "Estándar"}. Si cambias uno, queda solo para este modelo.</p>`;
+  const bindTodas = () => { const c = $("e-todas"); if (c) c.addEventListener("change", e => x._todas = e.target.checked); };
+  const precioEd = t => { const v = tablaDe(x) === "propia" ? (x.preciosTalla || {})[t] : (x._p || mapaPrecios(x) || {})[t]; return v != null ? v : ""; };
   function render(){
     const tipo = tipoCat(x.cat), esSofa = tipo === "sofas", esCama = tipo === "camas";
     if (esSofa && !x.fab) x.fab = fabBase();
@@ -433,15 +438,14 @@ function editarProducto(p){
           </div>
           <label class="f">Descripción corta<textarea data-k="desc" placeholder="Ej. Cabecero alto con costuras en V. Elegante y moderna.">${esc(x.desc)}</textarea></label>
           <div class="fila">
-            ${esCama ? `<label class="f">Precio por tamaño<select id="e-tabla">${[["estandar", "Tabla Estándar"], ["nube", "Tabla Nube"], ["propia", "Precios propios de esta cama"], ["ninguna", "Precio a consultar"]].map(([v, t]) => `<option value="${v}" ${tablaDe(x) === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>`
-              : `<label class="f">Precio (USD)<small>Vacío = "Precio a consultar"</small><input type="number" min="0" step="1" data-k="precio" value="${esc(x.precio)}"></label>`}
+            ${esCama ? `<label class="f">Tipo de precio<select id="e-tabla">${[["unico", "Precio único (lo escribo yo)"], ["propia", "Un precio por cada tamaño (lo escribo yo)"], ["estandar", "Tabla Estándar de camas"], ["nube", "Tabla Nube de camas"], ["ninguna", "Precio a consultar"]].map(([v, t]) => `<option value="${v}" ${tablaDe(x) === v ? "selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}
+            ${!esCama || tablaDe(x) === "unico" ? `<label class="f">Precio (USD)<small>Vacío = "Precio a consultar"</small><input type="number" inputmode="numeric" min="0" step="1" data-k="precio" value="${esc(x.precio)}"></label>` : ""}
             <label class="f">Etiqueta<small>Ej. Nuevo, Oferta</small><input type="text" data-k="tag" value="${esc(x.tag)}"></label>
             <label class="f">Orden en el catálogo<small>1 = primero</small><input type="number" min="1" data-k="orden" value="${esc(x.orden)}"></label>
           </div>
-          ${esCama && tablaDe(x) !== "ninguna" ? `<div class="fila">${TALLAS_P.map(t => tablaDe(x) === "propia"
-              ? `<label class="f">${t} (USD)<input type="number" min="0" step="1" data-pt="${t}" value="${esc((x.preciosTalla || {})[t] != null ? x.preciosTalla[t] : "")}"></label>`
-              : `<div class="f"><span>${t}</span><b>$${esc(mapaPrecios(x)[t])}</b></div>`).join("")}</div>
-            ${tablaDe(x) !== "propia" ? `<p class="ayuda" style="margin:0">Estos precios se cambian para todas las camas en <b>Precios y opciones</b>.</p>` : ""}` : ""}
+          ${esCama && tablaDe(x) === "unico" ? `<p class="ayuda" style="margin:0">Para productos que no son una cama completa, como un <b>copete o cabecero solo</b>: el cliente ve este precio sin importar el tamaño.</p>` : ""}
+          ${esCama && !["ninguna", "unico"].includes(tablaDe(x)) ? `<div class="fila">${TALLAS_P.map(t => `<label class="f">${t} (USD)<input type="number" inputmode="numeric" min="0" step="1" data-pt="${t}" value="${esc(precioEd(t))}"></label>`).join("")}</div>
+            <div id="e-pt-nota">${notaPrecios()}</div>` : ""}
           <div class="fila"><label class="chk"><input type="checkbox" data-k="activo" ${x.activo !== false ? "checked" : ""}> Visible en la página</label>
             <label class="chk"><input type="checkbox" data-k="destacado" ${x.destacado ? "checked" : ""}> Más vendido (aparece primero)</label></div>
         </div>
@@ -497,9 +501,13 @@ function editarProducto(p){
         ${nuevo ? "" : `<div class="bloque"><h3>Eliminar</h3><div id="e-borrar-box"><button class="btn borde mini" type="button" id="e-borrar">Eliminar este producto</button>
           <span class="ayuda"> Si solo quieres quitarlo de la página por un tiempo, desmarca "Visible en la página".</span></div></div>`}
       </div>`;
-    if ($("e-tabla")) $("e-tabla").addEventListener("change", e => { x.tablaPrecio = e.target.value;
+    if ($("e-tabla")) $("e-tabla").addEventListener("change", e => { x.tablaPrecio = e.target.value; delete x._p; delete x._ed; delete x._todas;
       if (x.tablaPrecio === "propia" && !x.preciosTalla) x.preciosTalla = Object.assign({}, preciosCama()[/nube/i.test(x.nombre + " " + x.desc) ? "nube" : "estandar"]); render(); });
-    ed.querySelectorAll("[data-pt]").forEach(i => i.addEventListener("input", () => { x.preciosTalla = x.preciosTalla || {}; if (i.value === "") delete x.preciosTalla[i.dataset.pt]; else x.preciosTalla[i.dataset.pt] = +i.value; }));
+    ed.querySelectorAll("[data-pt]").forEach(i => i.addEventListener("input", () => {
+      if (tablaDe(x) === "propia") { x.preciosTalla = x.preciosTalla || {}; if (i.value === "") delete x.preciosTalla[i.dataset.pt]; else x.preciosTalla[i.dataset.pt] = +i.value; return; }
+      x._p = x._p || Object.assign({}, mapaPrecios(x)); x._p[i.dataset.pt] = i.value === "" ? 0 : +i.value;
+      if (!x._ed) { x._ed = true; $("e-pt-nota").innerHTML = notaPrecios(); bindTodas(); } }));
+    bindTodas();
     ed.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.type === "checkbox" ? "change" : "input", () => {
       const k = i.dataset.k;
       if (k === "feat") x.ficha.feat = i.value.split("\n").map(s => s.trim()).filter(Boolean);
@@ -538,7 +546,15 @@ function editarProducto(p){
       try {
         const id = x.id || (slug(x.nombre) + (PRODUCTOS.some(p => p.id === slug(x.nombre)) ? "-" + Date.now().toString(36).slice(-4) : ""));
         const { id: _, ...datos } = x; if (tipoCat(datos.cat) !== "sofas") datos.fab = null;
-        if (tipoCat(datos.cat) === "camas") { datos.tablaPrecio = tablaDe(datos); if (datos.tablaPrecio !== "propia") delete datos.preciosTalla; }
+        if (tipoCat(datos.cat) === "camas") {
+          datos.tablaPrecio = tablaDe(datos);
+          if (x._ed && x._p && !["propia", "ninguna", "unico"].includes(datos.tablaPrecio)) {
+            if (x._todas) { CONFIG.preciosCama = preciosCama(); CONFIG.preciosCama[datos.tablaPrecio] = Object.assign({}, x._p); await guardarConfig(); }
+            else { datos.tablaPrecio = "propia"; datos.preciosTalla = Object.assign({}, x._p); }
+          }
+          if (datos.tablaPrecio !== "propia") delete datos.preciosTalla;
+        }
+        delete datos._p; delete datos._ed; delete datos._todas;
         datos.fotos = fotos(); datos.img = datos.fotos[0] || "";
         await db.collection("productos").doc(id).set(datos);
         toast("Producto guardado. Ya se ve en la página."); cerrarEditor(); await cargarTodo();

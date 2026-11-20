@@ -8,6 +8,7 @@
     ["index.html", "Inicio", ["dueno", "admin", "ayudante"]],
     ["catalogo.html", "Catálogo", ["dueno"]],
     ["contabilidad.html", "Contabilidad", ["dueno", "admin", "ayudante"]],
+    ["inventario.html", "Inventario", ["dueno", "admin", "ayudante"]],
     ["planos.html", "Planos", ["dueno", "admin"]]
   ];
   var css = document.createElement("style");

@@ -142,6 +142,7 @@ const ICO = {
   catalogo: '<path d="M3 10h18v7H3z"/><path d="M5 10V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v3"/><path d="M5 17v2M19 17v2"/>',
   conta: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 19h0"/>',
   planos: '<path d="M3 21V3h18v18z"/><path d="M3 9h18M9 21V9"/>',
+  inventario: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
   pagina: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
   portal: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'
 };
@@ -153,6 +154,7 @@ const SECCIONES = [
   { k: "contabilidad.html#nomina", i: "equipo", t: "Empleados y nómina", roles: ["dueno", "admin"], d: "Lo que se le debe a cada trabajador, pagos de la semana, asistencia y fichas." },
   { k: "contabilidad.html", i: "conta", t: "Anotar gastos e ingresos", roles: ["ayudante"], d: "Anota las compras y los cobros del día." },
   { k: "catalogo.html", i: "catalogo", t: "Catálogo de la página", roles: ["dueno"], d: "Productos, fotos, precios, categorías, telas y colores que ven los clientes." },
+  { k: "inventario.html", i: "inventario", t: "Inventario del almacén", roles: ["dueno", "admin", "ayudante"], d: "Materiales en el taller: tornillos, grapas, madera, goma espuma, tela, pega. Cuánto hay y qué falta." },
   { k: "planos.html", i: "planos", t: "Planos y despieces", roles: ["dueno", "admin"], d: "Estructura de madera, lista de cortes y compras de cada modelo." },
   { k: PAGINA, i: "pagina", t: "Ver la página", roles: ["dueno", "admin", "ayudante"], d: "La tienda como la ven los clientes.", nueva: true }
 ];
