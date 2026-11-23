@@ -34,7 +34,7 @@
     divanLado: "izquierda", divanLargo: 160, baul: false,
     altoCabecero: 120, anchoCabecero: 145,   // cama: alto del cabecero desde el piso (su ancho = ancho interior + 2 × grosor de la madera)
     grosorMadera: 2.5,                        // cama: grosor de la madera del marco, por cada lado
-    cantGavetas: 0, altoGaveta: 25, grosorGaveta: 1.5,   // cama: gavetas (cada una en la mitad de los pies, frente hacia los pies), alto y grosor del MDF
+    cantGavetas: 0, fondoGaveta: 40, anchoGaveta: 35, altoGaveta: 25, grosorGaveta: 1.5,   // cama: gavetas en la mitad de la cabecera, del otro lado de la línea del medio, frente hacia el lateral: fondo, frente, alto y grosor del MDF
     grosorCabecero: 15, grosorCabeceroArriba: 7, rectoCabecero: 50,   // cama: fondo abajo, fondo arriba y tramo recto de la cartela
     la: 2.5, lb: 5,         // sección del listón (grueso × ancho)
     cartela: 10,            // largo de la cartela (corte a 45°)
@@ -42,7 +42,7 @@
     largoListon: 300,       // largo del listón que se compra
     sierra: 0.3             // pérdida por corte
   };
-  const NUM = ["largo", "fondo", "puestos", "anchoBrazo", "altoBrazo", "altoBase", "altoBastidor", "extraBastidor", "gomaPulg", "altoPata", "cinchaAncho", "cinchaSep", "altoEspaldar", "fondoEspaldar", "topeEspaldar", "divanLargo", "altoCabecero", "anchoCabecero", "grosorCabecero", "grosorCabeceroArriba", "rectoCabecero", "grosorMadera", "cantGavetas", "altoGaveta", "grosorGaveta", "la", "lb", "cartela", "mdf", "largoListon", "sierra"];
+  const NUM = ["largo", "fondo", "puestos", "anchoBrazo", "altoBrazo", "altoBase", "altoBastidor", "extraBastidor", "gomaPulg", "altoPata", "cinchaAncho", "cinchaSep", "altoEspaldar", "fondoEspaldar", "topeEspaldar", "divanLargo", "altoCabecero", "anchoCabecero", "grosorCabecero", "grosorCabeceroArriba", "rectoCabecero", "grosorMadera", "cantGavetas", "fondoGaveta", "anchoGaveta", "altoGaveta", "grosorGaveta", "la", "lb", "cartela", "mdf", "largoListon", "sierra"];
   const r1 = n => Math.round(n * 10) / 10;
   const fmt = n => String(r1(n)).replace(".", ",");
   /* Tamaños estándar de cama (los mismos de la tienda): ancho × largo del colchón */
@@ -114,16 +114,20 @@
       if (x.baul) { g2.mdf.push(M("Fondo del baúl", 1, W, Dd)); g2.herrajes.push({ n: "Bisagras (el bastidor del diván hace de tapa)", c: 2 }, { n: "Pistones de gas para baúl", c: 2 }); }
       grupos.push(g2);
     }
-    /* --- Gavetas (solo cama): cada una ocupa la mitad de los pies, pegada a la línea del medio, frente hacia los pies --- */
+    /* --- Gavetas (solo cama): en la mitad de la cabecera, del otro lado de la línea del medio. Frente = anchoGaveta a lo largo de la cama,
+       fondo = fondoGaveta hacia adentro desde el lateral. Se alternan izquierda y derecha, apiladas hacia la cabecera. --- */
     const nGav = cama ? x.cantGavetas : 0;
     if (nGav > 0) {
-      const bl = grupos.find(gr => gr.id === "base").Lb, pg = bl - x.la, U = D - 2 * x.la, wg = (U - (nGav + 1)) / nGav, Hg = x.altoGaveta, gg = x.grosorGaveta;
+      const bcaja = grupos.find(gr => gr.id === "base"), mitadL = bcaja.Lb * bcaja.cant / 2;
+      const pg = x.fondoGaveta, wg = x.anchoGaveta, Hg = x.altoGaveta, gg = x.grosorGaveta;
       const MG = (n, c, an, al, nota) => Object.assign(M(n, c, an, al, nota), { g: gg });
-      grupos.push({ id: "gaveta", t: "Gaveta (mitad de los pies)", cant: nGav, Lg: pg, wg, med: `${fmt(wg)} × ${fmt(pg)} × ${fmt(Hg)} cm (ancho × fondo × alto) · frente hacia los pies · MDF ${fmt(gg * 10)} mm`,
+      grupos.push({ id: "gaveta", t: "Gaveta (mitad de la cabecera)", cant: nGav, Lg: pg, wg, med: `${fmt(wg)} × ${fmt(pg)} × ${fmt(Hg)} cm (frente × fondo × alto) · frente hacia el lateral · MDF ${fmt(gg * 10)} mm`,
         piezas: [], tablas: [],
         mdf: [MG("Frente de la gaveta", 1, wg, Hg), MG("Laterales de la gaveta", 2, pg, Hg), MG("Trasera de la gaveta", 1, wg - 2 * gg, Hg), MG("Fondo de la gaveta", 1, wg - 2 * gg, pg)],
         herrajes: [{ n: `Guía telescópica ${fmt(pg)} cm (par)`, c: 1 }, { n: "Tirador de gaveta", c: 1 }] });
-      if (wg < 40) avisos.push("Las gavetas quedan muy angostas: revisa cuántas son.");
+      const porLado = Math.floor(mitadL / (wg + 1));
+      if (nGav > 2 * porLado) avisos.push("Hay más gavetas de las que caben en la mitad de la cabecera: revisa la cantidad.");
+      if (2 * pg + 2 > D) avisos.push("El fondo de las gavetas es muy grande para el ancho de la cama: revisa el fondo.");
     }
 
     /* --- Bastidores de asiento (se encinchan, llevan saco y goma, se tapizan) --- */
@@ -383,13 +387,14 @@
     for (let i = 1; i < nc; i++) s += rect(ox, g0 + i * bl - e / 2, D, e, "#8c7a5c", "#8c7a5c", 0.2);
     s += cota(cx, 0, cx + an, 0, -8, fmt(an), 3) + cota(ox, g0 + Lb, ox + D, g0 + Lb, 8, fmt(D));
     for (let i = 0; i < nc; i++) s += cota(ox + D, g0 + i * bl, ox + D, g0 + (i + 1) * bl, 8, fmt(bl));
-    /* Gavetas: en la mitad de los pies, con el frente hacia los pies */
+    /* Gavetas: en la mitad de la cabecera (del otro lado de la línea del medio), frente hacia el lateral; se alternan izquierda y derecha */
     const gv = r.grupos.find(g => g.id === "gaveta");
     if (gv) for (let i = 0; i < gv.cant; i++) {
-      const gx = ox + 1 + i * (gv.wg + 1), gy = g0 + Lb - gv.Lg;
-      s += `<rect x="${r1(gx)}" y="${r1(gy)}" width="${r1(gv.wg)}" height="${r1(gv.Lg)}" fill="rgba(122,92,40,.12)" stroke="#7a5c28" stroke-width="${0.4 * K}" stroke-dasharray="${2 * K} ${1.5 * K}"/>`;
-      s += rect(gx, g0 + Lb - e * 0.6, gv.wg, e * 0.6, "#7a5c28", "#7a5c28", 0.2);
-      s += txt(gx + gv.wg / 2, gy + gv.Lg / 2 + 1 * K, "GAVETA", 2.6, "middle", 0, C.txt, 700);
+      const izq = i % 2 === 0, j = Math.floor(i / 2), pg = gv.Lg, wg = gv.wg;
+      const gx = izq ? ox + 1 : ox + D - 1 - pg, gy = g0 + Lb / 2 - 1 - (j + 1) * wg - j;
+      s += `<rect x="${r1(gx)}" y="${r1(gy)}" width="${r1(pg)}" height="${r1(wg)}" fill="rgba(122,92,40,.12)" stroke="#7a5c28" stroke-width="${0.4 * K}" stroke-dasharray="${2 * K} ${1.5 * K}"/>`;
+      s += rect(izq ? gx : gx + pg - e * 0.6, gy, e * 0.6, wg, "#7a5c28", "#7a5c28", 0.2);
+      s += txt(gx + pg / 2, gy + wg / 2 + 1 * K, "GAVETA", 2.6, "middle", 0, C.txt, 700);
     }
     return lienzo(Wt, g0 + Lb, 22 * K, s);
   }
@@ -418,13 +423,13 @@
     s += cota(0, Hc, an, Hc, 8, fmt(an)) + cota(an, 0, an, Hc, 8, fmt(Hc));
     return lienzo(an, Hc + 14 * K, 18 * K, s);
   }
-  /* Gaveta vista desde arriba: frente abajo (hacia los pies) */
+  /* Gaveta vista desde arriba: fondo a lo ancho, frente al lateral (a la izquierda; la derecha es igual en espejo) */
   function dibujarGaveta(r, gr) {
-    const { x } = r, w = gr.wg, l = gr.Lg, gg = x.grosorGaveta, Hg = x.altoGaveta; K = Math.max(1, Math.max(w, l) / 70);
-    let s = txt(w / 2, -10 * K, "VISTA SUPERIOR · gaveta", 3.4, "middle", 0, C.gris, 700);
+    const { x } = r, w = gr.Lg, l = gr.wg, gg = x.grosorGaveta, Hg = x.altoGaveta; K = Math.max(1, Math.max(w, l) / 70);
+    let s = txt(w / 2, -10 * K, "VISTA SUPERIOR · gaveta, frente al lateral", 3.4, "middle", 0, C.gris, 700);
     s += rect(0, 0, w, l, "#efe0c0", C.maderaB, 0.5);
-    s += rect(0, l - gg * 2, w, gg * 2, "#8c7a5c", "#8c7a5c", 0.2) + txt(w / 2, l - 3 * K, "frente ↓", 2.6, "middle", 0, C.txt, 700);
-    s += txt(w / 2, l / 2 - 1 * K, "GAVETA", 3, "middle", 0, C.txt, 700) + txt(w / 2, l / 2 + 4 * K, `alto ${fmt(Hg)} cm`, 2.6, "middle", 0, C.gris);
+    s += rect(0, 0, gg * 2, l, "#8c7a5c", "#8c7a5c", 0.2);
+    s += txt(w / 2 + 2 * K, l / 2 - 1 * K, "GAVETA", 3, "middle", 0, C.txt, 700) + txt(w / 2 + 2 * K, l / 2 + 4 * K, `alto ${fmt(Hg)} cm`, 2.6, "middle", 0, C.gris);
     s += cota(0, l, w, l, 8, fmt(w)) + cota(w, 0, w, l, 8, fmt(l));
     return lienzo(w, l, 18 * K, s);
   }

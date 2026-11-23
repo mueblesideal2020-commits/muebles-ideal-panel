@@ -140,6 +140,10 @@ table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
       <label class="f">Cantidad <small>la define el cliente; 0 = sin gavetas</small><input name="cantGavetas" inputmode="numeric"></label>
       <label class="f">Alto de la gaveta <small>cm</small><input name="altoGaveta" inputmode="decimal"></label>
     </div>
+    <div class="fila" data-solo="cama">
+      <label class="f">Fondo de la gaveta <small>cm, hacia adentro desde el lateral</small><input name="fondoGaveta" inputmode="decimal"></label>
+      <label class="f">Frente de la gaveta <small>cm, a lo largo de la cama</small><input name="anchoGaveta" inputmode="decimal"></label>
+    </div>
     <h2 data-no="cama">Espaldar</h2>
     <div class="fila" data-no="cama">
       <label class="f">Alto espaldar <small>cm</small><input name="altoEspaldar" inputmode="decimal"></label>
@@ -197,7 +201,7 @@ function pintar(){
   const titulo = r.cama ? `Cama ${Estructura.nombreCama(x.largo, x.fondo)} · ${fmt(r.interno.ancho)} × ${fmt(r.interno.largo)} cm interior`
     : `Sofá ${x.tipo === "divan" ? "modular con diván " + x.divanLado : "recto"} · ${x.puestos} puesto${x.puestos === 1 ? "" : "s"}`;
   const pie = r.cama
-    ? `Izquierda: vista desde arriba, cabecero arriba y base debajo. Derecha: corte lateral. Medidas en centímetros. Medida interior ${fmt(r.interno.ancho)} × ${fmt(r.interno.largo)} cm; externa ${fmt(x.anchoCabecero)} × ${fmt(x.largo)} cm. Alto de la base = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} = <b>${fmt(r.alturas.asiento)} cm</b>. Base en ${r.grupos.find(g => g.id === "base").cant} cajas de ${fmt(r.grupos.find(g => g.id === "base").Lb)} cm. Cabecero de ${fmt(x.altoCabecero)} cm desde el piso.${r.grupos.find(g => g.id === "gaveta") ? ` Gavetas: ${r.grupos.find(g => g.id === "gaveta").cant}, en la mitad de los pies, frente hacia los pies.` : ""}`
+    ? `Izquierda: vista desde arriba, cabecero arriba y base debajo. Derecha: corte lateral. Medidas en centímetros. Medida interior ${fmt(r.interno.ancho)} × ${fmt(r.interno.largo)} cm; externa ${fmt(x.anchoCabecero)} × ${fmt(x.largo)} cm. Alto de la base = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} = <b>${fmt(r.alturas.asiento)} cm</b>. Base en ${r.grupos.find(g => g.id === "base").cant} cajas de ${fmt(r.grupos.find(g => g.id === "base").Lb)} cm. Cabecero de ${fmt(x.altoCabecero)} cm desde el piso.${r.grupos.find(g => g.id === "gaveta") ? ` Gavetas: ${r.grupos.find(g => g.id === "gaveta").cant}, en la mitad de la cabecera, del otro lado de la línea del medio, frente hacia el lateral.` : ""}`
     : `Izquierda: vista desde arriba, espaldar al fondo entre los brazos; cada puesto es un bastidor de ${fmt(r.W)} × ${fmt(r.D)} cm sobre la base completa. Derecha: corte lateral. Medidas en centímetros. Alto del asiento = patas ${fmt(r.alturas.pata)} + base ${fmt(r.alturas.base)} + bastidor ${fmt(r.alturas.bastidor)} + goma ${fmt(r.alturas.goma)} (${fmt(x.gomaPulg)}") = <b>${fmt(r.alturas.asiento)} cm</b>.`;
   const tabla = gr => `<table class="t"><thead><tr><th style="width:22px"></th><th>Pieza</th><th style="text-align:center">Cant.</th><th style="text-align:right">Largo</th><th>Corte</th></tr></thead><tbody>
       ${gr.piezas.map(p => `<tr><td><span class="ck"></span></td><td>${esc(p.n)}<span class="sub">Listón ${p.sec}${p.nota ? " · " + esc(p.nota) : ""}</span></td><td class="c">${p.c * gr.cant}${gr.cant > 1 ? `<span class="sub">${p.c} c/u</span>` : ""}</td><td class="n">${fmt(p.l)} cm</td><td>${esc(p.corte)}</td></tr>`).join("")}
