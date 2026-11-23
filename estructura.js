@@ -11,6 +11,7 @@
    - ESPALDAR: cara trasera vertical + cara frontal inclinada, con una
      cartela lateral de tabla (trapecio) a cada lado que se atornilla al brazo.
    - DIVÁN (opcional): módulo largo con travesaños intermedios; puede llevar BAÚL.
+   - SOFÁ EN L CON DIVÁN Y SOFÁ CAMA ("divanL" y "sofaCama"): diseños fijos del plano v7; no usan las medidas del formulario.
    - CAMA: base de un solo cajón (largo × ancho del colchón) y cabecero: tablero
      entre dos cartelas trapecio (fondo abajo, tramo recto, fondo arriba).
    Todas las medidas en centímetros.
@@ -65,6 +66,8 @@
   const ladosBrazo = x => x.brazos === "ambos" ? ["izquierda", "derecha"] : x.brazos === "izquierdo" ? ["izquierda"] : x.brazos === "derecho" ? ["derecha"] : [];
 
   function calcular(p) {
+    if (p && p.tipo === "divanL") return calcularDivanL();
+    if (p && p.tipo === "sofaCama") return calcularSofaCama();
     const x = normal(p), a = x.la, b = x.lb, sec = `${fmt(a)}×${fmt(b)}`;
     const cama = x.tipo === "cama";
     const lados = ladosBrazo(x), nb = lados.length, divan = x.tipo === "divan";
@@ -231,6 +234,291 @@
       { n: `Goma espuma ${fmt(x.gomaPulg)}" para asientos`, c: bastidores.reduce((t, bs) => t + bs.cant, 0), u: "piezas", nota: bastidores.map(bs => `${bs.cant} de ${fmt(bs.an)} × ${fmt(bs.fo)}`).join(" + ") });
     grupos.forEach(gr => gr.herrajes.forEach(h => compra.push({ n: h.n, c: h.c * gr.cant, u: "unid.", nota: gr.t })));
     return { x, W, D, Dd, H, L, nb, lados, divan, cama, interno: cama ? { largo: x.largo - 2 * x.grosorMadera, ancho: x.fondo } : null, grupos, barras, metros, desperdicio, areaMdf, laminas, compra, avisos, alturas };
+  }
+
+  /* ===================== Diseños fijos (plano v7): sofá en L con diván y sofá cama ===================== */
+  /* No usan las medidas del formulario: sus medidas vienen del plano v7. Se dibujan en centímetros, con Y hacia arriba. */
+  const DIB = { WOOD: "#e9d6ab", WOOD2: "#d8bf8a", GOMA: "#f6f0e3", GOMA_AZ: "#cfe3e8", INK: "#3b2f20", GRIS: "#8a8175", PATA: "#6b5a40", AZUL: "#1f4f8a", AZUL_G: "#6f9aa5" };
+  const escS = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  class Lienzo {
+    constructor(xmin, xmax, ymin, ymax, pad = 6) {
+      this.xmin = xmin; this.ymax = ymax; this.pad = pad; this.k = 1.6;   /* escala de los textos: que se lean en el teléfono */
+      this.W = xmax - xmin + 2 * pad; this.H = ymax - ymin + 2 * pad; this.it = [];
+    }
+    X(x) { return x - this.xmin + this.pad; }
+    Y(y) { return this.ymax - y + this.pad; }
+    rect(x, y, w, h, fill = DIB.WOOD, stroke = DIB.INK, dash = null, sw = 0.4) {
+      const d = dash ? ` stroke-dasharray="${dash}"` : "";
+      this.it.push(`<rect x="${this.X(x).toFixed(2)}" y="${this.Y(y + h).toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"${d}/>`);
+    }
+    poly(pts, fill = DIB.WOOD, stroke = DIB.INK, dash = null, sw = 0.4) {
+      const d = dash ? ` stroke-dasharray="${dash}"` : "";
+      const p = pts.map(([x, y]) => `${this.X(x).toFixed(2)},${this.Y(y).toFixed(2)}`).join(" ");
+      this.it.push(`<polygon points="${p}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"${d}/>`);
+    }
+    line(x1, y1, x2, y2, stroke = DIB.GRIS, sw = 0.35, dash = null) {
+      const d = dash ? ` stroke-dasharray="${dash}"` : "";
+      this.it.push(`<line x1="${this.X(x1).toFixed(2)}" y1="${this.Y(y1).toFixed(2)}" x2="${this.X(x2).toFixed(2)}" y2="${this.Y(y2).toFixed(2)}" stroke="${stroke}" stroke-width="${sw}"${d}/>`);
+    }
+    text(x, y, t, size = 3, fill = DIB.INK, weight = 500, anchor = "middle", rot = 0) {
+      const tr = rot ? ` transform="rotate(${rot} ${this.X(x).toFixed(2)} ${this.Y(y).toFixed(2)})"` : "";
+      this.it.push(`<text x="${this.X(x).toFixed(2)}" y="${this.Y(y).toFixed(2)}" font-size="${(size * this.k).toFixed(2)}" fill="${fill}" font-weight="${weight}" text-anchor="${anchor}"${tr}>${escS(t)}</text>`);
+    }
+    /* Cota horizontal: la etiqueta va arriba (dy negativo) o abajo (dy positivo) de la línea */
+    hdim(x1, x2, y, label, dy = -1.6) {
+      const a = this.X(x1), b = this.X(x2), yy = this.Y(y), A = DIB.AZUL;
+      this.it.push(`<g stroke="${A}" stroke-width="0.35"><line x1="${a.toFixed(2)}" y1="${yy.toFixed(2)}" x2="${b.toFixed(2)}" y2="${yy.toFixed(2)}"/><line x1="${a.toFixed(2)}" y1="${(yy - 1.2).toFixed(2)}" x2="${a.toFixed(2)}" y2="${(yy + 1.2).toFixed(2)}"/><line x1="${b.toFixed(2)}" y1="${(yy - 1.2).toFixed(2)}" x2="${b.toFixed(2)}" y2="${(yy + 1.2).toFixed(2)}"/></g>`);
+      this.it.push(`<text x="${((a + b) / 2).toFixed(2)}" y="${(yy + dy).toFixed(2)}" font-size="${(3 * this.k).toFixed(2)}" fill="${A}" font-weight="700" text-anchor="middle">${escS(label)}</text>`);
+    }
+    /* Cota vertical: a la izquierda (side -1) o a la derecha (side 1) de la línea */
+    vdim(x, y1, y2, label, side = -1) {
+      const xx = this.X(x), a = this.Y(y1), b = this.Y(y2), m = (a + b) / 2, tx = side < 0 ? xx - 1.2 : xx + 4.2, A = DIB.AZUL;
+      this.it.push(`<g stroke="${A}" stroke-width="0.35"><line x1="${xx.toFixed(2)}" y1="${a.toFixed(2)}" x2="${xx.toFixed(2)}" y2="${b.toFixed(2)}"/><line x1="${(xx - 1.2).toFixed(2)}" y1="${a.toFixed(2)}" x2="${(xx + 1.2).toFixed(2)}" y2="${a.toFixed(2)}"/><line x1="${(xx - 1.2).toFixed(2)}" y1="${b.toFixed(2)}" x2="${(xx + 1.2).toFixed(2)}" y2="${b.toFixed(2)}"/></g>`);
+      this.it.push(`<text x="${tx.toFixed(2)}" y="${m.toFixed(2)}" font-size="${(3 * this.k).toFixed(2)}" fill="${A}" font-weight="700" text-anchor="middle" transform="rotate(-90 ${tx.toFixed(2)} ${m.toFixed(2)})">${escS(label)}</text>`);
+    }
+    svg() {
+      return `<svg viewBox="0 0 ${this.W.toFixed(1)} ${this.H.toFixed(1)}" xmlns="http://www.w3.org/2000/svg" font-family="Arial, sans-serif" style="width:100%;height:auto;display:block">${this.it.join("")}</svg>`;
+    }
+  }
+  /* Piezas, tableros y grupos con el mismo formato que los demás diseños */
+  const pzF = (n, c, l, sec, nota) => ({ n, c, l, corte: "Recto", sec: sec || "2,5 × 5", nota: nota || "" });
+  const lamF = (n, c, an, al, nota, mat) => ({ n, c, an, al, nota: nota || "", mat: mat || "Tablero 2,5 cm" });
+  const grupoF = (id, t, med, piezas, mdf, tablas, herrajes) => ({ id, t, cant: 1, med, piezas: piezas || [], mdf: mdf || [], tablas: tablas || [], herrajes: herrajes || [], svg: "" });
+  /* Acomodo de listones: el más largo primero, con sierra entre cortes (igual que el cálculo general) */
+  function acomodarListones(cortes, largo, sierra) {
+    const barras = [];
+    cortes.slice().sort((p1, p2) => p2 - p1).forEach(l => {
+      if (l > largo) { barras.push({ usado: l, cortes: [l], largo: true }); return; }
+      const bar = barras.find(bb => !bb.largo && largo - bb.usado >= l + (bb.cortes.length ? sierra : 0));
+      if (bar) { bar.usado += l + (bar.cortes.length ? sierra : 0); bar.cortes.push(l); } else barras.push({ usado: l, cortes: [l] });
+    });
+    return barras;
+  }
+  /* Cierra un diseño fijo: listones, tableros, cincha, saco, herrajes y lista de compra */
+  function cerrarFijo(b) {
+    const grupos = b.grupos, LARGO = 300, SIERRA = 0.3;
+    const cortes = [];
+    grupos.forEach(gr => gr.piezas.forEach(pz => { for (let i = 0; i < pz.c * gr.cant; i++) cortes.push(pz.l); }));
+    const barras = acomodarListones(cortes, LARGO, SIERRA);
+    const sumaCortes = cortes.reduce((s, l) => s + l, 0), metros = sumaCortes / 100;
+    const desperdicio = barras.length ? 100 - (sumaCortes / (barras.length * LARGO)) * 100 : 0;
+    const area = grupos.reduce((s, gr) => s + gr.mdf.reduce((t, m) => t + m.c * m.an * m.al, 0) * gr.cant, 0);
+    const perim = grupos.reduce((s, gr) => s + gr.mdf.reduce((t, m) => t + m.c * 2 * (m.an + m.al), 0) * gr.cant, 0);
+    const laminas = Math.max(1, Math.ceil(area * 1.15 / (122 * 244)));
+    const compra = [
+      { n: `Listón 2,5 × 5 cm de ${LARGO} cm`, c: barras.length, u: "unid.", nota: `${fmt(metros)} m en cortes · desperdicio aprox. ${Math.round(desperdicio)}%` },
+      { n: "Tablero (lámina de 1,22 × 2,44 m)", c: laminas, u: "lám.", nota: `${fmt(area / 10000)} m² + 15% de desperdicio · grosores en la lista de cortes` },
+      { n: 'Tornillo drywall 2"', c: Math.ceil(cortes.length * 4 / 10) * 10, u: "unid.", nota: "Marcos y parales (≈4 por pieza)" },
+      { n: 'Tornillo drywall 3"', c: Math.ceil(cortes.length * 2 / 5) * 5, u: "unid.", nota: "Brazos, espaldar y base (estimado)" },
+      { n: "Grapas para tablero", c: Math.ceil(perim / 8 / 50) * 50, u: "unid.", nota: "Una cada 8 cm de borde" },
+      { n: "Cola blanca de carpintería", c: 1, u: "L", nota: "En todas las uniones" }
+    ];
+    /* Cincha y saco de los bastidores (cincha de 5 cm cada 8 cm, igual que el cálculo general) */
+    const bast = b.bastidores || [];
+    if (bast.length) {
+      const cincha = bast.reduce((t, bs) => t + (Math.ceil((bs.an - 5) / 8) * (bs.fo + 6) + Math.ceil((bs.fo - 5) / 8) * (bs.an + 6)) / 100 * bs.cant, 0);
+      const saco = bast.reduce((t, bs) => t + bs.an * bs.fo / 10000 * bs.cant, 0);
+      compra.splice(2, 0, { n: "Cincha de 5 cm", c: Math.ceil(cincha), u: "m", nota: "Bastidores de asiento, tejida en ambos sentidos" },
+        { n: "Saco (arpillera)", c: Math.ceil(saco * 1.2 * 10) / 10, u: "m²", nota: "Bastidores + 20% para doblar" });
+    }
+    grupos.forEach(gr => {
+      gr.tablas.forEach(t => compra.push({ n: t.n, c: t.c * gr.cant, u: "piezas", nota: `${t.med}${t.nota ? " · " + t.nota : ""}` }));
+      gr.herrajes.forEach(h => compra.push({ n: h.n, c: h.c * gr.cant, u: "unid.", nota: gr.t }));
+    });
+    return { x: b.x, W: 0, D: 0, Dd: 0, H: 0, L: 0, nb: 0, lados: [], divan: !!b.divan, cama: false, interno: null, grupos, barras, metros, desperdicio, areaMdf: area, laminas, compra, avisos: [], alturas: b.alturas, custom: b.custom, titulo: b.titulo, pie: b.pie, notas: b.notas, kpiMat: b.kpiMat };
+  }
+  /* Sofá en L con diván a la izquierda, 3 puestos (plano v7) */
+  function calcularDivanL() {
+    const t = new Lienzo(-14, 296, -6, 192), c = new Lienzo(-14, 104, -24, 80);
+    /* Vista desde arriba: diván a la izquierda, fila de 3 puestos y brazo a la derecha, espaldar al fondo */
+    t.rect(20, 0, 60, 170, DIB.WOOD2);
+    t.text(50, 84, "DIVÁN", 4, DIB.INK, 700); t.text(50, 76, "base 60 × 170", 3);
+    t.rect(0, 85, 20, 85, DIB.WOOD2); t.text(10, 120, "BRAZO", 2.8, DIB.INK, 700); t.text(10, 113, "85", 3);
+    [80, 140, 200].forEach((x0, i) => { t.rect(x0, 85, 60, 60, DIB.GOMA); t.text(x0 + 30, 118, `PUESTO ${i + 1}`, 3.2, DIB.INK, 700); t.text(x0 + 30, 110, "60 × 60", 3); });
+    t.rect(260, 85, 20, 85, DIB.WOOD2); t.text(270, 120, "BRAZO", 2.8, DIB.INK, 700); t.text(270, 113, "85", 3);
+    t.rect(20, 145, 240, 25, DIB.WOOD); t.rect(20, 145, 240, 5, DIB.GOMA_AZ, DIB.AZUL_G);
+    t.text(140, 158, "ESPALDAR 240 × 25 · goma de 2 pulgadas al frente", 3.2, DIB.INK, 700);
+    t.hdim(0, 280, 186, "280 cm de largo");
+    t.hdim(0, 20, 176, "20"); t.hdim(20, 80, 176, "60 diván"); t.hdim(80, 140, 176, "60"); t.hdim(140, 200, 176, "60"); t.hdim(200, 260, 176, "60"); t.hdim(260, 280, 176, "20");
+    t.vdim(-4, 0, 170, "170 cm", -1);
+    t.vdim(284, 85, 170, "85 cm de fondo", 1);
+    /* Corte lateral de un puesto: espaldar montado sobre la base (25 atrás); bastidor y goma al frente (60) */
+    c.line(-10, 0, 96, 0, DIB.GRIS, 0.5);
+    c.rect(2, 0, 5, 5, DIB.PATA); c.rect(78, 0, 5, 5, DIB.PATA);
+    c.rect(0, 5, 85, 21, DIB.WOOD2); c.text(42.5, 13.5, "BASE 21 · fondo 85", 3, DIB.INK, 700);
+    c.rect(25, 26, 60, 7, DIB.WOOD); c.text(55, 28.6, "BASTIDOR 7", 2.6);
+    c.rect(25, 33, 60, 10.2, DIB.GOMA_AZ, DIB.AZUL_G); c.text(55, 37.4, 'GOMA 4" (10,2)', 3, DIB.INK, 700);
+    c.poly([[0, 26], [25, 26], [25, 43.2], [10, 65], [0, 65]], DIB.WOOD2);
+    c.poly([[25, 43.2], [10, 65], [15, 65], [30, 43.2]], DIB.GOMA_AZ, DIB.AZUL_G);
+    c.text(12, 44, "ESPALDAR", 2.6, DIB.INK, 700);
+    c.text(33, 71, 'goma del espaldar 2" (5,08)', 2.8, DIB.INK, 500, "start");
+    c.line(-6, 55, 92, 55, DIB.GRIS, 0.35, "2 1.5");
+    c.text(90, 57.5, "brazo 55 (por confirmar)", 2.6, DIB.GRIS, 400, "end");
+    c.hdim(0, 85, -12, "85 cm de fondo", 4);
+    c.hdim(25, 85, -4, "60 asiento", 4); c.hdim(0, 25, -4, "25 espalda", 4);
+    c.vdim(-4, 0, 65, "65 cm", -1);
+    c.vdim(91, 0, 43.2, "asiento 43,2", 1);
+
+    const brazo = (titulo, nota) => grupoF("brazo", titulo, "20 × 85 × 55 cm (ancho × fondo × alto)", [], [
+      lamF("Caras laterales", 2, 85, 55, nota), lamF("Frente", 1, 20, 55), lamF("Tapa superior", 1, 20, 85)]);
+    const grupos = [
+      brazo("Brazo del último puesto", ""),
+      brazo("Brazo del lado del diván", "Igual que el otro. Altura por confirmar"),
+      grupoF("espaldar", "Espaldar", "240 × 25 × 65 cm (largo × fondo × alto)", [], [
+        lamF("Tablero del espaldar", 1, 240, 65, "Montado sobre la base, en sus últimos 25 cm"),
+        lamF("Cartelas (trapecio)", 2, 25, 65, "base 25 · tope 10 · alto 65")],
+        [{ n: 'Goma espuma 2"', c: 1, med: "240 × 65 × 5,08", nota: "Al frente del espaldar" }]),
+      grupoF("basediv", "Base del diván", "60 × 170 × 21 cm (ancho × largo × alto)", [
+        pzF("Marco largo", 2, 170), pzF("Marco corto", 2, 60), pzF("Parales", 4, 21)]),
+      grupoF("base", "Base de los 3 puestos", "60 × 85 × 21 cm por puesto (fondo 85)", [
+        pzF("Marco de frente y fondo (arriba y abajo)", 12, 60, "2,5 × 5", "4 por puesto"),
+        pzF("Laterales de la caja (fondo 85)", 12, 85, "2,5 × 5", "4 por puesto · agregado, confirmar"),
+        pzF("Parales", 12, 21, "2,5 × 5", "4 por puesto")]),
+      grupoF("bastidor", "Bastidores de asiento (3 puestos)", "60 × 60 cm por puesto · alto 7", [
+        pzF("Largueros (frente y fondo)", 6, 60, "2,5 × 5", "Con cincha"), pzF("Travesaños (laterales)", 6, 50, "2,5 × 5")], [], [
+        { n: 'Goma espuma 4" (10,2 cm) para puestos', c: 3, med: "60 × 65 × 10,2", nota: "Llega a la goma del espaldar" }]),
+      grupoF("bastidordiv", "Bastidor del diván", "60 × 145 cm · alto 7 · agregado, confirmar", [
+        pzF("Largueros (frente y fondo)", 2, 60, "2,5 × 5", "Agregado: el plano no lo lista"), pzF("Laterales", 2, 145, "2,5 × 5", "Agregado: el plano no lo lista")], [], [
+        { n: 'Goma espuma 4" (10,2 cm) para diván', c: 1, med: "60 × 145 × 10,2", nota: "Goma espuma de 4 pulgadas" }])
+    ];
+    return cerrarFijo({
+      x: { tipo: "divan", largo: 280, fondo: 85, divanLargo: 170, divanLado: "izquierda", la: 2.5, lb: 5, mdf: 0.4, largoListon: 300, sierra: 0.3 },
+      divan: true, grupos,
+      bastidores: [{ an: 60, fo: 60, cant: 3 }, { an: 60, fo: 145, cant: 1 }],
+      alturas: { pata: 5, base: 21, bastidor: 7, goma: 10.2, asiento: 43.2 },
+      custom: { general: t.svg(), alturas: c.svg() },
+      titulo: "Sofá en L con diván izquierdo · 3 puestos (plano v7)",
+      pie: "Izquierda: vista desde arriba, con el espaldar al fondo. Derecha: corte lateral de un puesto. Medidas en centímetros.",
+      kpiMat: "Tablero 2,5 cm",
+      notas: [
+        { t: "Medidas y supuestos", l: [
+          "Largo 280 = brazo 20 + diván 60 + 3 puestos de 60 + brazo 20.",
+          "Diván de 80 de ancho (brazo 20 + asiento 60) por 170 de largo, con el espaldar al fondo.",
+          "Base de 85 de fondo: 60 para el bastidor del asiento y 25 para montar el espaldar.",
+          "Asiento 43,2 = patas 5 + base 21 + bastidor 7 + goma 10,2 (4 pulgadas).",
+          "Goma del espaldar de 2 pulgadas (5,08), en la cara de enfrente; la goma del asiento llega a ella.",
+          "Bastidores encinchados en ambos sentidos, como los demás del calculador.",
+          "Las cantidades son estimadas: revisar antes de cortar." ] },
+        { t: "Pendientes para cerrar los planos", l: [
+          "Altura de los brazos: el plano usa 55 cm; confirmar si se mide desde el piso o desde la base.",
+          "Altura del espaldar: el plano usa 65 cm desde el piso.",
+          "Grosor de tableros: se tomó 2,5 cm en brazos, espaldar y cartelas; confirmar.",
+          "Base de los puestos: el plano lista los marcos de 60, pero la caja tiene 85 de fondo. Se agregaron los laterales de 85 (12 piezas), para confirmar.",
+          "Bastidor del diván (60 × 145): el plano no lista sus piezas. Se agregaron 2 largueros de 60 y 2 laterales de 145, para confirmar.",
+          "¿El diván lleva baúl?",
+          "Cartelas del espaldar: el plano las pone (2 de 2,5 cm); confirmar que se quedan." ] }
+      ]
+    });
+  }
+  /* Sofá cama matrimonial, 180 × 100 cm de medida externa (plano v7) */
+  function calcularSofaCama() {
+    /* Vista frontal (arriba) y sofá reclinado visto desde arriba */
+    const f = new Lienzo(-14, 204, -12, 104);
+    f.line(-10, 0, 190, 0, DIB.GRIS, 0.5);
+    [3, 60, 120, 172].forEach(x0 => f.rect(x0, 0, 5, 5, DIB.PATA));
+    f.rect(0, 5, 20, 50, DIB.WOOD2); f.rect(160, 5, 20, 50, DIB.WOOD2);
+    f.text(10, 36, "brazo", 2.8, DIB.INK, 700); f.text(10, 30, "20 × 55", 2.6);
+    f.text(170, 36, "brazo", 2.8, DIB.INK, 700); f.text(170, 30, "20 × 55", 2.6);
+    f.rect(20, 5, 140, 28, DIB.WOOD2); f.text(90, 16, "caja base 28 · la cama sale por el frente", 3, DIB.INK, 700);
+    f.rect(20, 33, 140, 10.2, DIB.GOMA); f.text(90, 38.2, 'goma 4" (10,2)', 2.8);
+    f.rect(20, 43.2, 140, 46.8, DIB.GOMA); f.text(90, 70, "espaldar 140 × 45 × 7 + goma 10 (desmontable)", 3);
+    f.hdim(0, 180, 100, "180 cm de ancho");
+    f.hdim(20, 160, -4, "140 entre brazos", 4);
+    f.vdim(-4, 0, 90, "90", -1); f.vdim(184, 0, 43.2, "43,2 asiento", 1);
+
+    const p = new Lienzo(-40, 190, -10, 214);
+    p.rect(-20, 70, 20, 110, DIB.WOOD2); p.rect(140, 70, 20, 110, DIB.WOOD2);
+    p.text(-10, 125, "brazo", 2.8, DIB.INK, 700); p.text(150, 125, "brazo", 2.8, DIB.INK, 700);
+    p.rect(0, 135, 140, 45, DIB.GOMA); p.text(70, 157, "espaldar 45 × 7 + goma 10", 3.2, DIB.INK, 700);
+    p.rect(0, 70, 140, 65, DIB.WOOD2); p.text(70, 102, "asiento 65", 3.2, DIB.INK, 700);
+    p.rect(0, 0, 140, 70, DIB.WOOD); p.text(70, 35, "cama 70", 3.2, DIB.INK, 700); p.text(70, 27, "sale hacia los pies", 2.6, DIB.GRIS, 400);
+    p.hdim(-20, 160, 194, "180 cm de ancho (con brazos)");
+    p.vdim(170, 0, 180, "180 cm reclinado", 1);
+    p.vdim(-30, 135, 180, "45", -1); p.vdim(-30, 70, 135, "65", -1); p.vdim(-30, 0, 70, "70", -1);
+
+    /* Cortes laterales: cama guardada (dentro de la caja) y cama afuera (con herraje tijera) */
+    const g = new Lienzo(-18, 110, -16, 104);
+    g.line(-8, 0, 106, 0, DIB.GRIS, 0.5);
+    g.rect(2, 0, 5, 5, DIB.PATA); g.rect(93, 0, 5, 5, DIB.PATA);
+    g.rect(0, 5, 100, 28, DIB.WOOD2);
+    g.rect(8, 7.5, 70, 20, DIB.WOOD, DIB.AZUL, "5 3", 0.5); g.text(43, 17.5, "cama guardada", 3, DIB.AZUL, 700);
+    g.rect(0, 33, 83, 10.2, DIB.GOMA); g.text(40, 38.2, "goma 10,2", 2.6);
+    g.rect(83, 43.2, 10, 46.8, DIB.GOMA); g.rect(93, 33, 7, 57, DIB.WOOD2);
+    g.line(-6, 55, 106, 55, DIB.GRIS, 0.35, "2 1.5");
+    g.text(-4, 57.5, "brazo 55 (por confirmar)", 2.5, DIB.GRIS, 400, "start");
+    g.text(79, 80, "espaldar + goma 10", 2.6, DIB.INK, 500, "end");
+    g.hdim(0, 100, -8, "100 cm de fondo", 4); g.vdim(-6, 0, 90, "90", -1); g.vdim(-14, 0, 43.2, "43,2", -1);
+
+    const a = new Lienzo(-84, 110, -22, 104);
+    a.line(-80, 0, 106, 0, DIB.GRIS, 0.5);
+    a.rect(2, 0, 5, 5, DIB.PATA); a.rect(93, 0, 5, 5, DIB.PATA);
+    a.rect(0, 5, 100, 28, DIB.WOOD2);
+    a.rect(0, 33, 83, 10.2, DIB.GOMA);
+    a.rect(83, 43.2, 10, 46.8, DIB.GOMA); a.rect(93, 33, 7, 57, DIB.WOOD2);
+    a.rect(-70, 18, 70, 15, DIB.WOOD);
+    a.rect(-70, 33, 70, 10.2, DIB.GOMA);
+    a.line(-64, 18, -56, 0, DIB.INK, 0.8); a.line(-56, 18, -64, 0, DIB.INK, 0.8);
+    a.line(-16, 18, -8, 0, DIB.INK, 0.8); a.line(-8, 18, -16, 0, DIB.INK, 0.8);
+    a.line(-71, 18, -71, 8, DIB.INK, 1);
+    a.text(-35, 25.5, "marco 15", 2.8, DIB.INK, 700);
+    a.text(-35, 38.2, "goma 4 pulg. (10,2)", 2.6, DIB.INK, 700);
+    a.text(-40, -6, "herraje tijera", 2.8, DIB.AZUL, 700);
+    a.line(-80, 55, 106, 55, DIB.GRIS, 0.35, "2 1.5");
+    a.text(-78, 57.5, "brazo 55 (por confirmar)", 2.5, DIB.GRIS, 400, "start");
+    a.text(80, 80, "espaldar + goma 10", 2.6, DIB.INK, 500, "end");
+    a.hdim(-70, 0, -12, "70 cm cama afuera", 4); a.vdim(-76, 0, 43.2, "43,2 cm", -1);
+
+    const grupos = [
+      grupoF("brazos", "Brazos (2)", "20 × 100 × 55 cm (ancho × fondo × alto)", [], [
+        lamF("Caras laterales", 4, 100, 55, "2 por brazo"), lamF("Frente", 2, 20, 55), lamF("Tapa", 2, 20, 100)]),
+      grupoF("caja", "Caja base", "140 × 100 × 28 cm (ancho × fondo × alto)", [
+        pzF("Marco largo", 4, 140), pzF("Marco corto", 4, 100), pzF("Parales", 4, 28)], [
+        lamF("Fondo de la caja (liso, para los rodines)", 1, 140, 100)]),
+      grupoF("bastidor", "Bastidor del asiento", "140 × 83 cm · a nivel de la caja", [
+        pzF("Largueros", 2, 140, "2,5 × 5", "Con cincha"), pzF("Travesaños", 2, 83)], [], [
+        { n: 'Goma espuma 4" (10,2 cm) del asiento', c: 1, med: "140 × 83 × 10,2", nota: "Llega a la goma del espaldar" }]),
+      grupoF("espaldar", "Espaldar", "140 × 45 × 7 cm (desmontable)", [], [
+        lamF("Espaldar", 1, 140, 45, "Desmontable · fijación por confirmar", "Grosor 7 cm (armado por confirmar)")], [
+        { n: "Goma del espaldar de 10 cm", c: 1, med: "45 × 140 × 10", nota: "Goma espuma de 10 cm" }]),
+      grupoF("cama", "Cama (marco y tapa)", "140 × 70 cm · marco de 15 de alto", [
+        pzF("Laterales", 2, 70, "2,5 × 5", "Alto 15: listones apilados, por confirmar"), pzF("Travesaños (frente, fondo e intermedio)", 3, 140)], [
+        lamF("Tapa de la cama", 1, 140, 70, "Material por confirmar")], [
+        { n: 'Goma espuma 4" (10,2 cm) de la cama', c: 1, med: "140 × 70 × 10,2", nota: "Va sobre el marco al sacar la cama" },
+        { n: "Cintas para jalar la cama", c: 2, med: "30 × 4 cm", nota: "Cinta de tela o correa, por confirmar" }],
+        [{ n: "Rodines", c: 4 }, { n: "Herraje tijera abatible", c: 2 }, { n: "Pernos del espaldar", c: 4 }])
+    ];
+    return cerrarFijo({
+      x: { tipo: "sofaCama", largo: 180, fondo: 100, divanLargo: 0, la: 2.5, lb: 5, mdf: 0.4, largoListon: 300, sierra: 0.3 },
+      divan: false, grupos,
+      bastidores: [{ an: 140, fo: 83, cant: 1 }],
+      alturas: { pata: 5, base: 28, bastidor: 0, goma: 10.2, asiento: 43.2 },
+      custom: { general: `<div style="display:grid;gap:12px">${f.svg()}${p.svg()}</div>`, alturas: `<div style="display:grid;gap:12px">${g.svg()}${a.svg()}</div>` },
+      titulo: "Sofá cama matrimonial · 180 × 100 cm (plano v7)",
+      pie: "Izquierda: vista frontal (arriba) y sofá reclinado visto desde arriba (abajo). Derecha: cama guardada (arriba) y cama afuera (abajo). Medidas en centímetros.",
+      kpiMat: "Tablero 2,5 y 7 cm",
+      notas: [
+        { t: "Cómo funciona (según el dibujo)", l: [
+          "Cama guardada: entra dentro de la caja, sobre rodines.",
+          "Para sacarla se jalan las cintas del frente.",
+          "Afuera, el herraje tijera la sostiene a 43,2 cm del piso.",
+          "Para guardarla, el herraje se pliega y la cama vuelve a entrar en la caja."] },
+        { t: "Medidas y supuestos", l: [
+          "Ancho 180 = brazo 20 + asiento 140 + brazo 20.",
+          "Brazos de 20 × 55 de alto y 100 de fondo; espaldar de 140 × 45 × 7, desmontable.",
+          "Goma del espaldar de 10 cm (45 × 140).",
+          "Asiento 43,2 = patas 5 + caja 28 + goma 10,2 (4 pulgadas). El bastidor va a nivel de la caja.",
+          "Cama afuera 43,2 = herraje 18 + marco 15 a nivel de la caja + goma 10,2.",
+          "Cama guardada = marco 15 + rodines 5 = 20, dentro de la caja de 28 (con tapas de 2,5)."] },
+        { t: "Pendientes para cerrar los planos", l: [
+          "Largo de la cama: el plano v7 dibuja 70 cm de cama fuera de la caja (marco 140 × 70). Confirmar si ese es el largo que se quiere.",
+          "Altura del herraje plegado: tiene que caber en la caja con la cama guardada.",
+          "Goma de la cama al guardar: la cama (20) más la goma (10,2) no caben en la caja de 28. Decidir dónde va la goma.",
+          "Altura del marco de 15 cm: confirmar con una pieza real.",
+          "Cantidad de herrajes (2 o 4) y tipo de rodines.",
+          "Grosor de tableros: 2,5 cm en brazos, caja y tapa; 7 cm en el espaldar (según el plano). Confirmar.",
+          "Material de la tapa de la cama y de las cintas."] }
+      ]
+    });
   }
 
   /* ===================== PLANOS (SVG) ===================== */
@@ -434,6 +722,7 @@
     return lienzo(w, l, 18 * K, s);
   }
   function planos(r) {
+    if (r.custom) return r.custom;
     const out = r.cama ? { general: dibujarCama(r), alturas: dibujarCamaAlturas(r) } : { general: dibujarGeneral(r), alturas: dibujarAlturas(r) };
     r.grupos.forEach(gr => {
       if (gr.id === "base") gr.svg = dibujarBase(r, gr, r.D);
@@ -460,5 +749,5 @@
   }
   const aHash = p => Object.entries(p).map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join("&");
   const deHash = h => { const p = {}; String(h || "").replace(/^#/, "").split("&").filter(Boolean).forEach(kv => { const [k, v] = kv.split("="); if (k in BASE) p[k] = decodeURIComponent(v || ""); }); return p; };
-  g.Estructura = { BASE, calcular, planos, desdeModelo, aHash, deHash, fmt, CAMAS, nombreCama };
+  g.Estructura = { BASE, calcular, planos, desdeModelo, aHash, deHash, fmt, CAMAS, nombreCama, fijos: ["divanL", "sofaCama"] };
 })(window);

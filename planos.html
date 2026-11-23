@@ -67,6 +67,10 @@ table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
 .barra-l span { background: #e8d3a6; border-right: 1px solid #9a7230; display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
 .barra-l i { flex: 1; background: repeating-linear-gradient(45deg, #f3f0ea 0 4px, #e4dfd5 4px 8px); }
 .pie { font-size: .76rem; color: var(--muted); margin-top: 10px; }
+.notas { margin-top: 10px; }
+.notas h4 { font-family: var(--display); font-size: .74rem; text-transform: uppercase; letter-spacing: .12em; color: var(--gold); font-weight: 700; margin: 10px 0 4px; }
+.notas ul { margin: 0; padding-left: 18px; font-size: .84rem; }
+.notas li { margin: 2px 0; }
 @media (max-width: 700px) { .dos { grid-template-columns: 1fr; } }
 @media (max-width: 980px) { .app { grid-template-columns: 1fr; } .panel { position: static; max-height: none; } .grupo { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
 @page { size: letter; margin: 10mm; }
@@ -99,10 +103,16 @@ table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
       <button type="button" data-preset="divan">Modular con diván</button>
       <button type="button" data-preset="dos">2 puestos</button>
       <button type="button" data-preset="cama">Cama matrimonial</button>
+      <button type="button" data-preset="divanL">Sofá en L (v7)</button>
+      <button type="button" data-preset="sofaCama">Sofá cama (v7)</button>
     </div>
     <h2>Modelo</h2>
     <div class="fila">
-      <label class="f" style="grid-column:1/-1">Tipo<select name="tipo"><option value="recto">Sofá recto</option><option value="divan">Sofá con diván</option><option value="cama">Cama (base y cabecero)</option></select></label>
+      <label class="f" style="grid-column:1/-1">Tipo<select name="tipo"><option value="recto">Sofá recto</option><option value="divan">Sofá con diván</option><option value="cama">Cama (base y cabecero)</option><option value="divanL">Sofá en L con diván (plano v7)</option><option value="sofaCama">Sofá cama (plano v7)</option></select></label>
+    </div>
+    <p class="nota" id="notaFijo" hidden>Medidas fijas del plano v7: aquí no se editan. Para cambiar medidas, elige otro tipo.</p>
+    <div id="variables">
+    <div class="fila">
       <label class="f" data-solo="cama" style="grid-column:1/-1">Tamaño de cama<select id="camaTam"></select></label>
       <label class="f" data-no="cama">Puestos <small>módulos</small><input name="puestos" inputmode="numeric"></label>
       <label class="f"><span id="lblLargo">Largo total</span> <small>cm</small><input name="largo" inputmode="decimal"></label>
@@ -158,6 +168,7 @@ table.t .sub { display: block; color: var(--muted); font-size: .75rem; }
       <label class="f">Cartela <small>cm, a 45°</small><input name="cartela" inputmode="decimal"></label>
       <label class="f">MDF <small>cm de grosor</small><input name="mdf" inputmode="decimal"></label>
     </div>
+    </div>
     <p class="nota">Las medidas se guardan en el enlace: cópialo y mándalo al taller.</p>
   </form>
   <div class="res" id="res"></div>
@@ -169,7 +180,9 @@ const PRESETS = {
   recto: { tipo: "recto", puestos: 3, largo: 220, fondo: 85, brazos: "ambos", baul: false },
   divan: { tipo: "divan", puestos: 3, largo: 280, fondo: 95, divanLargo: 170, divanLado: "izquierda", brazos: "ambos", baul: true },
   dos: { tipo: "recto", puestos: 2, largo: 160, fondo: 85, brazos: "ambos", baul: false },
-  cama: { tipo: "cama", largo: 200, fondo: 140, brazos: "ninguno", baul: false }
+  cama: { tipo: "cama", largo: 200, fondo: 140, brazos: "ninguno", baul: false },
+  divanL: { tipo: "divanL" },
+  sofaCama: { tipo: "sofaCama" }
 };
 let P = Object.assign({}, Estructura.BASE, Estructura.deHash(location.hash));
 const esc = t => String(t == null ? "" : t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
@@ -179,6 +192,8 @@ Object.entries(Estructura.CAMAS).forEach(([k, c]) => camaSel.add(new Option(`${c
 camaSel.add(new Option("A medida", "a medida"));
 /* Muestra u oculta lo que corresponde al tipo de pieza y pone el nombre de las medidas */
 function visibles(){
+  const fijo = Estructura.fijos.includes(P.tipo);
+  $("variables").hidden = fijo; $("notaFijo").hidden = !fijo;
   document.querySelectorAll("[data-solo]").forEach(d => d.hidden = P.tipo !== d.dataset.solo);
   document.querySelectorAll("[data-no]").forEach(d => d.hidden = P.tipo === d.dataset.no);
   const cama = P.tipo === "cama";
@@ -206,20 +221,20 @@ function pintar(){
   const tabla = gr => `<table class="t"><thead><tr><th style="width:22px"></th><th>Pieza</th><th style="text-align:center">Cant.</th><th style="text-align:right">Largo</th><th>Corte</th></tr></thead><tbody>
       ${gr.piezas.map(p => `<tr><td><span class="ck"></span></td><td>${esc(p.n)}<span class="sub">Listón ${p.sec}${p.nota ? " · " + esc(p.nota) : ""}</span></td><td class="c">${p.c * gr.cant}${gr.cant > 1 ? `<span class="sub">${p.c} c/u</span>` : ""}</td><td class="n">${fmt(p.l)} cm</td><td>${esc(p.corte)}</td></tr>`).join("")}
       ${(gr.tablas || []).map(t => `<tr><td><span class="ck"></span></td><td>${esc(t.n)}<span class="sub">${esc(t.nota)}</span></td><td class="c">${t.c}</td><td class="n" colspan="2" style="text-align:left;white-space:normal">${esc(t.med)}</td></tr>`).join("")}
-      ${gr.mdf.map(m => `<tr><td><span class="ck"></span></td><td>${esc(m.n)}<span class="sub">MDF ${fmt((m.g || x.mdf) * 10)} mm${m.nota ? " · " + esc(m.nota) : ""}</span></td><td class="c">${m.c * gr.cant}</td><td class="n">${fmt(m.an)} × ${fmt(m.al)}</td><td>Lámina</td></tr>`).join("")}
+      ${gr.mdf.map(m => `<tr><td><span class="ck"></span></td><td>${esc(m.n)}<span class="sub">${m.mat || `MDF ${fmt((m.g || x.mdf) * 10)} mm`}${m.nota ? " · " + esc(m.nota) : ""}</span></td><td class="c">${m.c * gr.cant}</td><td class="n">${fmt(m.an)} × ${fmt(m.al)}</td><td>Lámina</td></tr>`).join("")}
       ${gr.herrajes.map(h => `<tr><td><span class="ck"></span></td><td>${esc(h.n)}</td><td class="c">${h.c * gr.cant}</td><td></td><td>Herraje</td></tr>`).join("")}
     </tbody></table>`;
   $("res").innerHTML = `
     <section class="hoja">
-      <div class="cab"><img src="logo-v.png" alt="Muebles Ideal" onerror="this.remove()"><div class="t"><span style="font-size:.75rem;color:var(--muted)">Plano de estructura · ${hoy}</span><b>${esc(titulo)}</b></div></div>
+      <div class="cab"><img src="logo-v.png" alt="Muebles Ideal" onerror="this.remove()"><div class="t"><span style="font-size:.75rem;color:var(--muted)">Plano de estructura · ${hoy}</span><b>${esc(r.titulo || titulo)}</b></div></div>
       ${r.avisos.map(a => `<p class="aviso">⚠ ${esc(a)}</p>`).join("")}
       <div class="kpis"><div><span>${r.cama ? "Medida externa" : "Medida total"}</span><b>${fmt(x.largo)} × ${fmt(r.cama ? x.anchoCabecero : x.tipo === "divan" ? x.divanLargo : x.fondo)} cm</b></div><div><span>${r.cama ? "Alto de la base" : "Alto del asiento"}</span><b>${fmt(r.alturas.asiento)} cm</b></div>
-        <div><span>Listones ${fmt(x.la)}×${fmt(x.lb)}</span><b>${r.barras.length} de ${fmt(x.largoListon / 100)} m</b></div><div><span>MDF ${fmt(x.mdf * 10)} mm</span><b>${r.laminas} lámina${r.laminas === 1 ? "" : "s"}</b></div></div>
+        <div><span>Listones ${fmt(x.la)}×${fmt(x.lb)}</span><b>${r.barras.length} de ${fmt(x.largoListon / 100)} m</b></div><div><span>${r.kpiMat || `MDF ${fmt(x.mdf * 10)} mm`}</span><b>${r.laminas} lámina${r.laminas === 1 ? "" : "s"}</b></div></div>
       <div class="dos"><div class="dib">${general}</div><div class="dib">${pl.alturas}</div></div>
-      <p class="pie">${pie}</p>
+      <p class="pie">${r.pie || pie}</p>${(r.notas || []).map(n => `<div class="notas"><h4>${esc(n.t)}</h4><ul>${n.l.map(t => `<li>${esc(t)}</li>`).join("")}</ul></div>`).join("")}
     </section>
     ${r.grupos.map((gr, i) => `<section class="hoja ${i === 0 ? "salto" : ""}"><div class="grupo">
-      <div><h3>${esc(gr.t)} <em>× ${gr.cant}</em></h3><p class="med">${esc(gr.med)}</p><div class="dib">${gr.svg}</div></div>
+      <div><h3>${esc(gr.t)} <em>× ${gr.cant}</em></h3><p class="med">${esc(gr.med)}</p>${gr.svg ? `<div class="dib">${gr.svg}</div>` : ""}</div>
       <div><div class="sec-t">Lista de cortes${gr.cant > 1 ? ` · total para ${gr.cant}` : ""}</div>${tabla(gr)}</div></div></section>`).join("")}
     <section class="hoja salto">
       <div class="sec-t" style="margin-top:0">Lista de compra</div>
