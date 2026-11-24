@@ -1774,7 +1774,8 @@ function abrirEmpleado(e0){
    - "accesos": código del empleado (cifrado) → correo interno de su cuenta. El empleado entra con código + PIN. */
 const DOMINIO_PERSONAL = "personal.mueblesideal.app";
 const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-const CFGP_BASE = { horario: { 0: null, 1: { e: "08:00", s: "17:00" }, 2: { e: "08:00", s: "17:00" }, 3: { e: "08:00", s: "17:00" }, 4: { e: "08:00", s: "17:00" }, 5: { e: "08:00", s: "17:00" }, 6: { e: "08:00", s: "12:00" } }, tolerancia: 10, taller: null, radio: 150 };
+async function ipActual(){ try { const r = await fetch("https://api.ipify.org?format=json", { cache: "no-store" }); const j = await r.json(); return j && j.ip ? String(j.ip) : null; } catch (e) { return null; } }
+const CFGP_BASE = { horario: { 0: null, 1: { e: "08:00", s: "17:00" }, 2: { e: "08:00", s: "17:00" }, 3: { e: "08:00", s: "17:00" }, 4: { e: "08:00", s: "17:00" }, 5: { e: "08:00", s: "17:00" }, 6: { e: "08:00", s: "12:00" } }, tolerancia: 10, taller: null, radio: 150, redIP: [] };
 let TRABAJOS = {}, ASIST = [], CFGP = JSON.parse(JSON.stringify(CFGP_BASE)), DIA_ASIS = hoy();
 /* El código se guarda solo con letras y números (sin guiones ni espacios): así no falla si el teléfono cambia el guion */
 const normCodigo = c => String(c || "").toUpperCase().normalize("NFKD").replace(/[^0-9A-Z]/g, "");
@@ -1919,7 +1920,9 @@ function pintarAsistencia(){
             <td><input type="time" data-he="${k}" value="${(hor[k] || {}).e || "08:00"}"></td><td><input type="time" data-hs="${k}" value="${(hor[k] || {}).s || "17:00"}"></td></tr>`).join("")}</tbody></table></div>
         <div class="fila"><label class="f">Tolerancia <small>minutos antes de contar tarde</small><input type="text" inputmode="numeric" id="as-tol" value="${CFGP.tolerancia || 0}"></label>
           <label class="f">Radio del taller <small>metros para poder marcar</small><input type="text" inputmode="numeric" id="as-radio" value="${CFGP.radio || 150}"></label></div>
-        <p class="ayuda" id="as-ubic">${CFGP.taller ? `Ubicación del taller guardada (${CFGP.taller.lat.toFixed(5)}, ${CFGP.taller.lng.toFixed(5)}). Solo se puede marcar a menos de ${CFGP.radio || 150} m.` : "Todavía no hay ubicación del taller: se puede marcar desde cualquier lugar. Estando en el taller, toca el botón de abajo."}</p>
+        <p class="ayuda" id="as-ubic">${CFGP.taller ? `Ubicación del taller guardada (${CFGP.taller.lat.toFixed(5)}, ${CFGP.taller.lng.toFixed(5)}). Solo se puede marcar a menos de ${CFGP.radio || 150} m.` : "Todavía no hay ubicación del taller. Guarda la ubicación o el internet del taller: mientras no haya ninguno, nadie puede marcar."}</p>
+        <p class="ayuda" id="as-red">${(CFGP.redIP || []).length ? `Internet del taller guardado (IP ${esc(CFGP.redIP.join(", "))}). Con este internet se puede marcar, y ya no se revisa la ubicación.` : "Si el taller tiene su propio internet, guárdalo aquí. Estando conectado a él, toca el botón de abajo."}</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn borde" type="button" id="as-red-ok">Guardar este internet como el del taller</button>${(CFGP.redIP || []).length ? `<button class="btn borde" type="button" id="as-red-x">Quitar internet</button>` : ""}</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn borde" type="button" id="as-geo">Guardar mi ubicación actual como el taller</button>${CFGP.taller ? `<button class="btn borde" type="button" id="as-geo-x">Quitar ubicación</button>` : ""}<button class="btn oro" type="button" id="as-cfg-ok">GUARDAR HORARIO</button></div>
       </div></details>`;
   const ir = f => { DIA_ASIS = f; pintarAsistencia(); };
@@ -1943,6 +1946,13 @@ function pintarAsistencia(){
     }, err => { b.disabled = false; b.textContent = "Guardar mi ubicación actual como el taller"; toast(err.code === 1 ? "Permite el acceso a la ubicación en el navegador." : "No se pudo obtener la ubicación."); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
   });
   if ($("as-geo-x")) $("as-geo-x").addEventListener("click", async () => { CFGP.taller = null; try { await guardarCfg("Ubicación quitada."); } catch (e) {} });
+  if ($("as-red-ok")) $("as-red-ok").addEventListener("click", async () => {
+    const b = $("as-red-ok"); b.disabled = true; b.textContent = "Consultando…";
+    const ip = await ipActual();
+    if (!ip) { b.disabled = false; b.textContent = "Guardar este internet como el del taller"; return toast("No pude consultar tu internet. Revisa la conexión e intenta de nuevo."); }
+    CFGP.redIP = [ip]; try { await guardarCfg(`Internet del taller guardado (IP ${ip}).`); } catch (e) { toast("No se pudo guardar."); }
+  });
+  if ($("as-red-x")) $("as-red-x").addEventListener("click", async () => { CFGP.redIP = []; try { await guardarCfg("Internet del taller quitado."); } catch (e) {} });
 }
 function corregirAsistencia(emp, fecha){
   const ed = $("editor-in"); $("editor").hidden = false; document.body.style.overflow = "hidden"; $("editor").firstElementChild.scrollTop = 0;

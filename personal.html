@@ -186,7 +186,7 @@ const fmtH = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} 
 const msg = (id, t, tipo) => { const m = $(id); m.textContent = t; m.className = "msg " + tipo; m.hidden = !t; };
 
 let CHAT = null;
-let AVISOS = [], BANCO = null, YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150 }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
+let AVISOS = [], BANCO = null, YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150, redIP: [] }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
 
 function mostrar(v){ ["v-entrar", "v-app"].forEach(k => $(k).hidden = k !== v); }
 
@@ -364,7 +364,7 @@ function pintarInicio(){
       ${t ? `<p class="msg warn" style="margin:-4px 0 12px">Hoy llegaste ${t} min tarde.</p>` : ""}
       ${estado === "listo" ? `<p class="msg ok">Jornada completa: ${fmtH(horasDe(a))}. ¡Buen trabajo!</p>`
         : `<button class="btn oro marcar ${estado === "salida" ? "salida" : ""}" id="b-marcar">${estado === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA"}</button>`}
-      <p class="nota" id="n-marcar">${h ? `Horario de hoy: ${h.e} a ${h.s}` : "Hoy no es día laboral."}${CFG.taller ? " · Debes estar en el taller para marcar." : ""}</p>
+      <p class="nota" id="n-marcar">${h ? `Horario de hoy: ${h.e} a ${h.s}` : "Hoy no es día laboral."}${CFG.taller || (CFG.redIP || []).length ? " · Debes estar en el taller para marcar." : " · El taller aún no está configurado: no puedes marcar."}</p>
     </div>
     ${["pedir", "instalar"].includes(NOTIF) ? bloqueNotif(true) : ""}
     <div class="sec-t">Esta semana · ${fechaCorta(ini)} al ${fechaCorta(fin)}</div>
@@ -379,6 +379,7 @@ function pintarInicio(){
   if ($("b-marcar")) $("b-marcar").addEventListener("click", () => marcar(estado));
   eventosNotif();
 }
+async function ipActual(){ try { const r = await fetch("https://api.ipify.org?format=json", { cache: "no-store" }); const j = await r.json(); return j && j.ip ? String(j.ip) : null; } catch (e) { return null; } }
 function distanciaM(a, b){ const R = 6371000, r = x => x * Math.PI / 180, dLa = r(b.lat - a.lat), dLo = r(b.lng - a.lng);
   const h = Math.sin(dLa / 2) ** 2 + Math.cos(r(a.lat)) * Math.cos(r(b.lat)) * Math.sin(dLo / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(h)); }
 const ubicacion = () => new Promise(ok => {
@@ -387,11 +388,25 @@ const ubicacion = () => new Promise(ok => {
     e => ok({ error: e.code === 1 ? "permiso" : "sin-senal" }), { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
 });
 async function marcar(tipo){
-  const b = $("b-marcar"), nota = $("n-marcar"); b.disabled = true; b.textContent = "Verificando ubicación…";
+  const b = $("b-marcar"), nota = $("n-marcar"); b.disabled = true; b.textContent = "Verificando…";
+  const redes = Array.isArray(CFG.redIP) ? CFG.redIP.filter(Boolean) : [];
+  const volver = () => { b.disabled = false; b.textContent = tipo === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA"; };
+  const avisar = t => { volver(); nota.innerHTML = `<span class="msg err" style="display:block">${t}</span>`; };
+  /* Sin internet del taller ni ubicación del taller guardados, nadie puede marcar */
+  if (!redes.length && !CFG.taller) return avisar("Todavía no está configurado el taller. Pídele al dueño que lo configure.");
+  let ip = null, enRed = false;
+  if (redes.length) {
+    ip = await ipActual();
+    enRed = !!ip && redes.includes(ip);
+    if (!enRed) return avisar(ip ? "Solo puedes marcar conectado al internet del taller." : "No pude verificar tu conexión. Revisa tu internet e intenta de nuevo.");
+  }
+  b.textContent = "Verificando ubicación…";
   const u = await ubicacion();
   let ubic = null;
   if (!u.error) { ubic = { lat: u.lat, lng: u.lng, prec: u.prec }; if (CFG.taller) ubic.dist = Math.round(distanciaM(CFG.taller, u)); }
-  if (CFG.taller) {
+  if (ip) ubic = Object.assign(ubic || {}, { ip });
+  /* Con internet del taller ya no hace falta el GPS; sin él, se revisa la ubicación */
+  if (!enRed && CFG.taller) {
     if (u.error) { b.disabled = false; b.textContent = tipo === "entrada" ? "MARCAR ENTRADA" : "MARCAR SALIDA";
       nota.innerHTML = `<span class="msg err" style="display:block">${u.error === "permiso" ? "Debes permitir la ubicación para marcar. Actívala en los ajustes del navegador." : "No se encontró tu ubicación. Sal a un lugar abierto e intenta otra vez."}</span>`; return; }
     /* Se da margen con la precisión del GPS para no rechazar a quien sí está en el taller */
