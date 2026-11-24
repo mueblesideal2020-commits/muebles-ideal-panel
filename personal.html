@@ -110,6 +110,10 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 .aviso.pago b::before { content: "💵 "; }
 .notif { display: flex; flex-direction: column; gap: 10px; }
 .notif h2 { font-size: 1.05rem; }
+.mi-perfil { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--ink); background: var(--grad-hero); color: #fff; }
+.mp-av { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid rgba(255,255,255,.85); background: rgba(255,255,255,.18) center/cover; display: grid; place-items: center; font-family: var(--display); font-size: 1.4rem; }
+.mp-tx { flex: 1; min-width: 0; } .mp-tx b { display: block; font-family: var(--display); font-weight: 600; } .mp-tx small { color: #d3defd; font-size: .85rem; }
+.mp-fl { font-size: 1.8rem; line-height: 1; opacity: .8; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--negro,#141414); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .95rem; max-width: calc(100% - 32px); text-align: center; }
 </style>
 <link rel="stylesheet" href="tema.css">
@@ -185,7 +189,7 @@ const hhmm = d => d ? d.toLocaleTimeString("es-VE", { hour: "numeric", minute: "
 const fmtH = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`; };
 const msg = (id, t, tipo) => { const m = $(id); m.textContent = t; m.className = "msg " + tipo; m.hidden = !t; };
 
-let CHAT = null;
+let CHAT = null, FOTO = "";
 let AVISOS = [], BANCO = null, YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150 }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
 
 function mostrar(v){ ["v-entrar", "v-app"].forEach(k => $(k).hidden = k !== v); }
@@ -245,6 +249,7 @@ async function recargar(){
     ASIS = a.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((x, y) => (y.fecha || "").localeCompare(x.fecha || ""));
     try { AVISOS = (await db.collection("avisos").where("email", "==", YO.email).get()).docs.map(d => Object.assign({ id: d.id }, d.data()))
       .sort((x, y) => ((y.fecha && y.fecha.seconds) || 0) - ((x.fecha && x.fecha.seconds) || 0)); } catch (e) { console.error(e); AVISOS = []; }
+    try { const pf = await db.collection("perfiles").doc((YO.email || "").toLowerCase()).get(); FOTO = pf.exists ? pf.data().foto || "" : ""; } catch (e) { console.warn(e); }
     try { const b = await db.collection("bancarios").doc(E.id).get(); BANCO = b.exists ? b.data() : null; } catch (e) { console.error(e); BANCO = null; }
   } catch (e) { console.error(e); toast("No se pudieron cargar tus datos. Revisa tu conexión."); }
   if (location.hash === "#avisos") { vista = "avisos"; history.replaceState(null, "", location.pathname); }
@@ -451,6 +456,8 @@ function pintarAsistencia(){
 /* ---- Perfil ---- */
 function pintarPerfil(){
   $("main").innerHTML = `
+    <a class="card mi-perfil" href="perfil.html"><span class="mp-av" style="${FOTO ? `background-image:url('${FOTO}')` : ""}">${FOTO ? "" : esc(((E.nombre || "?").trim()[0] || "?").toUpperCase())}</span>
+      <span class="mp-tx"><b>Mi perfil y documentos</b><small>Foto, reseña, estudios, cursos. Sube aquí tus récipes, constancias y exámenes.</small></span><span class="mp-fl" aria-hidden="true">›</span></a>
     <div class="card perfil">
       <p style="margin:0 0 4px;color:var(--muted);font-size:.85rem">Tu código de empleado</p><p class="cod" style="margin:0 0 16px">${esc(E.codigo || "")}</p>
       <dl><dt>Nombre</dt><dd>${esc(E.nombre || "")}</dd><dt>Correo</dt><dd style="word-break:break-all">${esc(YO.email || "")}</dd><dt>Cargo</dt><dd>${esc((E.roles || []).join(", "))}</dd>${E.telefono ? `<dt>Teléfono</dt><dd>${esc(E.telefono)}</dd>` : ""}</dl>

@@ -1,0 +1,48 @@
+REGLAS DE FIRESTORE PARA LOS PERFILES Y DOCUMENTOS
+====================================================
+
+Dónde se pegan:
+Firebase → Firestore Database → pestaña "Reglas".
+Copia el bloque de abajo y pégalo DENTRO de:
+
+    match /databases/{database}/documents {
+        ... tus reglas de siempre ...
+        ← AQUÍ, antes de la última llave "}"
+    }
+
+No borres tus reglas actuales: solo agrega esto. Luego toca "Publicar".
+
+Qué protege:
+- Cada persona ve y edita solo SU perfil y SUS documentos.
+- El dueño ve y edita todos.
+- La fecha de ingreso solo la pone el dueño.
+- Solo el dueño puede marcar un documento como "revisado".
+- Los administradores y ayudantes NO ven los documentos de los demás
+  (récipes y exámenes médicos son privados: solo la persona y el dueño).
+
+----------------------------- COPIAR DESDE AQUÍ -----------------------------
+
+    // ===== Perfiles del equipo (perfil.html) =====
+    function miCorreo() { return request.auth != null && request.auth.token.email != null ? request.auth.token.email.lower() : ""; }
+    function soyDueno() { return miCorreo() == "mueblesideal2020@gmail.com"; }
+
+    match /perfiles/{correo} {
+      allow read: if soyDueno() || miCorreo() == correo;
+      allow create: if soyDueno() || (miCorreo() == correo && !("ingreso" in request.resource.data));
+      allow update: if soyDueno() || (miCorreo() == correo && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["ingreso"]));
+      allow delete: if soyDueno();
+
+      match /documentos/{doc} {
+        allow read, delete: if soyDueno() || miCorreo() == correo;
+        allow create: if soyDueno() || (miCorreo() == correo && request.resource.data.revisado == false);
+        allow update: if soyDueno() || (miCorreo() == correo && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["revisado"]));
+      }
+      match /archivos/{doc} {
+        allow read, write: if soyDueno() || miCorreo() == correo;
+      }
+    }
+
+----------------------------- COPIAR HASTA AQUÍ -----------------------------
+
+Si al publicar Firebase dice que "miCorreo" o "soyDueno" ya existen,
+cámbiales el nombre en este bloque (por ejemplo miCorreoPerfil y soyDuenoPerfil).

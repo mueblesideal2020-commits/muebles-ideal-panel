@@ -59,6 +59,10 @@ main { max-width: 980px; margin: 0 auto; padding: 22px 16px calc(110px + env(saf
 .hero { position: relative; overflow: hidden; background: var(--grad-hero); color: #fff; border-radius: 28px; padding: 22px 20px 20px; box-shadow: 0 22px 40px -22px rgba(20,60,190,.75); animation: sube .5s cubic-bezier(.2,.9,.3,1) both; }
 .hero-top { display: flex; align-items: center; gap: 16px; }
 .hero-ini { width: 64px; height: 64px; flex: none; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.18); border: 3px solid rgba(255,255,255,.85); font-family: var(--display); font-weight: 600; font-size: 1.6rem; }
+.hero-ini { position: relative; color: #fff; text-decoration: none; }
+.hero-edit { position: absolute; right: -4px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%; background: var(--amarillo); color: var(--amarillo-txt); display: grid; place-items: center; border: 2px solid #fff; }
+.hero-edit svg { width: 12px; height: 12px; }
+.pastillas a { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.24); border: 1px solid rgba(255,255,255,.4); font-weight: 700; font-size: .82rem; color: #fff; text-decoration: none; }
 .hero-ini img { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #fff; padding: 6px; }
 .hero small { display: block; color: #d3defd; font-size: .95rem; letter-spacing: .02em; }
 .hero h2 { font-size: 1.7rem; letter-spacing: .01em; text-transform: uppercase; line-height: 1.1; word-break: break-word; }
@@ -169,7 +173,7 @@ main { max-width: 980px; margin: 0 auto; padding: 22px 16px calc(110px + env(saf
   <header class="cab"><div class="in">
     <img src="logo-mark.png" alt="">
     <h1>Muebles Ideal</h1>
-    <a class="avatar" id="avatar" href="#ajustes" aria-label="Mi cuenta y ajustes"></a>
+    <a class="avatar" id="avatar" href="perfil.html" aria-label="Mi perfil"></a>
   </div></header>
   <main id="secciones"></main>
   <nav class="mbar" id="mbar" aria-label="Funciones" hidden></nav>
@@ -233,6 +237,8 @@ const SECCIONES = [
   { tab: "Inventario", k: "inventario.html", i: "inventario", t: "Inventario del almacén", roles: ["dueno", "admin", "ayudante"], d: "Materiales en el taller: tornillos, grapas, madera, goma espuma, tela, pega. Cuánto hay y qué falta." },
   { k: "planos.html", i: "planos", t: "Planos y despieces", roles: ["dueno", "admin"], d: "Estructura de madera, lista de cortes y compras de cada modelo." },
   { tab: "Mensajes", k: "mensajes.html", i: "mensajes", t: "Mensajes de clientes", roles: ["dueno", "admin", "ayudante"], d: "Lo que escriben los clientes desde la página y lo que te escribe el equipo." },
+  { k: "perfil.html?equipo", i: "portal", t: "Perfiles del equipo", roles: ["dueno"], d: "Fotos, datos, estudios y documentos de cada trabajador: récipes, cursos, exámenes." },
+  { k: "perfil.html", i: "portal", t: "Mi perfil", roles: ["admin", "ayudante"], d: "Tu foto, reseña, estudios y documentos." },
   { k: PAGINA, i: "pagina", t: "Ver la página", roles: ["dueno", "admin", "ayudante"], d: "La tienda como la ven los clientes.", nueva: true }
 ];
 const NOMBRE_ROL = { dueno: "Dueño", admin: "Administrador", ayudante: "Ayudante" };
@@ -267,15 +273,15 @@ function pintarBarra(ls) {
   barra.hidden = false;
 }
 /* Tarjeta de bienvenida y cuadrícula "Tu espacio" */
-function pintarInicio(rol, em, nombre, ls) {
+function pintarInicio(rol, em, nombre, ls, foto) {
   const primero = (nombre || "").trim().split(/\s+/)[0] || NOMBRE_ROL[rol];
   const principal = ls[0], msj = ls.find(s => s.k === "mensajes.html");
   const enlace = (s, cls, txt) => `<a class="btn ${cls}" href="${s.k}"${s.nueva ? ' target="_blank" rel="noopener"' : ""}>${esc(txt)}</a>`;
-  $("avatar").textContent = primero.charAt(0).toUpperCase();
+  const av = $("avatar"); av.textContent = foto ? "" : primero.charAt(0).toUpperCase(); av.style.background = foto ? `url("${foto}") center/cover` : "";
   return `<section class="hero" aria-label="Bienvenida">
-      <div class="hero-top"><span class="hero-ini"><img src="logo-mark.png" alt=""></span>
+      <div class="hero-top"><a class="hero-ini" href="perfil.html" aria-label="Ver mi perfil" style="${foto ? `background:url('${foto}') center/cover` : ""}">${foto ? "" : `<img src="logo-mark.png" alt="">`}<i class="hero-edit" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></i></a>
         <div><small>Bienvenido(a)</small><h2>${esc(primero)}</h2></div></div>
-      <div class="pastillas"><span>${esc(NOMBRE_ROL[rol])}</span><span>${esc(em)}</span></div>
+      <div class="pastillas"><a href="perfil.html">${esc(NOMBRE_ROL[rol])} · Mi perfil ›</a><span>${esc(em)}</span></div>
       <p>Muebles hechos a la medida de cada hogar.</p>
       <div class="hero-acc">${principal ? enlace(principal, "oro", principal.t) : ""}${msj ? enlace(msj, "vidrio", "Abrir mensajes") : ""}</div>
     </section>
@@ -387,14 +393,15 @@ auth.onAuthStateChanged(async u => {
   if (rol === "empleado") { location.replace("personal.html"); return; }
   if (!rol) { $("sin-msg").textContent = `La cuenta ${em} no tiene acceso al panel. Pídele al dueño que te agregue (Dinero y bancos → Cajas y ajustes → Administrador y ayudantes, o Empleados si eres del taller).`; $("v-sin").hidden = false; return; }
   const ls = SECCIONES.filter(s => s.roles.includes(rol));
-  const nombre = rol === "dueno" ? (u.displayName || "Dueño") : (NOMBRE_EQ || u.displayName || em.split("@")[0]);
-  $("secciones").innerHTML = pintarInicio(rol, em, nombre, ls) + `<div id="resumen"></div>
+  let PF = {}; try { const pf = await db.collection("perfiles").doc(em).get(); if (pf.exists) PF = pf.data(); } catch (e) { console.warn(e); }
+  const nombre = PF.nombre || (rol === "dueno" ? (u.displayName || "Dueño") : (NOMBRE_EQ || u.displayName || em.split("@")[0]));
+  $("secciones").innerHTML = pintarInicio(rol, em, nombre, ls, PF.foto) + `<div id="resumen"></div>
     <h2 class="sec-r" id="ajustes">Ajustes de este teléfono</h2>
     <div class="ajustes">
       ${window.MI_BLOQUEO ? MI_BLOQUEO.bloqueHTML("tarjeta seg") : ""}
       <div class="tarjeta seg"><h2 style="margin:0 0 6px">Apariencia</h2><p style="margin:0 0 12px">«Sistema» sigue el modo claro u oscuro de tu teléfono.</p><div id="tema-caja"></div></div>
       <div class="tarjeta seg"><h2 style="margin:0 0 6px">Mi cuenta</h2><p style="margin:0 0 12px">${esc(em)} · ${esc(NOMBRE_ROL[rol])}</p>
-        <div class="fila-acc"><button class="btn borde" id="cambiar-clave" type="button">Cambiar mi contraseña</button><button class="btn salir" id="salir" type="button">Cerrar sesión</button></div>
+        <div class="fila-acc"><a class="btn borde" href="perfil.html">Ver mi perfil</a><button class="btn borde" id="cambiar-clave" type="button">Cambiar mi contraseña</button><button class="btn salir" id="salir" type="button">Cerrar sesión</button></div>
         <p class="msg ok" id="clave-msg" hidden style="margin-top:10px"></p></div>
     </div>`;
   $("salir").addEventListener("click", () => auth.signOut());
@@ -412,6 +419,13 @@ auth.onAuthStateChanged(async u => {
         b.textContent = n > 9 ? "9+" : n; b.hidden = !n;
       });
     });
+  }
+  if (rol === "dueno") {
+    db.collection("perfiles").get().then(q => {
+      const n = q.docs.reduce((t, d) => t + (d.id !== em && d.data().docsSinRevisar || 0), 0);
+      const a = document.querySelector('.grid a[href="perfil.html?equipo"]'); if (!a || !n) return;
+      const b = document.createElement("b"); b.className = "mc-n"; b.textContent = n > 9 ? "9+" : n; b.title = n + " documento(s) por revisar"; a.appendChild(b);
+    }).catch(e => console.warn(e));
   }
   $("v-panel").hidden = false;
 });

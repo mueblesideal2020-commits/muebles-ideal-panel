@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mi perfil · Muebles Ideal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Muebles Ideal">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Perfil de cada persona del equipo. Colores en tema.css. */
+:root { --display:Lexend, system-ui, sans-serif; --body:Karla, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+
+/* Encabezado blanco con flecha para volver */
+.cab { position: sticky; top: 0; z-index: 30; background: var(--barra-bg); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); border-bottom: 1px solid var(--barra-linea); padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px; }
+.cab .in { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; }
+.cab h1 { text-align: center; font-size: 1.02rem; color: var(--titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.volver { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--azul); text-decoration: none; border: 0; background: none; cursor: pointer; }
+.volver:hover { background: var(--soft); }
+.volver svg { width: 26px; height: 26px; }
+.mini-av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #c9b6ff, #9fb7ff) center/cover; justify-self: end; }
+
+/* Portada azul */
+.portada { background: var(--grad-hero); color: #fff; text-align: center; padding: 26px 16px 56px; }
+.foto { position: relative; width: 116px; height: 116px; margin: 0 auto 14px; }
+.foto .img { width: 100%; height: 100%; border-radius: 50%; border: 4px solid rgba(255,255,255,.9); background: rgba(255,255,255,.18) center/cover; display: grid; place-items: center; font-family: var(--display); font-size: 2.6rem; font-weight: 600; box-shadow: 0 12px 30px -12px rgba(0,0,0,.5); }
+.foto label { position: absolute; right: 2px; bottom: 4px; width: 36px; height: 36px; border-radius: 50%; background: var(--amarillo); color: var(--amarillo-txt); display: grid; place-items: center; cursor: pointer; box-shadow: 0 4px 10px -4px rgba(0,0,0,.5); border: 2px solid #fff; }
+.foto label svg { width: 18px; height: 18px; }
+.foto input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.portada h2 { font-size: 1.45rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.15; max-width: 520px; margin: 0 auto; }
+.pastillas { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.pastillas span { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); font-weight: 700; font-size: .8rem; }
+.completo { max-width: 300px; margin: 16px auto 0; font-size: .82rem; color: #d3defd; }
+.completo .barra { height: 7px; border-radius: 999px; background: rgba(255,255,255,.2); overflow: hidden; margin-top: 6px; }
+.completo .barra i { display: block; height: 100%; background: var(--amarillo); border-radius: 999px; transition: width .6s cubic-bezier(.2,.9,.3,1); }
+
+main { max-width: 760px; margin: -36px auto 0; padding: 0 14px calc(110px + env(safe-area-inset-bottom, 0px)); position: relative; }
+
+/* Pestañas del perfil */
+.pest { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 5px; border-radius: 999px; background: var(--surface); box-shadow: var(--sombra); margin-bottom: 16px; position: sticky; top: calc(66px + env(safe-area-inset-top, 0px)); z-index: 20; }
+.pest button { white-space: nowrap; padding: 0 6px; min-height: 42px; border: 0; border-radius: 999px; background: none; color: var(--muted); font-weight: 700; cursor: pointer; transition: background .2s, color .2s; position: relative; }
+.pest button[aria-selected="true"] { background: var(--barra-act-bg); color: var(--barra-act-txt); }
+.pest .n { display: inline-block; vertical-align: 1px; min-width: 17px; height: 17px; line-height: 17px; padding: 0 4px; margin-left: 4px; border-radius: 999px; background: var(--bad); color: #fff; font-size: .68rem; }
+
+.card { background: var(--surface); border-radius: 22px; padding: 18px; box-shadow: var(--sombra); margin-bottom: 14px; animation: sube .45s cubic-bezier(.2,.9,.3,1) both; }
+.card h3 { font-size: .74rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.card h3 .der { margin-left: auto; letter-spacing: 0; text-transform: none; font-family: var(--body); font-size: .86rem; }
+.datos { display: grid; gap: 0; }
+.datos div { display: flex; justify-content: space-between; gap: 14px; padding: 11px 2px; border-bottom: 1px solid var(--line); }
+.datos div:last-child { border-bottom: 0; }
+.datos span { color: var(--muted); }
+.datos b { text-align: right; word-break: break-word; }
+.fila { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 520px) { .fila { grid-template-columns: 1fr; } }
+label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .88rem; margin-bottom: 12px; }
+label.f small { font-weight: 400; color: var(--muted); }
+input, select, textarea { width: 100%; min-height: 48px; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--campo); }
+textarea { min-height: 96px; resize: vertical; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--azul); background: var(--surface); }
+input:disabled, select:disabled, textarea:disabled { opacity: 1; color: var(--ink); background: var(--soft); border-color: transparent; -webkit-text-fill-color: var(--ink); }
+.ayuda { color: var(--muted); font-size: .86rem; margin: 0 0 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 20px; min-height: 48px; border-radius: 999px; border: 1.5px solid transparent; background: var(--negro); color: #fff; font-family: var(--display); font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .15s; }
+.btn:active { transform: scale(.97); }
+.btn.ancho { width: 100%; }
+.btn.borde { background: var(--surface); color: var(--azul-fuerte); border-color: var(--line); }
+.btn.suave { background: var(--soft); color: var(--azul-fuerte); }
+.btn.peligro { background: var(--bad-bg); color: var(--bad); }
+.btn.mini { min-height: 36px; padding: 6px 14px; font-size: .85rem; }
+.btn:disabled { opacity: .6; cursor: default; }
+
+/* Listas de estudios y cursos */
+.items { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.it { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--soft); }
+.it .ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--surface); color: var(--azul); }
+.it .ic svg { width: 20px; height: 20px; }
+.it div { min-width: 0; flex: 1; }
+.it b { display: block; }
+.it small { color: var(--muted); }
+.it .x { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
+.it .x:hover { background: var(--bad-bg); color: var(--bad); }
+.agregar { display: grid; grid-template-columns: 2fr 2fr 1fr auto; gap: 8px; align-items: end; }
+@media (max-width: 620px) { .agregar { grid-template-columns: 1fr 1fr; } .agregar .btn { grid-column: 1 / -1; } }
+.agregar input { min-height: 44px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.chips span { display: inline-flex; align-items: center; gap: 4px; padding: 6px 6px 6px 12px; border-radius: 999px; background: var(--soft); color: var(--azul-fuerte); font-weight: 700; font-size: .86rem; }
+.chips button { border: 0; background: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; color: var(--muted); }
+.vacio { color: var(--muted); font-size: .9rem; text-align: center; padding: 14px; border: 1.5px dashed var(--line); border-radius: 16px; margin-bottom: 12px; }
+
+/* Documentos */
+.docs { display: flex; flex-direction: column; gap: 8px; }
+.doc { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 16px; background: var(--soft); cursor: pointer; border: 0; width: 100%; text-align: left; }
+.doc:hover { filter: brightness(.98); }
+.doc .ic { width: 44px; height: 44px; flex: none; border-radius: 14px; display: grid; place-items: center; background: var(--surface); color: var(--azul); }
+.doc .ic.reposo { color: var(--bad); }
+.doc .ic svg { width: 22px; height: 22px; }
+.doc div { min-width: 0; flex: 1; }
+.doc b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc small { color: var(--muted); display: block; }
+.estado { flex: none; font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); }
+.estado.ok { background: var(--ok-bg); color: var(--ok); }
+.subir { border: 2px dashed var(--line); border-radius: 18px; padding: 16px; margin-bottom: 14px; background: var(--campo); }
+.subir.activo { border-color: var(--azul); }
+.archivo { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; border-radius: 14px; background: var(--soft); color: var(--azul-fuerte); font-weight: 700; cursor: pointer; text-align: center; padding: 10px; }
+.archivo svg { width: 22px; height: 22px; flex: none; }
+.archivo input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.filtros { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-bottom: 12px; }
+.filtros button { flex: none; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--muted); font-weight: 700; cursor: pointer; }
+.filtros button[aria-pressed="true"] { background: var(--azul); border-color: var(--azul); color: #fff; }
+
+/* Visor de documento */
+.visor { position: fixed; inset: 0; z-index: 60; background: rgba(7,15,42,.75); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+.visor .hoja { width: min(640px, 100%); max-height: 92vh; overflow-y: auto; background: var(--surface); border-radius: 26px 26px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px)); animation: sube .3s cubic-bezier(.2,.9,.3,1); }
+@media (min-width: 700px) { .visor { align-items: center; } .visor .hoja { border-radius: 26px; } }
+.visor .hoja img { width: 100%; border-radius: 14px; background: var(--soft); margin: 12px 0; }
+.visor .acc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.visor .acc .btn { flex: 1 1 130px; }
+
+/* Directorio del equipo (solo dueño) */
+.gente { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.persona { display: flex; gap: 12px; align-items: center; padding: 14px; border-radius: 20px; background: var(--surface); box-shadow: var(--sombra); text-decoration: none; color: var(--ink); position: relative; transition: transform .15s; animation: sube .45s cubic-bezier(.2,.9,.3,1) both; }
+.persona:hover { transform: translateY(-2px); }
+.persona .av { width: 54px; height: 54px; flex: none; border-radius: 50%; background: linear-gradient(135deg, #c9b6ff, #9fb7ff) center/cover; display: grid; place-items: center; font-family: var(--display); font-weight: 600; color: #0c2572; font-size: 1.2rem; }
+.persona div { min-width: 0; flex: 1; }
+.persona b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.persona small { color: var(--muted); display: block; }
+.persona .mb { height: 5px; border-radius: 999px; background: var(--soft); margin-top: 6px; overflow: hidden; }
+.persona .mb i { display: block; height: 100%; background: var(--azul); }
+.persona .nuevo { position: absolute; top: 10px; right: 10px; font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--bad); color: #fff; }
+.titulo-dir { margin: 22px 4px 12px; font-family: var(--display); font-size: .74rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+
+.guardar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--barra-bg); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-top: 1px solid var(--barra-linea); }
+.guardar .in { max-width: 760px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+.guardar .btn { flex: 1; }
+.guardar span { font-size: .84rem; color: var(--muted); flex: 1; }
+.msg { padding: 10px 12px; border-radius: 12px; font-size: .9rem; margin: 0 0 12px; }
+.msg.err { background: var(--bad-bg); color: var(--bad); } .msg.ok { background: var(--ok-bg); color: var(--ok); }
+.toast { position: fixed; left: 50%; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70; background: var(--marino); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .92rem; max-width: calc(100% - 32px); text-align: center; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5); }
+.cargando { text-align: center; color: var(--muted); padding: 60px 16px; }
+@keyframes sube { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+</style>
+<link rel="stylesheet" href="tema.css">
+<script src="tema.js"></script>
+</head>
+<body>
+<script src="bloqueo.js"></script>
+<header class="cab"><div class="in">
+  <a class="volver" id="volver" href="index.html" aria-label="Volver"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a>
+  <h1 id="titulo">Mi perfil</h1>
+  <span class="mini-av" id="mini-av" aria-hidden="true"></span>
+</div></header>
+<div id="app"><p class="cargando">Cargando…</p></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+});
+const auth = firebase.auth(), db = firebase.firestore(), FV = firebase.firestore.FieldValue;
+const DUENO = "mueblesideal2020@gmail.com";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const toast = t => { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 3200); };
+const nid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const fecha = f => { if (!f) return ""; const [a, m, d] = String(f).slice(0, 10).split("-"); return `${+d} ${MESES[+m - 1]} ${a}`; };
+const tsFecha = t => { const d = t && t.toDate ? t.toDate() : t && t.seconds ? new Date(t.seconds * 1000) : null; return d ? d.toLocaleDateString("es-VE", { day: "numeric", month: "short", year: "numeric" }) : ""; };
+const hoy = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const peso = n => n > 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB";
+/* Tiempo en la empresa: "2 años y 3 meses" */
+function antiguedad(f){
+  if (!f) return "";
+  const a = new Date(f + "T12:00:00"), b = new Date(); let m = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth(); if (b.getDate() < a.getDate()) m--;
+  if (m < 0) return ""; if (m < 1) return "menos de un mes";
+  const y = Math.floor(m / 12), r = m % 12, t = [];
+  if (y) t.push(y + (y === 1 ? " año" : " años")); if (r) t.push(r + (r === 1 ? " mes" : " meses"));
+  return t.join(" y ");
+}
+const edad = f => { if (!f) return ""; const a = new Date(f + "T12:00:00"), b = new Date(); let y = b.getFullYear() - a.getFullYear(); if (b < new Date(b.getFullYear(), a.getMonth(), a.getDate())) y--; return y > 0 && y < 120 ? y + " años" : ""; };
+
+const IC = {
+  cam: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  estudio: '<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/>',
+  curso: '<circle cx="12" cy="9" r="5"/><path d="M8.5 13 7 21l5-3 5 3-1.5-8"/>',
+  cedula: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2.2"/><path d="M6 16c.8-1.5 5.2-1.5 6 0M14 10h4M14 13h3"/>',
+  reposo: '<path d="M12 4v16M4 12h16"/><rect x="3" y="3" width="18" height="18" rx="4"/>',
+  medico: '<path d="M8 3v6a4 4 0 0 0 8 0V3"/><path d="M12 13v3a4 4 0 0 0 8 0v-2"/><circle cx="20" cy="12" r="2"/>',
+  constancia: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  otro: '<path d="M21 12.5 12.5 21a5 5 0 0 1-7-7L14 5.5a3.3 3.3 0 0 1 4.7 4.7L10 18.9a1.7 1.7 0 0 1-2.4-2.4L15.5 8.6"/>'
+};
+const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || IC.otro}</svg>`;
+const CATS = [
+  ["cedula", "Cédula o RIF"], ["estudio", "Título o constancia de estudios"], ["curso", "Certificado de curso"],
+  ["reposo", "Récipe o reposo médico (por una falta)"], ["medico", "Exámenes y análisis médicos"], ["constancia", "Constancia o carta"], ["otro", "Otro documento"]
+];
+const CAT = Object.fromEntries(CATS);
+const SANGRE = ["", "O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-", "No sé"];
+const MAX_ARCHIVO = 680000; /* bytes del PDF; las fotos se comprimen solas */
+
+/* Estado */
+let YO = "", SOY_DUENO = false, OBJ = "", P = {}, INFO = {}, DOCS = [], pest = "perfil", filtroDoc = "todos", cambios = false, nuevoDoc = null;
+const qs = new URLSearchParams(location.search);
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { location.replace("index.html"); return; }
+  YO = (u.email || "").toLowerCase(); SOY_DUENO = YO === DUENO;
+  if (SOY_DUENO && qs.has("equipo")) return directorio();
+  OBJ = SOY_DUENO && qs.get("u") ? qs.get("u").toLowerCase() : YO;
+  if (qs.get("p") && ["perfil", "formacion", "documentos"].includes(qs.get("p"))) pest = qs.get("p");
+  await cargar();
+});
+
+/* Datos de la persona: su perfil + lo que ya sabe el panel (ficha de empleado o equipo) */
+async function infoDe(em){
+  if (em === DUENO) return { rol: "Dueño", tipo: "dueno" };
+  const r = { tipo: "" };
+  try { const s = await db.collection("empleados").where("acceso.email", "==", em).limit(1).get();
+    if (!s.empty) { const e = s.docs[0].data(); Object.assign(r, { tipo: "empleado", empId: s.docs[0].id, nombre: e.nombre, cedula: e.cedula, nacimiento: e.nacimiento, telefono: e.telefono, codigo: e.codigo, rol: (e.roles || []).join(", ") || "Taller" }); } } catch (e) { console.warn(e); }
+  if (!r.tipo) { try { const d = await db.collection("equipo").doc(em).get(); if (d.exists) { const x = d.data(); Object.assign(r, { tipo: "equipo", nombre: x.nombre, rol: x.rol === "administrador" ? "Administrador" : "Ayudante" }); } } catch (e) { console.warn(e); } }
+  return r;
+}
+async function cargar(){
+  const propio = OBJ === YO;
+  $("titulo").textContent = propio ? "Mi perfil" : "Perfil";
+  $("volver").href = propio ? (document.referrer.includes("personal.html") ? "personal.html" : "index.html") : "perfil.html?equipo";
+  try {
+    const [p, info, ds] = await Promise.all([db.collection("perfiles").doc(OBJ).get(), infoDe(OBJ), db.collection("perfiles").doc(OBJ).collection("documentos").get()]);
+    P = Object.assign({ estudios: [], cursos: [], habilidades: [], emergencia: {}, tallas: {} }, p.exists ? p.data() : {});
+    INFO = info; DOCS = ds.docs.map(d => Object.assign({ id: d.id }, d.data())).sort((a, b) => ((b.subido && b.subido.seconds) || 0) - ((a.subido && a.subido.seconds) || 0));
+    if (!P.nombre) P.nombre = INFO.nombre || "";
+    if (!P.telefono) P.telefono = INFO.telefono || "";
+    if (!P.nacimiento) P.nacimiento = INFO.nacimiento || "";
+    pintar();
+  } catch (e) {
+    console.error(e);
+    $("app").innerHTML = `<p class="cargando">No se pudo abrir el perfil. ${/permission/i.test(e.code || e.message || "") ? "Faltan los permisos en Firebase (reglas de perfiles)." : "Revisa tu conexión."}</p>`;
+  }
+}
+
+/* Cuánto le falta al perfil */
+function completitud(p, docs){
+  const c = [!!p.foto, !!(p.acerca || "").trim(), !!(p.telefono || "").trim(), !!(p.direccion || "").trim(), !!((p.emergencia || {}).nombre && (p.emergencia || {}).telefono), !!p.sangre,
+    (p.estudios || []).length > 0, docs > 0];
+  return Math.round(c.filter(Boolean).length / c.length * 100);
+}
+const editable = () => OBJ === YO || SOY_DUENO;
+const dis = () => editable() ? "" : " disabled";
+
+function pintar(){
+  const nombre = P.nombre || OBJ.split("@")[0];
+  const pct = completitud(P, DOCS.length);
+  const sinRev = DOCS.filter(d => !d.revisado).length;
+  const ini = (nombre.trim()[0] || "?").toUpperCase();
+  $("mini-av").style.backgroundImage = P.foto ? `url("${P.foto}")` : "";
+  $("app").innerHTML = `
+    <section class="portada">
+      <div class="foto"><div class="img" id="foto-img" style="${P.foto ? `background-image:url('${P.foto}')` : ""}">${P.foto ? "" : esc(ini)}</div>
+        ${editable() ? `<label title="Cambiar foto" aria-label="Cambiar foto de perfil">${ico("cam")}<input type="file" accept="image/*" id="foto-in"></label>` : ""}</div>
+      <h2>${esc(nombre)}</h2>
+      <div class="pastillas">${INFO.rol ? `<span>${esc(INFO.rol)}</span>` : ""}${INFO.codigo ? `<span>Código ${esc(INFO.codigo)}</span>` : ""}${P.ingreso ? `<span>${INFO.tipo === "dueno" ? "Desde" : "Ingresó"} ${esc(fecha(P.ingreso))}</span>` : ""}</div>
+      <div class="completo">Perfil completo al ${pct} %<div class="barra"><i style="width:${pct}%"></i></div></div>
+    </section>
+    <main>
+      <div class="pest" role="tablist">
+        ${[["perfil", "Perfil"], ["formacion", "Formación"], ["documentos", "Documentos"]].map(([k, t]) => `<button type="button" role="tab" data-p="${k}" aria-selected="${pest === k}">${t}${k === "documentos" && SOY_DUENO && sinRev ? `<span class="n">${sinRev}</span>` : ""}</button>`).join("")}
+      </div>
+      <div id="contenido"></div>
+    </main>
+    ${editable() && pest !== "documentos" ? `<div class="guardar"><div class="in"><span id="g-txt">${cambios ? "Tienes cambios sin guardar" : "Todo guardado"}</span><button class="btn oro" id="g-btn" type="button"${cambios ? "" : " disabled"}>Guardar</button></div></div>` : ""}`;
+  document.querySelectorAll("[data-p]").forEach(b => b.addEventListener("click", () => { pest = b.dataset.p; history.replaceState(null, "", "?" + new URLSearchParams(Object.assign(OBJ !== YO ? { u: OBJ } : {}, { p: pest }))); pintar(); }));
+  const fi = $("foto-in"); if (fi) fi.addEventListener("change", cambiarFoto);
+  const g = $("g-btn"); if (g) g.addEventListener("click", guardar);
+  ({ perfil: pintarPerfil, formacion: pintarFormacion, documentos: pintarDocumentos })[pest]();
+}
+function marcar(){ cambios = true; const t = $("g-txt"), b = $("g-btn"); if (t) t.textContent = "Tienes cambios sin guardar"; if (b) b.disabled = false; }
+window.addEventListener("beforeunload", e => { if (cambios) { e.preventDefault(); e.returnValue = ""; } });
+
+/* ---------- Pestaña Perfil ---------- */
+function pintarPerfil(){
+  const em = P.emergencia || {}, ta = P.tallas || {};
+  const ant = antiguedad(P.ingreso), ed = edad(P.nacimiento);
+  $("contenido").innerHTML = `
+    <div class="card"><h3>Datos en Muebles Ideal</h3><div class="datos">
+      <div><span>Correo</span><b>${esc(OBJ)}</b></div>
+      <div><span>Cargo</span><b>${esc(INFO.rol || "—")}</b></div>
+      ${INFO.cedula ? `<div><span>Cédula</span><b>${esc(INFO.cedula)}</b></div>` : ""}
+      <div><span>${INFO.tipo === "dueno" ? "En la empresa desde" : "Fecha de ingreso"}</span><b>${P.ingreso ? esc(fecha(P.ingreso)) : "Por registrar"}</b></div>
+      ${ant ? `<div><span>Tiempo en la empresa</span><b>${esc(ant)}</b></div>` : ""}
+    </div>
+    ${SOY_DUENO ? `<label class="f" style="margin:14px 0 0">${INFO.tipo === "dueno" ? "¿Desde cuándo tienes la empresa?" : "Fecha de ingreso"} <small>solo el dueño la cambia</small><input type="date" data-k="ingreso" value="${esc(P.ingreso || "")}" max="${hoy()}"></label>`
+      : `<p class="ayuda" style="margin:12px 0 0">Tu fecha de ingreso la registra el dueño.</p>`}</div>
+
+    <div class="card"><h3>Acerca de mí</h3>
+      <label class="f">Nombre para mostrar<input data-k="nombre" value="${esc(P.nombre || "")}" maxlength="60"${dis()}></label>
+      <label class="f">Una pequeña reseña <small>quién eres, qué haces en el taller, en qué eres bueno</small><textarea data-k="acerca" maxlength="600" placeholder="Ej.: Tapicero desde 2015. Me especializo en sofás en L y cabeceros capitoneados."${dis()}>${esc(P.acerca || "")}</textarea></label>
+      <p class="f" style="margin:0 0 6px">Habilidades</p>
+      <div class="chips" id="hab">${(P.habilidades || []).map((h, i) => `<span>${esc(h)}${editable() ? `<button type="button" data-qh="${i}" aria-label="Quitar ${esc(h)}">×</button>` : ""}</span>`).join("") || `<small class="ayuda" style="margin:0">Sin habilidades anotadas.</small>`}</div>
+      ${editable() ? `<div style="display:flex;gap:8px"><input id="hab-in" placeholder="Ej.: Tapizado, corte de madera, costura" maxlength="40"><button class="btn suave" type="button" id="hab-add">Agregar</button></div>` : ""}
+    </div>
+
+    <div class="card"><h3>Información personal</h3>
+      <div class="fila">
+        <label class="f">Teléfono<input type="tel" data-k="telefono" value="${esc(P.telefono || "")}" placeholder="0414-0000000"${dis()}></label>
+        <label class="f">Fecha de nacimiento ${ed ? `<small>${ed}</small>` : ""}<input type="date" data-k="nacimiento" value="${esc(P.nacimiento || "")}"${dis()}></label>
+      </div>
+      <label class="f">Dirección donde vives<input data-k="direccion" value="${esc(P.direccion || "")}" placeholder="Sector, calle, casa, ciudad"${dis()}></label>
+      <div class="fila">
+        <label class="f">Tipo de sangre<select data-k="sangre"${dis()}>${SANGRE.map(s => `<option value="${s}" ${s === (P.sangre || "") ? "selected" : ""}>${s || "Elegir"}</option>`).join("")}</select></label>
+        <label class="f">Alergias o condición a tener en cuenta <small>opcional</small><input data-k="alergias" value="${esc(P.alergias || "")}" placeholder="Ej.: alérgico a la penicilina"${dis()}></label>
+      </div>
+    </div>
+
+    <div class="card"><h3>Contacto de emergencia</h3>
+      <p class="ayuda">A quién llamamos si te pasa algo en el taller.</p>
+      <div class="fila">
+        <label class="f">Nombre<input data-e="nombre" value="${esc(em.nombre || "")}"${dis()}></label>
+        <label class="f">Parentesco<input data-e="parentesco" value="${esc(em.parentesco || "")}" placeholder="Ej.: esposa, mamá"${dis()}></label>
+      </div>
+      <label class="f">Teléfono<input type="tel" data-e="telefono" value="${esc(em.telefono || "")}"${dis()}></label>
+    </div>
+
+    ${INFO.tipo !== "dueno" ? `<div class="card"><h3>Tallas para uniforme</h3><div class="fila" style="grid-template-columns:repeat(3,1fr)">
+      <label class="f">Camisa<input data-t="camisa" value="${esc(ta.camisa || "")}" placeholder="M"${dis()}></label>
+      <label class="f">Pantalón<input data-t="pantalon" value="${esc(ta.pantalon || "")}" placeholder="32"${dis()}></label>
+      <label class="f">Calzado<input data-t="calzado" value="${esc(ta.calzado || "")}" placeholder="41"${dis()}></label></div></div>` : ""}
+
+    ${OBJ === YO ? `<div class="card"><h3>Mi cuenta</h3><div style="display:flex;flex-wrap:wrap;gap:10px">
+      <button class="btn borde" type="button" id="b-clave">Cambiar mi contraseña</button><button class="btn peligro" type="button" id="b-salir">Cerrar sesión</button></div></div>` : ""}`;
+  enlazarCampos();
+  const add = $("hab-add"), hin = $("hab-in");
+  const agregarHab = () => { const v = hin.value.trim(); if (!v) return; P.habilidades = [...(P.habilidades || []), v].slice(0, 20); marcar(); pintarPerfil(); $("hab-in").focus(); };
+  if (add) { add.addEventListener("click", agregarHab); hin.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); agregarHab(); } }); }
+  document.querySelectorAll("[data-qh]").forEach(b => b.addEventListener("click", () => { P.habilidades.splice(+b.dataset.qh, 1); marcar(); pintarPerfil(); }));
+  const bc = $("b-clave"); if (bc) bc.addEventListener("click", async () => { try { await auth.sendPasswordResetEmail(YO); toast("Te enviamos un correo para cambiar la contraseña."); } catch (e) { toast("No se pudo enviar el correo."); } });
+  const bs = $("b-salir"); if (bs) bs.addEventListener("click", () => auth.signOut());
+}
+function enlazarCampos(){
+  document.querySelectorAll("#contenido [data-k], #contenido [data-e], #contenido [data-t]").forEach(i => {
+    i.addEventListener(i.tagName === "SELECT" || i.type === "date" ? "change" : "input", () => {
+      if (i.dataset.k) P[i.dataset.k] = i.value;
+      else if (i.dataset.e) P.emergencia = Object.assign({}, P.emergencia, { [i.dataset.e]: i.value });
+      else P.tallas = Object.assign({}, P.tallas, { [i.dataset.t]: i.value });
+      marcar();
+    });
+  });
+}
+
+/* ---------- Pestaña Formación ---------- */
+function pintarFormacion(){
+  const lista = (arr, k, icono, campos) => arr.length ? `<div class="items">${arr.map((x, i) => `<div class="it"><span class="ic">${ico(icono)}</span><div><b>${esc(x[campos[0]])}</b><small>${esc([x[campos[1]], x[campos[2]]].filter(Boolean).join(" · "))}</small></div>${editable() ? `<button class="x" type="button" data-q="${k}:${i}" aria-label="Quitar">×</button>` : ""}</div>`).join("")}</div>`
+    : `<p class="vacio">Todavía no hay nada anotado.</p>`;
+  $("contenido").innerHTML = `
+    <div class="card"><h3>Estudios realizados</h3>
+      ${lista(P.estudios || [], "estudios", "estudio", ["titulo", "institucion", "anio"])}
+      ${editable() ? `<div class="agregar" data-form="estudios"><label class="f" style="margin:0">Título o nivel<input name="titulo" placeholder="Bachiller, TSU en…"></label><label class="f" style="margin:0">Institución<input name="institucion" placeholder="Liceo, universidad…"></label><label class="f" style="margin:0">Año<input name="anio" inputmode="numeric" maxlength="4" placeholder="2015"></label><button class="btn suave" type="button">Agregar</button></div>` : ""}
+    </div>
+    <div class="card"><h3>Cursos y talleres</h3>
+      ${lista(P.cursos || [], "cursos", "curso", ["nombre", "institucion", "anio"])}
+      ${editable() ? `<div class="agregar" data-form="cursos"><label class="f" style="margin:0">Curso<input name="nombre" placeholder="Tapicería, carpintería…"></label><label class="f" style="margin:0">Dónde lo hizo<input name="institucion" placeholder="INCES, academia…"></label><label class="f" style="margin:0">Año<input name="anio" inputmode="numeric" maxlength="4" placeholder="2022"></label><button class="btn suave" type="button">Agregar</button></div>` : ""}
+    </div>
+    <p class="ayuda" style="text-align:center">Los certificados y títulos se adjuntan en la pestaña <b>Documentos</b>.</p>`;
+  document.querySelectorAll("[data-form]").forEach(f => {
+    const k = f.dataset.form, btn = f.querySelector("button");
+    const add = () => { const v = {}; f.querySelectorAll("input").forEach(i => v[i.name] = i.value.trim()); const prin = k === "estudios" ? v.titulo : v.nombre; if (!prin) { f.querySelector("input").focus(); return; }
+      P[k] = [...(P[k] || []), v]; marcar(); pintarFormacion(); };
+    btn.addEventListener("click", add); f.querySelectorAll("input").forEach(i => i.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); add(); } }));
+  });
+  document.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => { const [k, i] = b.dataset.q.split(":"); P[k].splice(+i, 1); marcar(); pintarFormacion(); }));
+}
+
+/* ---------- Guardar el perfil ---------- */
+async function guardar(){
+  const b = $("g-btn"); b.disabled = true; b.textContent = "Guardando…";
+  const d = { nombre: (P.nombre || "").trim(), acerca: (P.acerca || "").trim(), telefono: (P.telefono || "").trim(), nacimiento: P.nacimiento || "", direccion: (P.direccion || "").trim(),
+    sangre: P.sangre || "", alergias: (P.alergias || "").trim(), emergencia: P.emergencia || {}, tallas: P.tallas || {}, habilidades: P.habilidades || [],
+    estudios: P.estudios || [], cursos: P.cursos || [], email: OBJ, actualizado: FV.serverTimestamp() };
+  if (SOY_DUENO) d.ingreso = P.ingreso || "";
+  try {
+    await db.collection("perfiles").doc(OBJ).set(d, { merge: true });
+    cambios = false; toast("Perfil guardado ✓"); pintar();
+  } catch (e) { console.error(e); toast("No se pudo guardar. Revisa tu conexión."); b.disabled = false; b.textContent = "Guardar"; }
+}
+
+/* ---------- Foto de perfil (recortada en cuadrado y comprimida) ---------- */
+function leerImagen(file){ return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = r.result; }; r.onerror = no; r.readAsDataURL(file); }); }
+async function comprimir(file, lado, calidad, tope, cuadrado){
+  const im = await leerImagen(file);
+  const c = document.createElement("canvas"), x = c.getContext("2d");
+  if (cuadrado) { const s = Math.min(im.width, im.height); c.width = c.height = Math.min(lado, s); x.drawImage(im, (im.width - s) / 2, (im.height - s) / 2, s, s, 0, 0, c.width, c.height); }
+  else { const k = Math.min(1, lado / Math.max(im.width, im.height)); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); }
+  let q = calidad, url = c.toDataURL("image/jpeg", q);
+  while (url.length > tope && q > .35) { q -= .08; url = c.toDataURL("image/jpeg", q); }
+  return url;
+}
+async function cambiarFoto(e){
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const url = await comprimir(f, 480, .85, 140000, true);
+    $("foto-img").style.backgroundImage = `url('${url}')`; $("foto-img").textContent = "";
+    await db.collection("perfiles").doc(OBJ).set({ foto: url, email: OBJ, actualizado: FV.serverTimestamp() }, { merge: true });
+    P.foto = url; $("mini-av").style.backgroundImage = `url("${url}")`; toast("Foto actualizada ✓");
+  } catch (err) { console.error(err); toast("No se pudo cambiar la foto. Prueba con otra imagen."); }
+}
+
+/* ---------- Pestaña Documentos ---------- */
+function pintarDocumentos(){
+  const usados = [...new Set(DOCS.map(d => d.categoria))];
+  const vis = DOCS.filter(d => filtroDoc === "todos" || d.categoria === filtroDoc);
+  const nd = nuevoDoc;
+  $("contenido").innerHTML = `
+    ${editable() ? `<div class="card"><h3>Adjuntar un documento</h3>
+      ${nd ? `<div class="subir activo">
+          <div class="it" style="margin-bottom:12px"><span class="ic">${ico(nd.categoria)}</span><div><b>${esc(nd.archivo.name)}</b><small>${nd.tipo === "pdf" ? "PDF" : "Imagen"} · ${peso(nd.tamano)}</small></div><button class="x" type="button" id="nd-x" aria-label="Quitar archivo">×</button></div>
+          <label class="f">¿Qué documento es?<select id="nd-cat">${CATS.map(([k, t]) => `<option value="${k}" ${k === nd.categoria ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+          <label class="f">Nombre del documento<input id="nd-tit" value="${esc(nd.titulo)}" maxlength="80"></label>
+          ${nd.categoria === "reposo" ? `<div class="fila"><label class="f">Faltó desde<input type="date" id="nd-desde" value="${esc(nd.desde || "")}"></label><label class="f">Hasta<input type="date" id="nd-hasta" value="${esc(nd.hasta || "")}"></label></div>`
+            : `<label class="f">Fecha del documento <small>opcional</small><input type="date" id="nd-fecha" value="${esc(nd.fecha || "")}" max="${hoy()}"></label>`}
+          <label class="f">Nota para el dueño <small>opcional</small><input id="nd-nota" value="${esc(nd.nota || "")}" maxlength="200" placeholder="${nd.categoria === "reposo" ? "Ej.: tuve fiebre alta, el médico me dio 2 días" : "Ej.: vence en 2027"}"></label>
+          <p class="msg err" id="nd-err" hidden></p>
+          <button class="btn oro ancho" type="button" id="nd-ok">Guardar documento</button>
+        </div>`
+      : `<label class="archivo">${ico("otro")} Elegir foto o PDF<input type="file" id="nd-in" accept="image/*,application/pdf"></label>
+        <p class="ayuda" style="margin:10px 0 0;text-align:center">Puedes tomarle una foto al documento con el teléfono. Los PDF deben pesar menos de ${peso(MAX_ARCHIVO)}.</p>`}
+    </div>` : ""}
+    <div class="card"><h3>${OBJ === YO ? "Mis documentos" : "Documentos"} <span class="der">${DOCS.length}</span></h3>
+      ${usados.length > 1 ? `<div class="filtros">${[["todos", "Todos"], ...CATS.filter(([k]) => usados.includes(k)).map(([k, t]) => [k, t.split(" (")[0]])].map(([k, t]) => `<button type="button" data-fd="${k}" aria-pressed="${filtroDoc === k}">${esc(t)}</button>`).join("")}</div>` : ""}
+      ${vis.length ? `<div class="docs">${vis.map(d => `<button type="button" class="doc" data-doc="${d.id}"><span class="ic ${d.categoria === "reposo" ? "reposo" : ""}">${ico(d.categoria)}</span>
+          <div><b>${esc(d.titulo || CAT[d.categoria])}</b><small>${esc(CAT[d.categoria] ? CAT[d.categoria].split(" (")[0] : "")}${d.categoria === "reposo" && d.desde ? " · " + esc(fecha(d.desde)) + (d.hasta && d.hasta !== d.desde ? " al " + esc(fecha(d.hasta)) : "") : d.fecha ? " · " + esc(fecha(d.fecha)) : ""}</small>
+          <small>Subido ${esc(tsFecha(d.subido))}</small></div>
+          <span class="estado ${d.revisado ? "ok" : ""}">${d.revisado ? "Revisado" : "Por revisar"}</span></button>`).join("")}</div>`
+        : `<p class="vacio">${OBJ === YO ? "Aquí vas a ver tus documentos: cédula, títulos, cursos, récipes y exámenes." : "Esta persona aún no ha subido documentos."}</p>`}
+    </div>`;
+  const inp = $("nd-in"); if (inp) inp.addEventListener("change", elegirArchivo);
+  document.querySelectorAll("[data-fd]").forEach(b => b.addEventListener("click", () => { filtroDoc = b.dataset.fd; pintarDocumentos(); }));
+  document.querySelectorAll("[data-doc]").forEach(b => b.addEventListener("click", () => verDoc(DOCS.find(d => d.id === b.dataset.doc))));
+  if (nd) {
+    const leerNd = () => { nd.titulo = $("nd-tit").value; nd.nota = $("nd-nota").value; if ($("nd-fecha")) nd.fecha = $("nd-fecha").value; if ($("nd-desde")) { nd.desde = $("nd-desde").value; nd.hasta = $("nd-hasta").value; } };
+    $("nd-x").addEventListener("click", () => { nuevoDoc = null; pintarDocumentos(); });
+    $("nd-cat").addEventListener("change", e => { leerNd(); const viejo = CAT[nd.categoria]; nd.categoria = e.target.value; if (!nd.titulo || nd.titulo === viejo) nd.titulo = CAT[nd.categoria].split(" (")[0]; pintarDocumentos(); });
+    $("nd-ok").addEventListener("click", () => { leerNd(); subirDoc(); });
+  }
+}
+async function elegirArchivo(e){
+  const f = e.target.files[0]; if (!f) return;
+  const esPdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+  if (!esPdf && !/^image\//.test(f.type)) { toast("Solo fotos o PDF."); return; }
+  if (esPdf && f.size > MAX_ARCHIVO) { toast(`Ese PDF pesa ${peso(f.size)}. El máximo es ${peso(MAX_ARCHIVO)}: tómale una foto o comprímelo.`); return; }
+  const base = f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim(); const baseM = base.charAt(0).toUpperCase() + base.slice(1);
+  const adiv = /recip|reposo|medic|justif/i.test(f.name) ? "reposo" : /cedula|rif/i.test(f.name) ? "cedula" : /curso|certif/i.test(f.name) ? "curso" : /titulo|bachiller|notas/i.test(f.name) ? "estudio" : /analisis|examen|laborator|hematol/i.test(f.name) ? "medico" : "otro";
+  nuevoDoc = { archivo: f, tipo: esPdf ? "pdf" : "img", tamano: f.size, categoria: adiv, titulo: /^(img|image|photo|foto|scan)\s?\d*/i.test(base) || !base ? CAT[adiv].split(" (")[0] : baseM.slice(0, 80) };
+  if (adiv === "reposo") nuevoDoc.desde = nuevoDoc.hasta = hoy();
+  pintarDocumentos();
+}
+const leerComoURL = f => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); });
+async function subirDoc(){
+  const nd = nuevoDoc, err = t => { const n = $("nd-err"); n.textContent = t; n.hidden = false; };
+  if (!nd.titulo.trim()) return err("Escribe el nombre del documento.");
+  if (nd.categoria === "reposo" && !nd.desde) return err("Indica desde qué día faltaste.");
+  if (nd.categoria === "reposo" && nd.hasta && nd.hasta < nd.desde) return err("La fecha «hasta» no puede ser antes de «desde».");
+  const b = $("nd-ok"); b.disabled = true; b.textContent = "Subiendo…";
+  try {
+    const datos = nd.tipo === "pdf" ? await leerComoURL(nd.archivo) : await comprimir(nd.archivo, 1700, .82, 650000, false);
+    const id = nid(), ref = db.collection("perfiles").doc(OBJ);
+    const meta = { categoria: nd.categoria, titulo: nd.titulo.trim(), tipo: nd.tipo, peso: Math.round(datos.length * .75), nota: (nd.nota || "").trim(),
+      fecha: nd.categoria === "reposo" ? "" : nd.fecha || "", desde: nd.categoria === "reposo" ? nd.desde : "", hasta: nd.categoria === "reposo" ? (nd.hasta || nd.desde) : "",
+      subido: FV.serverTimestamp(), subidoPor: YO, revisado: SOY_DUENO };
+    const lote = db.batch();
+    lote.set(ref.collection("archivos").doc(id), { datos });
+    lote.set(ref.collection("documentos").doc(id), meta);
+    lote.set(ref, { email: OBJ, docs: DOCS.length + 1, docsSinRevisar: DOCS.filter(d => !d.revisado).length + (SOY_DUENO ? 0 : 1), ultimoDoc: FV.serverTimestamp() }, { merge: true });
+    await lote.commit();
+    DOCS.unshift(Object.assign({ id }, meta, { subido: { seconds: Date.now() / 1000 } }));
+    nuevoDoc = null; filtroDoc = "todos"; toast(nd.categoria === "reposo" ? "Récipe enviado. El dueño ya lo puede ver ✓" : "Documento guardado ✓"); pintar();
+  } catch (e) { console.error(e); b.disabled = false; b.textContent = "Guardar documento"; err(/size|large|exceed/i.test(e.message || "") ? "El archivo es muy pesado. Tómale una foto en lugar del PDF." : "No se pudo subir. Revisa tu conexión."); }
+}
+
+/* Ver, compartir, marcar revisado o borrar un documento */
+async function verDoc(d){
+  if (!d) return;
+  const v = document.createElement("div"); v.className = "visor"; v.setAttribute("role", "dialog"); v.setAttribute("aria-modal", "true");
+  v.innerHTML = `<div class="hoja"><div class="it" style="background:none;padding:0"><span class="ic">${ico(d.categoria)}</span><div><b>${esc(d.titulo)}</b><small>${esc(CAT[d.categoria] || "")}</small></div><button class="x" type="button" data-cerrar aria-label="Cerrar">×</button></div>
+    <div class="datos" style="margin-top:10px">
+      ${d.categoria === "reposo" ? `<div><span>Faltó</span><b>${esc(fecha(d.desde))}${d.hasta && d.hasta !== d.desde ? " al " + esc(fecha(d.hasta)) : ""}</b></div>` : d.fecha ? `<div><span>Fecha del documento</span><b>${esc(fecha(d.fecha))}</b></div>` : ""}
+      <div><span>Subido</span><b>${esc(tsFecha(d.subido))}</b></div>
+      ${d.nota ? `<div><span>Nota</span><b>${esc(d.nota)}</b></div>` : ""}
+      <div><span>Estado</span><b>${d.revisado ? "Revisado por el dueño" : "Por revisar"}</b></div></div>
+    <div id="v-cont"><p class="cargando" style="padding:30px">Abriendo…</p></div>
+    <div class="acc" id="v-acc"></div></div>`;
+  document.body.appendChild(v); document.documentElement.style.overflow = "hidden";
+  const cerrar = () => { v.remove(); document.documentElement.style.overflow = ""; if (v.url) URL.revokeObjectURL(v.url); };
+  v.addEventListener("click", e => { if (e.target === v || e.target.closest("[data-cerrar]")) cerrar(); });
+  let datos = "";
+  try { const a = await db.collection("perfiles").doc(OBJ).collection("archivos").doc(d.id).get(); datos = a.exists ? a.data().datos : ""; } catch (e) { console.error(e); }
+  if (!datos) { $("v-cont").innerHTML = `<p class="msg err">No se pudo abrir el archivo.</p>`; }
+  const blob = datos ? await (await fetch(datos)).blob() : null;
+  const nombreArch = (d.titulo || "documento").replace(/[^\wáéíóúñÁÉÍÓÚÑ .-]+/g, "").trim() + (d.tipo === "pdf" ? ".pdf" : ".jpg");
+  if (blob) { v.url = URL.createObjectURL(blob);
+    $("v-cont").innerHTML = d.tipo === "pdf" ? `<p class="ayuda" style="margin:14px 0 0;text-align:center">Documento PDF · ${peso(blob.size)}</p>` : `<img src="${v.url}" alt="${esc(d.titulo)}">`; }
+  const acc = $("v-acc");
+  acc.innerHTML = (blob ? `<button class="btn oro" type="button" id="v-abrir">${d.tipo === "pdf" ? "Abrir PDF" : "Compartir / guardar"}</button>` : "")
+    + (SOY_DUENO && OBJ !== YO ? `<button class="btn ${d.revisado ? "borde" : "suave"}" type="button" id="v-rev">${d.revisado ? "Marcar por revisar" : "Marcar revisado ✓"}</button>` : "")
+    + (editable() ? `<button class="btn peligro" type="button" id="v-del">Borrar</button>` : "");
+  const ab = $("v-abrir"); if (ab) ab.addEventListener("click", async () => {
+    const file = new File([blob], nombreArch, { type: blob.type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: d.titulo }); } catch (e) {} }
+    else { const a = document.createElement("a"); a.href = v.url; a.target = "_blank"; a.rel = "noopener"; if (d.tipo !== "pdf") a.download = nombreArch; document.body.appendChild(a); a.click(); a.remove(); }
+  });
+  const rv = $("v-rev"); if (rv) rv.addEventListener("click", async () => {
+    rv.disabled = true; const nuevo = !d.revisado;
+    try { const ref = db.collection("perfiles").doc(OBJ), lote = db.batch();
+      lote.update(ref.collection("documentos").doc(d.id), { revisado: nuevo });
+      d.revisado = nuevo; lote.set(ref, { docsSinRevisar: DOCS.filter(x => !x.revisado).length }, { merge: true }); await lote.commit();
+      cerrar(); toast(nuevo ? "Marcado como revisado ✓" : "Marcado por revisar"); pintar(); }
+    catch (e) { console.error(e); d.revisado = !nuevo; rv.disabled = false; toast("No se pudo cambiar."); }
+  });
+  const dl = $("v-del"); if (dl) dl.addEventListener("click", async () => {
+    if (dl.dataset.ok !== "1") { dl.dataset.ok = "1"; dl.textContent = "¿Seguro? Toca otra vez"; return; }
+    dl.disabled = true;
+    try { const ref = db.collection("perfiles").doc(OBJ), lote = db.batch(), resto = DOCS.filter(x => x.id !== d.id);
+      lote.delete(ref.collection("documentos").doc(d.id)); lote.delete(ref.collection("archivos").doc(d.id));
+      lote.set(ref, { docs: resto.length, docsSinRevisar: resto.filter(x => !x.revisado).length }, { merge: true }); await lote.commit();
+      DOCS = resto; cerrar(); toast("Documento borrado."); pintar(); }
+    catch (e) { console.error(e); dl.disabled = false; toast("No se pudo borrar."); }
+  });
+}
+
+/* ---------- Directorio del equipo (solo el dueño) ---------- */
+async function directorio(){
+  $("titulo").textContent = "Perfiles del equipo"; $("volver").href = "index.html";
+  try {
+    const [ps, es, eq] = await Promise.all([db.collection("perfiles").get(), db.collection("empleados").get(), db.collection("equipo").get()]);
+    const perf = Object.fromEntries(ps.docs.map(d => [d.id, d.data()]));
+    if (perf[DUENO] && perf[DUENO].foto) $("mini-av").style.backgroundImage = `url("${perf[DUENO].foto}")`;
+    const gente = [];
+    eq.docs.forEach(d => { const x = d.data(); gente.push({ em: d.id, nombre: x.nombre, rol: x.rol === "administrador" ? "Administrador" : "Ayudante", grupo: "Administración", activo: x.activo !== false }); });
+    es.docs.forEach(d => { const x = d.data(), em = ((x.acceso && x.acceso.email) || "").toLowerCase(); gente.push({ em, nombre: x.nombre, rol: (x.roles || []).join(", ") || "Taller", grupo: "Taller", activo: x.activo !== false, sinAcceso: !em }); });
+    const tarjeta = (g, n) => { const p = perf[g.em] || {}, pct = completitud(p, p.docs || 0), ini = ((p.nombre || g.nombre || "?").trim()[0] || "?").toUpperCase();
+      const cont = `<span class="av" style="${p.foto ? `background-image:url('${p.foto}')` : ""}">${p.foto ? "" : esc(ini)}</span>
+        <div><b>${esc(p.nombre || g.nombre || g.em)}</b><small>${esc(g.rol)}${p.ingreso ? " · " + esc(antiguedad(p.ingreso)) : ""}</small>
+        <small>${g.sinAcceso ? "Sin acceso al portal: dale acceso en su ficha" : `${p.docs || 0} documento${(p.docs || 0) === 1 ? "" : "s"} · perfil ${pct} %`}</small>
+        ${g.sinAcceso ? "" : `<span class="mb"><i style="width:${pct}%"></i></span>`}</div>
+        ${p.docsSinRevisar ? `<span class="nuevo">${p.docsSinRevisar} nuevo${p.docsSinRevisar === 1 ? "" : "s"}</span>` : ""}`;
+      return g.sinAcceso ? `<div class="persona" style="opacity:.6;animation-delay:${n * 40}ms">${cont}</div>` : `<a class="persona" href="perfil.html?u=${encodeURIComponent(g.em)}" style="animation-delay:${n * 40}ms">${cont}</a>`; };
+    const activos = gente.filter(g => g.activo);
+    const porRevisar = activos.reduce((s, g) => s + ((perf[g.em] || {}).docsSinRevisar || 0), 0);
+    $("app").innerHTML = `<section class="portada" style="padding-bottom:30px"><h2>Tu equipo</h2>
+        <div class="pastillas"><span>${activos.length} persona${activos.length === 1 ? "" : "s"}</span>${porRevisar ? `<span>${porRevisar} documento${porRevisar === 1 ? "" : "s"} por revisar</span>` : `<span>Todo revisado ✓</span>`}</div></section>
+      <main style="margin-top:14px">
+        <a class="persona" href="perfil.html" style="margin-bottom:6px"><span class="av" style="${perf[DUENO] && perf[DUENO].foto ? `background-image:url('${perf[DUENO].foto}')` : ""}">${perf[DUENO] && perf[DUENO].foto ? "" : "D"}</span><div><b>Mi perfil</b><small>Dueño · edita tu foto, reseña y datos</small></div></a>
+        ${["Taller", "Administración"].map(gr => { const ls = activos.filter(g => g.grupo === gr).sort((a, b) => ((perf[b.em] || {}).docsSinRevisar || 0) - ((perf[a.em] || {}).docsSinRevisar || 0) || String(a.nombre).localeCompare(String(b.nombre)));
+          return ls.length ? `<p class="titulo-dir">${gr}</p><div class="gente">${ls.map(tarjeta).join("")}</div>` : ""; }).join("")}
+        ${!activos.length ? `<p class="vacio" style="margin-top:20px">Aún no hay empleados. Agrégalos en Empleados y nómina y dales acceso al portal.</p>` : ""}
+        <p class="ayuda" style="margin-top:20px;text-align:center">Cada persona completa su perfil y sube sus documentos desde su teléfono. Tú pones la fecha de ingreso desde su perfil.</p>
+      </main>`;
+  } catch (e) { console.error(e); $("app").innerHTML = `<p class="cargando">No se pudieron cargar los perfiles. ${/permission/i.test(e.code || e.message || "") ? "Faltan los permisos en Firebase (reglas de perfiles)." : "Revisa tu conexión."}</p>`; }
+}
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+</body>
+</html>
