@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex">
 <link rel="icon" href="logo-mark.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#141414">
+<meta name="theme-color" content="#3a63d9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -28,7 +28,7 @@ button, select { font: inherit; color: inherit; }
 .btn.borde { background: var(--surface,#fff); color: var(--ink); border-color: var(--line); }
 .btn:disabled { opacity: .6; cursor: default; }
 /* barra de herramientas (no sale en el PDF) */
-.barra { position: sticky; top: 0; z-index: 10; background: #141414; color: #fff; padding: 10px 14px; }
+.barra { position: sticky; top: 0; z-index: 10; background: var(--nav-bg, #3a63d9); color: #fff; padding: 10px 14px; }
 .barra .in { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .barra .titulo { font-family: var(--display); font-size: 1rem; margin-right: auto; }
 .tabs { max-width: 900px; margin: 12px auto 0; padding: 0 12px; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -96,7 +96,7 @@ body.captura .hoja.ticket { width: 101.6mm !important; height: 152.4mm !importan
 .tk { flex: 1; display: flex; flex-direction: column; gap: 7px; }
 .tk-cab { display: flex; align-items: center; gap: 8px; border-bottom: 1.5px solid var(--ink); padding-bottom: 6px; }
 .tk-cab img { height: 30px; } .tk-cab b { font-family: var(--display); font-weight: 600; font-size: 1.05em; display: block; } .tk-cab span { font-size: .72em; color: var(--muted); }
-.tk-banda { background: var(--negro,#141414); color: #fff; border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-family: var(--display); letter-spacing: .06em; font-size: .85em; }
+.tk-banda { background: #141414; color: #fff; border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-family: var(--display); letter-spacing: .06em; font-size: .85em; }
 .tk-banda .qc-ok { background: var(--gold); color: var(--ink); border-radius: 4px; padding: 2px 6px; font-weight: 600; white-space: nowrap; }
 .tk-cod { font-family: var(--display); font-weight: 600; font-size: 1.45em; letter-spacing: .03em; line-height: 1.1; }
 .tk-cod small { display: block; font-family: var(--body); font-weight: 700; font-size: .55em; color: var(--muted); letter-spacing: .04em; }

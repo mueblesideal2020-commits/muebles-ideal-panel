@@ -44,9 +44,9 @@ input:focus { outline: none; border-color: var(--gold); }
 .top .in { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .top img { width: 44px; }
 .top h1 { font-size: 1.35rem; }
-.top .yo { color: #c9c3b6; font-size: .9rem; display: block; }
+.top .yo { color: #dbe6ff; font-size: .9rem; display: block; }
 .top .sp { flex: 1; }
-.top .btn.borde { color: #fff; border-color: #444; min-height: 38px; padding: 7px 16px; }
+.top .btn.borde { color: #fff; border-color: rgba(255,255,255,.5); min-height: 38px; padding: 7px 16px; }
 main { max-width: 980px; margin: 0 auto; padding: 24px 16px 150px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .tarjeta.seg { min-height: 0; max-width: 560px; align-items: flex-start; }
@@ -77,17 +77,17 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 150px; }
 .lista .deuda { color: var(--bad, #b3261e); }
 .lista li.rojo { background: var(--bad-bg, #fbeae8); }
 .lista li.rojo small, .lista li.rojo .der b { color: var(--bad, #b3261e); }
-.mbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(64px + env(safe-area-inset-bottom, 0px)); padding: 0 4px env(safe-area-inset-bottom, 0px); background: #000; display: flex; align-items: center; }
+.mbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(64px + env(safe-area-inset-bottom, 0px)); padding: 0 4px env(safe-area-inset-bottom, 0px); background: var(--nav-bg, #3a63d9); display: flex; align-items: center; }
 .mbar-g { flex: 1 1 0; min-width: 0; display: flex; justify-content: space-evenly; align-items: center; }
 .mbar-c { flex: 0 0 60px; }
-.mbar a { position: relative; width: 39px; height: 44px; display: flex; align-items: center; justify-content: center; color: #bebbbe; border-radius: 12px; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.mbar a { position: relative; width: 39px; height: 44px; display: flex; align-items: center; justify-content: center; color: #dbe6ff; border-radius: 12px; text-decoration: none; -webkit-tap-highlight-color: transparent; }
 .mbar a:hover, .mbar a:focus-visible { color: #fff; }
 .mbar a svg { width: 26px; height: 26px; }
-.mbar a.mbar-main { position: absolute; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: 68px; height: 68px; border-radius: 50%; background: #0080ff; color: #fff; box-shadow: 0 6px 18px rgba(0, 128, 255, .35); }
-.mbar a.mbar-main:hover { color: #fff; }
+.mbar a.mbar-main { position: absolute; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: 68px; height: 68px; border-radius: 50%; background: var(--nav-act, #fff); color: var(--nav-act-txt, #2a4fbd); box-shadow: 0 6px 18px rgba(20, 40, 110, .35); }
+.mbar a.mbar-main:hover { color: var(--nav-act-txt, #2a4fbd); }
 .mbar a.mbar-main svg { width: 30px; height: 30px; }
 .mbar .mc-n { position: absolute; top: 2px; right: 0; margin: 0; }
-.rol { display: inline-block; background: var(--soft); color: #6b5221; border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 700; margin-top: 6px; }
+.rol { display: inline-block; background: #fff; color: #2a4fbd; border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 700; margin-top: 6px; }
 .sec { font-family: var(--display); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a2a; margin: 26px 0 12px; font-weight: 500; }
 .sin { max-width: 460px; margin: 60px auto; background: var(--surface); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
 .instalar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 50; max-width: 460px; margin: 0 auto; background: var(--surface); color: var(--ink); border-radius: 16px; padding: 14px 14px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); display: flex; gap: 12px; align-items: center; }
@@ -100,7 +100,7 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 150px; }
 </style>
 <link rel="stylesheet" href="tema.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#141414">
+<meta name="theme-color" content="#3a63d9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">

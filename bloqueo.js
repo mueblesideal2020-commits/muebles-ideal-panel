@@ -20,12 +20,12 @@
 
   /* ---------- Pantalla de bloqueo ---------- */
   var css = document.createElement("style");
-  css.textContent = ".mi-lock{position:fixed;inset:0;z-index:9999;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;font-family:Karla,system-ui,sans-serif}"
+  css.textContent = ".mi-lock{position:fixed;inset:0;z-index:9999;background:#3a63d9;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;font-family:Karla,system-ui,sans-serif}"
     + ".mi-lock img{width:120px;height:auto}.mi-lock h1{font-family:Lexend,system-ui,sans-serif;font-weight:500;font-size:1.3rem;margin:0;letter-spacing:.04em}"
-    + ".mi-lock p{margin:0;color:#bdb7ab;max-width:300px;font-size:.95rem}.mi-lock button{font:inherit;cursor:pointer;border-radius:999px;min-height:50px;padding:12px 26px}"
-    + ".mi-lock .ok{background:#d4ad62;color:#141414;border:0;font-family:Lexend,system-ui,sans-serif;font-weight:500;font-size:1rem;display:inline-flex;align-items:center;gap:10px}"
-    + ".mi-lock .ok svg{width:22px;height:22px}.mi-lock .alt{background:none;border:1px solid #444;color:#d8d3c8;font-size:.9rem;min-height:42px}"
-    + ".mi-lock .err{color:#f2a49c;min-height:1.3em;font-size:.9rem}";
+    + ".mi-lock p{margin:0;color:#dbe6ff;max-width:300px;font-size:.95rem}.mi-lock button{font:inherit;cursor:pointer;border-radius:999px;min-height:50px;padding:12px 26px}"
+    + ".mi-lock .ok{background:#fff;color:#2a4fbd;border:0;font-family:Lexend,system-ui,sans-serif;font-weight:500;font-size:1rem;display:inline-flex;align-items:center;gap:10px}"
+    + ".mi-lock .ok svg{width:22px;height:22px}.mi-lock .alt{background:none;border:1px solid rgba(255,255,255,.45);color:#fff;font-size:.9rem;min-height:42px}"
+    + ".mi-lock .err{color:#ffd9d4;min-height:1.3em;font-size:.9rem}";
   document.head.appendChild(css);
   var ICONO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3H5a2 2 0 0 0-2 2v2M17 3h2a2 2 0 0 1 2 2v2M7 21H5a2 2 0 0 1-2-2v-2M17 21h2a2 2 0 0 0 2-2v-2"/><path d="M9 9v1M15 9v1M12 9v4h-1M9 16c1.6 1.2 4.4 1.2 6 0"/></svg>';
 
