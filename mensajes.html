@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mensajes · Muebles Ideal</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#141414">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Herramienta del equipo: tinta negra sobre papel, dorado solo como acento */
+:root { --ink:#141414; --muted:#615d56; --line:#d9d4ca; --soft:#f5f1e8; --gold:#9a7230; --paper:#fff; --surface:#fff; --bg:#ebe9e5;
+  --display:"Lexend","Segoe UI",system-ui,sans-serif; --body:"Karla","Helvetica Neue",Arial,sans-serif; color-scheme: light; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+main { max-width: 1100px; margin: 0 auto; padding: 18px max(16px, 3vw) 60px; }
+h1 { font-family: var(--display); font-weight: 500; font-size: 1.2rem; letter-spacing: .02em; margin: 0 0 4px; }
+.sub { margin: 0 0 16px; color: var(--muted); font-size: .92rem; }
+.cargando { color: var(--muted); }
+</style>
+<link rel="stylesheet" href="tema.css">
+<script src="tema.js"></script>
+</head>
+<body>
+<script src="bloqueo.js"></script>
+<main>
+  <h1>Mensajes de clientes</h1>
+  <p class="sub">Aquí llega lo que escriben los clientes desde la página y lo que escribe el equipo. Responde desde aquí.</p>
+  <div id="chat"><p class="cargando">Cargando…</p></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+});
+const auth = firebase.auth(), db = firebase.firestore();
+const DUENO = "mueblesideal2020@gmail.com";
+const $ = id => document.getElementById(id);
+</script>
+<script src="chat.js"></script>
+<script src="menu.js"></script>
+<script>
+/* Solo el dueño, administradores y ayudantes pueden ver los mensajes.
+   Cualquier otra cuenta vuelve al inicio (index.html decide qué mostrar). */
+auth.onAuthStateChanged(async u => {
+  if (!u) { location.replace("index.html"); return; }
+  const em = (u.email || "").toLowerCase();
+  let rol = null, nombre = "";
+  if (em === DUENO) { rol = "dueno"; nombre = "Dueño"; }
+  else {
+    try {
+      const d = await db.collection("equipo").doc(em).get();
+      if (d.exists && d.data().activo !== false) {
+        rol = "equipo";
+        nombre = d.data().nombre || "Equipo";
+      }
+    } catch (e) { console.error(e); }
+  }
+  if (!rol) { location.replace("index.html"); return; }
+  $("chat").innerHTML = "";
+  MiChat.bandeja({ db, firebase, nombre, el: $("chat") });
+});
+</script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body>
+</html>

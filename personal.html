@@ -25,13 +25,13 @@ html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: v
 h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 500; letter-spacing: .04em; cursor: pointer; text-decoration: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 0 22px; border-radius: 999px; border: 0; background: var(--negro,#141414); color: #fff; font-family: var(--display); font-weight: 500; letter-spacing: .04em; cursor: pointer; text-decoration: none; }
 .btn.oro { background: var(--gold-2); color: var(--ink); }
 .btn.borde { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
 .btn[disabled] { opacity: .55; cursor: progress; }
-input { width: 100%; min-height: 54px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; font-size: 1.15rem; }
+input { width: 100%; min-height: 54px; padding: 0 16px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface,#fff); font-size: 1.15rem; }
 input:focus, select:focus { outline: none; border-color: var(--gold); }
-select { width: 100%; min-height: 54px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; font-size: 1.05rem; }
+select { width: 100%; min-height: 54px; padding: 0 12px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--surface,#fff); font-size: 1.05rem; }
 .banco-f { display: flex; flex-direction: column; gap: 14px; }
 .banco-f h2, .banco h2 { font-size: 1.05rem; }
 .banco-f .sub2 { font-size: .8rem; font-weight: 400; color: var(--muted); }
@@ -48,7 +48,7 @@ label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; fon
 .entrar p.sub { text-align: center; color: var(--muted); margin: -8px 0 4px; font-size: .95rem; }
 
 /* App */
-.top { position: sticky; top: 0; z-index: 10; background: var(--ink); color: #fff; padding: calc(12px + env(safe-area-inset-top, 0px)) 18px 12px; display: flex; align-items: center; gap: 12px; }
+.top { position: sticky; top: 0; z-index: 10; background: var(--negro,#141414); color: #fff; padding: calc(12px + env(safe-area-inset-top, 0px)) 18px 12px; display: flex; align-items: center; gap: 12px; }
 .top img { height: 30px; width: auto; filter: invert(1); }
 .top .hola { flex: 1; min-width: 0; }
 .top .hola b { display: block; font-family: var(--display); font-weight: 500; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -64,19 +64,19 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 .marcas span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
 .marcas b { font-family: var(--display); font-weight: 500; font-size: 1.4rem; }
 .marcar { width: 100%; min-height: 76px; font-size: 1.15rem; letter-spacing: .08em; }
-.marcar.salida { background: var(--ink); color: #fff; }
+.marcar.salida { background: var(--negro,#141414); color: #fff; }
 .nota { font-size: .85rem; color: var(--muted); margin: 10px 0 0; text-align: center; }
 .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .kpi { background: var(--surface); border-radius: 18px; padding: 14px 16px; }
 .kpi span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
 .kpi b { font-family: var(--display); font-weight: 500; font-size: 1.45rem; font-variant-numeric: tabular-nums; }
 .kpi small { display: block; color: var(--muted); font-size: .8rem; }
-.kpi.oscuro { background: var(--ink); color: #fff; } .kpi.oscuro span, .kpi.oscuro small { color: #cfc8b8; }
+.kpi.oscuro { background: var(--negro,#141414); color: #fff; } .kpi.oscuro span, .kpi.oscuro small { color: #cfc8b8; }
 .kpi.ancho { grid-column: 1 / -1; }
 .sec-t { font-size: .78rem; text-transform: uppercase; letter-spacing: .14em; color: var(--gold); font-weight: 600; font-family: var(--display); margin: 6px 4px -6px; }
 .chips { display: flex; gap: 8px; overflow-x: auto; }
-.chips button { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font-weight: 700; cursor: pointer; }
-.chips button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+.chips button { flex: none; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface,#fff); font-weight: 700; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--negro,#141414); color: #fff; border-color: var(--ink); }
 .lista { display: flex; flex-direction: column; gap: 10px; }
 .item { background: var(--surface); border-radius: 16px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
 .item b { font-family: var(--display); font-weight: 500; }
@@ -85,11 +85,19 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 .chip { display: inline-block; font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; justify-self: end; }
 .chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.pend { background: var(--warn-bg); color: var(--warn); } .chip.gris { background: #eee; color: #777; }
 .vacio { text-align: center; color: var(--muted); padding: 30px 16px; background: var(--surface); border-radius: 16px; }
-.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
-.nav button { border: 0; background: none; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: .74rem; font-weight: 700; color: var(--muted); cursor: pointer; }
-.nav button svg { width: 24px; height: 24px; }
-.nav button[aria-current="page"] { color: var(--ink); }
-.nav button[aria-current="page"] svg { color: var(--gold); }
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: grid; grid-template-columns: repeat(5, 1fr); padding: 4px 6px calc(4px + env(safe-area-inset-bottom, 0px)); background: var(--surface); background: color-mix(in srgb, var(--surface) 90%, transparent); -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); border-top: 1px solid var(--line); box-shadow: 0 -6px 24px rgba(0,0,0,.06); }
+.nav button { position: relative; border: 0; background: none; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: .72rem; font-weight: 600; color: var(--muted); cursor: pointer; border-radius: 16px; transition: color .25s ease; -webkit-tap-highlight-color: transparent; }
+.nav button::before { content: ""; position: absolute; top: 7px; left: 50%; width: 56px; height: 30px; margin-left: -28px; border-radius: 999px; background: var(--gold-suave); z-index: -1; transform: scale(.4); opacity: 0; transition: transform .35s cubic-bezier(.3,1.5,.5,1), opacity .25s ease; }
+.nav button svg { width: 24px; height: 24px; position: relative; transition: transform .3s cubic-bezier(.3,1.5,.5,1); }
+.nav button:active svg { transform: scale(.8); }
+.nav button[aria-current="page"] { color: var(--ink); font-weight: 800; }
+.nav button[aria-current="page"]::before { transform: scale(1); opacity: 1; }
+.nav button[aria-current="page"] svg { color: var(--gold); animation: nav-salta .55s cubic-bezier(.3,1.4,.5,1); }
+@keyframes nav-salta { 0% { transform: scale(.82); } 45% { transform: translateY(-3px) scale(1.16); } 75% { transform: scale(.96); } 100% { transform: scale(1); } }
+@keyframes nav-aparece { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.nav .nb { position: absolute; top: 6px; left: calc(50% + 8px); z-index: 1; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #b3261e; color: #fff; font-size: .68rem; line-height: 18px; text-align: center; font-weight: 700; animation: nav-aparece .45s cubic-bezier(.3,1.6,.5,1); }
+.nav .nb[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .nav, .nav * { animation: none !important; transition: none !important; } }
 .perfil dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 0; }
 .perfil dt { color: var(--muted); font-size: .88rem; } .perfil dd { margin: 0; font-weight: 700; }
 .cod { font-family: var(--display); font-size: 1.6rem; letter-spacing: .08em; }
@@ -102,8 +110,9 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 .aviso.pago b::before { content: "💵 "; }
 .notif { display: flex; flex-direction: column; gap: 10px; }
 .notif h2 { font-size: 1.05rem; }
-.toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .95rem; max-width: calc(100% - 32px); text-align: center; }
+.toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--negro,#141414); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .95rem; max-width: calc(100% - 32px); text-align: center; }
 </style>
+<link rel="stylesheet" href="tema.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#141414">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -111,6 +120,7 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Muebles Ideal">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script src="tema.js"></script>
 </head>
 <body>
 <script src="bloqueo.js"></script>
@@ -138,6 +148,7 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
     <button type="button" data-v="inicio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Marcar</button>
     <button type="button" data-v="proyectos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9h18v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M8 9V6a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3"/></svg>Proyectos</button>
     <button type="button" data-v="asistencia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Asistencia</button>
+    <button type="button" data-v="chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Chat<span class="nb" id="n-chat" hidden></span></button>
     <button type="button" data-v="perfil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Perfil</button>
   </nav>
 </section>
@@ -147,6 +158,7 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-messaging-compat.js"></script>
+<script src="chat.js"></script>
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
@@ -173,6 +185,7 @@ const hhmm = d => d ? d.toLocaleTimeString("es-VE", { hour: "numeric", minute: "
 const fmtH = h => { const m = Math.round(h * 60); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")} min`; };
 const msg = (id, t, tipo) => { const m = $(id); m.textContent = t; m.className = "msg " + tipo; m.hidden = !t; };
 
+let CHAT = null;
 let AVISOS = [], BANCO = null, YO = null, E = null, CFG = { horario: {}, tolerancia: 10, taller: null, radio: 150 }, TRAB = [], ASIS = [], vista = "inicio", filtroP = "pend";
 
 function mostrar(v){ ["v-entrar", "v-app"].forEach(k => $(k).hidden = k !== v); }
@@ -218,6 +231,7 @@ auth.onAuthStateChanged(async u => {
 /* ---- Datos ---- */
 async function entrarApp(){
   mostrar("v-app");
+  if (!CHAT && window.MiChat) CHAT = MiChat.empleado({ db, firebase, email: YO.email, nombre: E.nombre, onNoLeidas: n => { const b = $("n-chat"); if (b) { b.textContent = n > 9 ? "9+" : n; b.hidden = !n; } } });
   $("t-nombre").textContent = "Hola, " + (E.nombre || "").split(" ")[0];
   $("t-cod").textContent = E.codigo || "";
   $("main").innerHTML = `<p class="vacio">Cargando…</p>`;
@@ -252,9 +266,15 @@ function pintar(){
   document.querySelectorAll(".nav button").forEach(b => b.setAttribute("aria-current", b.dataset.v === vista ? "page" : "false"));
   const sinLeer = AVISOS.filter(a => !a.leido).length, n = $("n-avisos"); n.textContent = sinLeer > 9 ? "9+" : sinLeer; n.hidden = !sinLeer;
   $("b-avisos").setAttribute("aria-label", sinLeer ? `Avisos: ${sinLeer} sin leer` : "Avisos");
-  ({ inicio: pintarInicio, proyectos: pintarProyectos, asistencia: pintarAsistencia, perfil: pintarPerfil, avisos: pintarAvisos })[vista]();
+  ({ inicio: pintarInicio, proyectos: pintarProyectos, asistencia: pintarAsistencia, perfil: pintarPerfil, avisos: pintarAvisos, chat: pintarChat })[vista]();
 }
 $("b-avisos").addEventListener("click", () => { vista = "avisos"; pintar(); window.scrollTo(0, 0); });
+
+/* ---- Chat con el dueño ---- */
+function pintarChat(){
+  if (!CHAT) { $("main").innerHTML = '<p class="vacio">El chat no está disponible ahora.</p>'; return; }
+  if (!$("main").querySelector(".mc-hilo")) CHAT.montar($("main"));
+}
 
 /* ---- Avisos (pagos y recordatorios del encargado) ---- */
 function pintarAvisos(){
@@ -438,6 +458,7 @@ function pintarPerfil(){
     ${bloqueNotif(false)}
     ${bloqueBanco()}
     ${window.MI_BLOQUEO ? MI_BLOQUEO.bloqueHTML("card") : ""}
+    <div class="card"><p class="sec-t" style="margin:0 0 10px">Apariencia</p><div id="tema-caja"></div><p class="nota" style="margin:10px 0 0">«Automático» sigue el modo oscuro de tu teléfono. La elección se guarda solo en este teléfono.</p></div>
     <button class="btn borde" type="button" id="b-cpin">Cambiar mi contraseña</button>
     <button class="btn" type="button" id="b-salir">Salir</button>
     <p class="nota">Para entrar más rápido, agrega esta página a tu pantalla de inicio desde el menú del navegador.</p>`;
@@ -445,6 +466,7 @@ function pintarPerfil(){
   $("b-salir").addEventListener("click", () => auth.signOut());
   eventosBanco(); eventosNotif();
   if (window.MI_BLOQUEO) MI_BLOQUEO.conectarUI();
+  if (window.MI_TEMA) MI_TEMA.montar($("tema-caja"));
 }
 
 /* ---- Datos bancarios: el empleado los anota UNA sola vez; si se equivoca, el dueño los borra y los vuelve a anotar ---- */

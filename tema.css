@@ -1,0 +1,23 @@
+/* Apariencia de Muebles Ideal. tema.js pone data-tema-activo="oscuro" o "claro" en <html>.
+   Con "sistema" sigue el modo del teléfono. Todas las pantallas usan estas mismas variables. */
+:root { --negro:#141414; --campo:#fff; --gold-suave:rgba(184,145,63,.18);
+  --burbuja-yo:#141414; --burbuja-yo-texto:#fff; --burbuja-otro:#fff; --burbuja-otro-texto:#1d1b18; }
+
+:root[data-tema-activo="oscuro"] {
+  color-scheme: dark;
+  --bg:#0e0e10; --surface:#1a1a1d; --paper:#1a1a1d; --soft:#232227; --ink:#f3efe7; --muted:#aaa497; --line:#34322e;
+  --gold:#d4ad62; --gold-2:#e2c183; --negro:#2b2b30; --campo:#222226; --gold-suave:rgba(212,173,98,.2);
+  --ok:#7fd68a; --ok-bg:#15301b; --warn:#ffd27a; --warn-bg:#3a2d12; --bad:#ff8c84; --bad-bg:#3d1c1a;
+  --burbuja-yo:#d4ad62; --burbuja-yo-texto:#141414; --burbuja-otro:#2b2b30; --burbuja-otro-texto:#f3efe7;
+}
+:root[data-tema-activo="oscuro"] input,
+:root[data-tema-activo="oscuro"] select,
+:root[data-tema-activo="oscuro"] textarea { background: var(--campo); color: var(--ink); border-color: var(--line); }
+:root[data-tema-activo="oscuro"] ::placeholder { color: var(--muted); opacity: 1; }
+:root[data-tema-activo="oscuro"] .btn.oro { color: #141414; }
+:root[data-tema-activo="oscuro"] .campana { border-color: #4a4843; }
+
+/* Selector Sistema · Claro · Oscuro */
+.mt-seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 4px; border-radius: 999px; background: var(--soft, #f6f1e6); border: 1px solid var(--line, #dcd8cf); }
+.mt-seg button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--muted, #6a655d); font: inherit; font-weight: 600; cursor: pointer; }
+.mt-seg button[aria-checked="true"] { background: var(--negro, #141414); color: #fff; }

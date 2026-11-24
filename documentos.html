@@ -23,21 +23,21 @@ html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: v
 h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
 button, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; min-height: 44px; border-radius: 999px; border: 1.5px solid transparent; background: var(--ink); color: #fff; font-family: var(--display); font-weight: 500; cursor: pointer; text-decoration: none; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; min-height: 44px; border-radius: 999px; border: 1.5px solid transparent; background: var(--negro,#141414); color: #fff; font-family: var(--display); font-weight: 500; cursor: pointer; text-decoration: none; }
 .btn.oro { background: var(--gold); color: var(--ink); }
-.btn.borde { background: #fff; color: var(--ink); border-color: var(--line); }
+.btn.borde { background: var(--surface,#fff); color: var(--ink); border-color: var(--line); }
 .btn:disabled { opacity: .6; cursor: default; }
 /* barra de herramientas (no sale en el PDF) */
 .barra { position: sticky; top: 0; z-index: 10; background: #141414; color: #fff; padding: 10px 14px; }
 .barra .in { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .barra .titulo { font-family: var(--display); font-size: 1rem; margin-right: auto; }
 .tabs { max-width: 900px; margin: 12px auto 0; padding: 0 12px; display: flex; flex-wrap: wrap; gap: 6px; }
-.tabs button { padding: 9px 14px; min-height: 40px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; cursor: pointer; font-weight: 700; }
+.tabs button { padding: 9px 14px; min-height: 40px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface,#fff); cursor: pointer; font-weight: 700; }
 .tabs button[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); }
 .opciones { max-width: 900px; margin: 10px auto 0; padding: 0 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.opciones select { padding: 8px 10px; min-height: 40px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; }
+.opciones select { padding: 8px 10px; min-height: 40px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface,#fff); }
 .nota { max-width: 900px; margin: 10px auto 0; padding: 10px 14px; border-radius: 10px; background: var(--soft); color: #6b5221; font-weight: 600; }
-.msg { max-width: 560px; margin: 60px auto; background: #fff; padding: 24px; border-radius: 14px; text-align: center; }
+.msg { max-width: 560px; margin: 60px auto; background: var(--surface,#fff); padding: 24px; border-radius: 14px; text-align: center; }
 /* hoja carta */
 .hoja { width: min(215.9mm, 100% - 24px); min-height: 279.4mm; margin: 16px auto 28px; background: var(--paper); padding: 12mm 14mm 10mm; font-size: 14px; box-shadow: 0 20px 50px -30px rgba(0,0,0,.45); display: flex; flex-direction: column; }
 body.captura .hoja { width: 215.9mm !important; height: 279.4mm !important; min-height: 0 !important; margin: 0 !important; box-shadow: none !important; overflow: hidden !important; }
@@ -82,6 +82,11 @@ table.t .num { text-align: right; white-space: nowrap; }
 .etapas div { border: 1px solid var(--line); border-radius: 8px; padding: 8px; min-height: 64px; font-size: .78em; }
 .etapas b { display: block; font-size: .82em; }
 .lineas { border: 1px solid var(--line); border-radius: 8px; min-height: 80px; padding: 8px 10px; font-size: .85em; white-space: pre-line; }
+/* Nota de entrega: observaciones y totales lado a lado, para que quepa en una hoja */
+.cierre { display: flex; gap: 14px; align-items: stretch; }
+.cierre .obs { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cierre .obs .lineas { flex: 1; min-height: 72px; }
+.cierre .totales { width: 290px; margin: 0; flex: none; }
 .ficha { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .ficha div { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .ficha small { display: block; font-size: .68em; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
@@ -91,7 +96,7 @@ body.captura .hoja.ticket { width: 101.6mm !important; height: 152.4mm !importan
 .tk { flex: 1; display: flex; flex-direction: column; gap: 7px; }
 .tk-cab { display: flex; align-items: center; gap: 8px; border-bottom: 1.5px solid var(--ink); padding-bottom: 6px; }
 .tk-cab img { height: 30px; } .tk-cab b { font-family: var(--display); font-weight: 600; font-size: 1.05em; display: block; } .tk-cab span { font-size: .72em; color: var(--muted); }
-.tk-banda { background: var(--ink); color: #fff; border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-family: var(--display); letter-spacing: .06em; font-size: .85em; }
+.tk-banda { background: var(--negro,#141414); color: #fff; border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; gap: 6px; font-family: var(--display); letter-spacing: .06em; font-size: .85em; }
 .tk-banda .qc-ok { background: var(--gold); color: var(--ink); border-radius: 4px; padding: 2px 6px; font-weight: 600; white-space: nowrap; }
 .tk-cod { font-family: var(--display); font-weight: 600; font-size: 1.45em; letter-spacing: .03em; line-height: 1.1; }
 .tk-cod small { display: block; font-family: var(--body); font-weight: 700; font-size: .55em; color: var(--muted); letter-spacing: .04em; }
@@ -103,18 +108,21 @@ body.captura .hoja.ticket { width: 101.6mm !important; height: 152.4mm !importan
 .tk-dest .tel { font-size: 1.05em; }
 .tk-rev { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: .9em; }
 .tk-pie { margin-top: auto; border-top: 1px solid var(--line); padding-top: 4px; display: flex; justify-content: space-between; font-size: .68em; color: var(--muted); }
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .hoja { padding: 16px; min-height: 0; }
   .cab { flex-direction: column; } .doc-tipo { text-align: left; }
   .datos, .ficha { grid-template-columns: 1fr; } .datos div:nth-child(odd) { border-right: 0; } .datos div:nth-last-child(2) { border-bottom: 1px solid var(--line); }
   .etapas { grid-template-columns: repeat(2, minmax(0, 1fr)); } .firmas { gap: 20px; }
+  .cierre { flex-direction: column; } .cierre .totales { width: min(320px, 100%); }
 }
 body.captura .datos, body.captura .ficha { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 body.captura .etapas { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
 body.captura .cab { flex-direction: row !important; } body.captura .doc-tipo { text-align: right !important; }
-@media print { .barra, .tabs, .opciones, .nota, main > .nota { display: none !important; } body { background: #fff; } .hoja { box-shadow: none; margin: 0; width: auto; min-height: 0; page-break-after: always; } }
+@media print { .barra, .tabs, .opciones, .nota, main > .nota { display: none !important; } body { background: var(--surface,#fff); } .hoja { box-shadow: none; margin: 0; width: auto; min-height: 0; page-break-after: always; } .hoja:last-child { page-break-after: auto; } }
 </style>
+<link rel="stylesheet" href="tema.css">
 <style id="pagina">@page { size: letter; margin: 0; }</style>
+<script src="tema.js"></script>
 </head>
 <body>
 <script src="bloqueo.js"></script>
@@ -254,9 +262,9 @@ function entrega(){
   return `<article class="hoja"><div class="cuerpo">${cabecera("Nota de entrega", base() + "-NE", hoy())}
     ${datosCliente([["Fecha de la venta", fechaLarga(V.fecha)]])}
     <div class="sec"><h2>Mercancía entregada</h2>${tablaProductos(false)}</div>
+    <div class="cierre"><div class="sec obs"><h2>Observaciones</h2><div class="lineas">${esc(V.notasEntrega || "")}</div></div>
     <table class="totales"><tr><td>Total del pedido</td><td>${fmtU(T)}</td></tr><tr><td>Abonado</td><td>${fmtU(pagado)}</td></tr>
-      <tr class="${saldo <= 0.009 ? "pagado" : "saldo"}"><td>${saldo <= 0.009 ? "Saldo" : "Saldo a pagar en la entrega"}</td><td>${saldo <= 0.009 ? "Pagado" : fmtU(saldo)}</td></tr></table>
-    <div class="sec"><h2>Observaciones</h2><div class="lineas">${esc(V.notasEntrega || "")}</div></div>
+      <tr class="${saldo <= 0.009 ? "pagado" : "saldo"}"><td>${saldo <= 0.009 ? "Saldo" : "Saldo a pagar en la entrega"}</td><td>${saldo <= 0.009 ? "Pagado" : fmtU(saldo)}</td></tr></table></div>
     <p class="condiciones" style="padding:0;list-style:none">El cliente declara recibir la mercancía descrita en buen estado y a su conformidad. Revise su pedido al momento de la entrega.</p>
     <div class="firmas"><div>Entregado por ${esc(NEGOCIO().nombre)}<small>Nombre, firma y fecha</small></div><div>Recibí conforme<small>Nombre, C.I. y firma del cliente</small></div></div>
   </div>${pie()}</article>`;
