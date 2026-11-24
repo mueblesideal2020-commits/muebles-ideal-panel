@@ -19,7 +19,7 @@
     html.setAttribute("data-tema", pref);
     html.setAttribute("data-tema-activo", act);
     document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
-      m.setAttribute("content", act === "oscuro" ? "#0e0e10" : "#3a63d9");
+      m.setAttribute("content", act === "oscuro" ? "#070f2a" : "#ffffff");
     });
   }
 

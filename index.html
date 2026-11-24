@@ -10,97 +10,133 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
 <style>
-:root { --bg:#eeede9; --surface:#fff; --ink:#141414; --muted:#6a655d; --line:#dcd8cf; --gold:#b8913f; --soft:#f6f1e6; --display:Lexend, system-ui, sans-serif; --body:Karla, system-ui, sans-serif; }
+/* Inicio del panel. Colores en tema.css; aquí solo la forma. */
+:root { --display:Lexend, system-ui, sans-serif; --body:Karla, system-ui, sans-serif; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
-h1, h2, h3 { font-family: var(--display); font-weight: 500; margin: 0; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; }
 button, input { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 20px; border-radius: 999px; border: 1.5px solid transparent; font-family: var(--display); font-weight: 500; cursor: pointer; background: var(--negro,#141414); color: #fff; text-decoration: none; min-height: 44px; }
-.btn.oro { background: var(--gold); color: var(--ink); }
-.btn.borde { background: transparent; color: var(--ink); border-color: var(--line); }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 22px; border-radius: 999px; border: 1.5px solid transparent; font-family: var(--display); font-weight: 600; cursor: pointer; background: var(--negro); color: #fff; text-decoration: none; min-height: 48px; transition: transform .15s, filter .15s; }
+.btn:active { transform: scale(.97); }
+.btn.borde { background: var(--surface); color: var(--azul-fuerte); border-color: var(--line); }
+.btn.vidrio { background: rgba(255,255,255,.16); color: #fff; border-color: rgba(255,255,255,.35); }
 .btn:disabled { opacity: .6; cursor: default; }
-.link { background: none; border: 0; padding: 0; color: #8a6a2a; font-weight: 700; text-decoration: underline; cursor: pointer; }
-.login { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px 130px; background: var(--negro,#141414); }
-.login form { width: 100%; max-width: 380px; background: var(--surface); border-radius: 18px; padding: 30px 26px; display: flex; flex-direction: column; gap: 14px; }
-.login img { width: 64px; margin: 0 auto 4px; display: block; }
-.login h1 { text-align: center; font-size: 1.35rem; }
+.link { background: none; border: 0; padding: 0; color: var(--azul); font-weight: 700; cursor: pointer; }
+
+/* ---- Entrar ---- */
+.login { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px 130px; background: var(--grad-hero); }
+.login form { width: 100%; max-width: 390px; background: var(--surface); border-radius: 28px; padding: 30px 26px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 30px 60px -30px rgba(0,0,0,.5); }
+.login img { width: 68px; height: 68px; object-fit: contain; margin: 0 auto 4px; display: block; border-radius: 18px; background: #fff; padding: 6px; box-shadow: var(--sombra); }
+.login h1 { text-align: center; font-size: 1.35rem; color: var(--titulo); }
 label.f { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: .9rem; }
-input[type=email], input[type=password], .clave input { width: 100%; padding: 11px 12px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--surface,#fff); min-height: 44px; }
-input:focus { outline: none; border-color: var(--gold); }
+input[type=email], input[type=password], .clave input { width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--campo); min-height: 50px; }
+input:focus { outline: none; border-color: var(--azul); background: var(--surface); }
 .clave { position: relative; margin-top: -8px; }
 .clave input { padding-right: 112px; }
-.clave button { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; color: #6b5221; font-weight: 700; font-size: .85rem; cursor: pointer; }
+.clave button { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 12px; border: 0; border-radius: 10px; background: transparent; color: var(--azul); font-weight: 700; font-size: .85rem; cursor: pointer; }
 .clave button:hover { background: var(--soft); }
 .clave svg { width: 20px; height: 20px; }
 .clave .ojo-cerrado, .clave button[aria-pressed="true"] .ojo-abierto { display: none; }
 .clave button[aria-pressed="true"] .ojo-cerrado { display: inline; }
-.msg { padding: 10px 12px; border-radius: 10px; font-size: .9rem; margin: 0; }
-.msg.err { background: #fbe9e7; color: #8f2a1d; }
-.msg.ok { background: #e8f3e8; color: #24572a; }
+.msg { padding: 10px 12px; border-radius: 12px; font-size: .9rem; margin: 0; }
+.msg.err { background: var(--bad-bg); color: var(--bad); }
+.msg.ok { background: var(--ok-bg); color: var(--ok); }
 .ayuda { font-size: .88rem; color: var(--muted); margin: 0; }
-.top { background: var(--negro,#141414); color: #fff; padding: 22px 16px 26px; }
-.top .in { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.top img { width: 44px; }
-.top h1 { font-size: 1.35rem; }
-.top .yo { color: #dbe6ff; font-size: .9rem; display: block; }
-.top .sp { flex: 1; }
-.top .btn.borde { color: #fff; border-color: rgba(255,255,255,.5); min-height: 38px; padding: 7px 16px; }
-main { max-width: 980px; margin: 0 auto; padding: 24px 16px 150px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.tarjeta.seg { min-height: 0; max-width: 560px; align-items: flex-start; }
-.tarjeta.seg .btn { align-self: flex-start; }
-.tarjeta { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px; text-decoration: none; color: var(--ink); min-height: 150px; transition: border-color .15s, transform .15s; }
-.tarjeta:hover { border-color: var(--gold); transform: translateY(-2px); }
-.tarjeta svg { width: 30px; height: 30px; color: var(--gold); }
-.tarjeta h2 { font-size: 1.1rem; }
-.tarjeta p { margin: 0; color: var(--muted); font-size: .9rem; }
-/* Barra inferior de funciones: negra, íconos grises, botón azul central con la función principal */
-/* Resumen del inicio */
-.sec-r { font-family: var(--display); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a2a; margin: 24px 0 10px; font-weight: 500; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.sec-r a, .sec-r .link { margin-left: auto; font-size: .84rem; letter-spacing: 0; text-transform: none; font-family: var(--body); font-weight: 700; color: #8a6a2a; text-decoration: underline; }
-.alerta-box { display: flex; flex-direction: column; gap: 3px; background: var(--bad-bg, #fbeae8); color: var(--bad, #b3261e); border-radius: 14px; padding: 12px 14px; font-size: .92rem; }
+
+/* ---- Encabezado blanco fijo ---- */
+.cab { position: sticky; top: 0; z-index: 30; background: var(--barra-bg); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); border-bottom: 1px solid var(--barra-linea); padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px; }
+.cab .in { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 10px; }
+.cab img { width: 40px; height: 40px; object-fit: contain; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px -3px rgba(12,37,114,.35); }
+.cab h1 { text-align: center; font-size: 1.02rem; color: var(--titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.avatar { width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; background: linear-gradient(135deg, #c9b6ff, #9fb7ff); color: #0c2572; font-family: var(--display); font-weight: 600; font-size: 1.05rem; cursor: pointer; text-decoration: none; box-shadow: 0 4px 12px -6px rgba(80,60,200,.7); }
+
+main { max-width: 980px; margin: 0 auto; padding: 22px 16px calc(110px + env(safe-area-inset-bottom, 0px)); }
+
+/* ---- Tarjeta de bienvenida ---- */
+.hero { position: relative; overflow: hidden; background: var(--grad-hero); color: #fff; border-radius: 28px; padding: 22px 20px 20px; box-shadow: 0 22px 40px -22px rgba(20,60,190,.75); animation: sube .5s cubic-bezier(.2,.9,.3,1) both; }
+.hero-top { display: flex; align-items: center; gap: 16px; }
+.hero-ini { width: 64px; height: 64px; flex: none; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.18); border: 3px solid rgba(255,255,255,.85); font-family: var(--display); font-weight: 600; font-size: 1.6rem; }
+.hero-ini img { width: 100%; height: 100%; border-radius: 50%; object-fit: contain; background: #fff; padding: 6px; }
+.hero small { display: block; color: #d3defd; font-size: .95rem; letter-spacing: .02em; }
+.hero h2 { font-size: 1.7rem; letter-spacing: .01em; text-transform: uppercase; line-height: 1.1; word-break: break-word; }
+.pastillas { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 12px; }
+.pastillas span { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); font-weight: 700; font-size: .82rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hero p { margin: 0 0 16px; color: #e6edff; font-size: .98rem; }
+.hero-acc { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-acc .btn { flex: 1 1 140px; }
+
+/* ---- Títulos de sección ---- */
+.sec-r { font-family: var(--display); font-size: .74rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin: 28px 4px 12px; font-weight: 600; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.sec-r a, .sec-r .link { margin-left: auto; font-size: .86rem; letter-spacing: 0; text-transform: none; font-family: var(--body); font-weight: 700; color: var(--azul); text-decoration: none; }
+
+/* ---- Tu espacio: cuadrícula de 2 columnas ---- */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 720px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.tarjeta { position: relative; display: flex; flex-direction: column; gap: 6px; background: var(--surface); border-radius: var(--radio); padding: 16px; text-decoration: none; color: var(--ink); min-height: 150px; box-shadow: var(--sombra); transition: transform .18s, box-shadow .18s; animation: sube .5s cubic-bezier(.2,.9,.3,1) both; }
+.tarjeta:hover { transform: translateY(-3px); }
+.tarjeta:active { transform: scale(.97); }
+.tarjeta .ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--soft); color: var(--azul); margin-bottom: 8px; }
+.tarjeta .ic svg { width: 22px; height: 22px; }
+.tarjeta h3 { font-size: 1rem; line-height: 1.2; }
+.tarjeta p { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tarjeta.destacada { background: linear-gradient(150deg, #0c2572, #1d47b8); color: #fff; box-shadow: 0 16px 30px -16px rgba(20,60,190,.8); }
+.tarjeta.destacada .ic { background: rgba(255,255,255,.16); color: #fff; }
+.tarjeta.destacada p { color: #d3defd; }
+.tarjeta .mc-n { position: absolute; top: 14px; right: 14px; }
+.tarjeta.seg { min-height: 0; animation: none; }
+.tarjeta.seg h2 { font-size: 1.02rem; }
+.tarjeta.seg p { -webkit-line-clamp: unset; }
+.tarjeta.seg:hover { transform: none; }
+.ajustes { display: grid; gap: 12px; }
+.ajustes .tarjeta { min-height: 0; }
+.fila-acc { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn.salir { background: var(--bad-bg); color: var(--bad); }
+
+/* ---- Resumen ---- */
+.alerta-box { display: flex; flex-direction: column; gap: 3px; background: var(--bad-bg); color: var(--bad); border-radius: 18px; padding: 14px 16px; font-size: .92rem; }
 .alerta-box b { font-size: .95rem; }
-.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 720px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
-.kpi { background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
-.kpi span { font-size: .8rem; color: var(--muted); }
-.kpi b { font-family: var(--display); font-weight: 500; font-size: 1.15rem; }
-.neg { color: var(--bad, #b3261e) !important; }
-.lista { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; overflow: hidden; }
-.lista li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
-.lista li:last-child { border-bottom: 0; }
+.kpi { background: var(--surface); border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: var(--sombra); }
+.kpi span { font-size: .8rem; color: var(--muted); font-weight: 600; }
+.kpi b { font-family: var(--display); font-weight: 600; font-size: 1.2rem; color: var(--titulo); }
+.neg { color: var(--bad) !important; }
+.lista { list-style: none; margin: 0; padding: 6px; background: var(--surface); border-radius: var(--radio); box-shadow: var(--sombra); display: flex; flex-direction: column; gap: 4px; }
+.lista li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; }
 .lista li > div:first-child { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .lista li small { color: var(--muted); font-size: .82rem; }
 .lista .der { display: flex; flex-direction: column; align-items: flex-end; text-align: right; flex: 0 0 auto; }
-.lista .deuda { color: var(--bad, #b3261e); }
-.lista li.rojo { background: var(--bad-bg, #fbeae8); }
-.lista li.rojo small, .lista li.rojo .der b { color: var(--bad, #b3261e); }
-.mbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; height: calc(64px + env(safe-area-inset-bottom, 0px)); padding: 0 4px env(safe-area-inset-bottom, 0px); background: var(--nav-bg, #3a63d9); display: flex; align-items: center; }
-.mbar-g { flex: 1 1 0; min-width: 0; display: flex; justify-content: space-evenly; align-items: center; }
-.mbar-c { flex: 0 0 60px; }
-.mbar a { position: relative; width: 39px; height: 44px; display: flex; align-items: center; justify-content: center; color: #dbe6ff; border-radius: 12px; text-decoration: none; -webkit-tap-highlight-color: transparent; }
-.mbar a:hover, .mbar a:focus-visible { color: #fff; }
-.mbar a svg { width: 26px; height: 26px; }
-.mbar a.mbar-main { position: absolute; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: 68px; height: 68px; border-radius: 50%; background: var(--nav-act, #fff); color: var(--nav-act-txt, #2a4fbd); box-shadow: 0 6px 18px rgba(20, 40, 110, .35); }
-.mbar a.mbar-main:hover { color: var(--nav-act-txt, #2a4fbd); }
-.mbar a.mbar-main svg { width: 30px; height: 30px; }
-.mbar .mc-n { position: absolute; top: 2px; right: 0; margin: 0; }
-.rol { display: inline-block; background: #fff; color: #2a4fbd; border-radius: 999px; padding: 3px 10px; font-size: .8rem; font-weight: 700; margin-top: 6px; }
-.sec { font-family: var(--display); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: #8a6a2a; margin: 26px 0 12px; font-weight: 500; }
-.sin { max-width: 460px; margin: 60px auto; background: var(--surface); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
-.instalar { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 50; max-width: 460px; margin: 0 auto; background: var(--surface); color: var(--ink); border-radius: 16px; padding: 14px 14px 14px 16px; box-shadow: 0 10px 30px rgba(0,0,0,.25); display: flex; gap: 12px; align-items: center; }
-.instalar img { width: 44px; height: 44px; border-radius: 10px; flex: none; }
+.lista .deuda { color: var(--bad); }
+.lista li.rojo { background: var(--bad-bg); }
+.lista li.rojo small, .lista li.rojo .der b { color: var(--bad); }
+
+/* ---- Barra inferior: pestañas con ícono y texto ---- */
+.mbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; justify-content: center; gap: 4px; padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)); background: var(--barra-bg); -webkit-backdrop-filter: blur(16px) saturate(1.6); backdrop-filter: blur(16px) saturate(1.6); border-top: 1px solid var(--barra-linea); }
+.mbar a { position: relative; flex: 1 1 0; max-width: 120px; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--barra-txt); border-radius: 16px; text-decoration: none; font-size: .72rem; font-weight: 700; transition: background .25s, color .25s; }
+.mbar a svg { width: 24px; height: 24px; transition: transform .3s cubic-bezier(.3,1.5,.5,1); }
+.mbar a:active svg { transform: scale(.85); }
+.mbar a[aria-current="page"] { background: var(--barra-act-bg); color: var(--barra-act-txt); }
+.mbar .mc-n { position: absolute; top: 4px; left: calc(50% + 6px); margin: 0; }
+.mc-n { min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--bad); color: #fff; font-size: .68rem; line-height: 19px; text-align: center; font-weight: 700; font-family: var(--body); box-shadow: 0 0 0 2px var(--surface); }
+.mc-n[hidden] { display: none !important; }
+
+.rol { display: none; }
+.sin { max-width: 460px; margin: 60px auto; background: var(--surface); border-radius: 24px; padding: 26px; display: flex; flex-direction: column; gap: 14px; box-shadow: var(--sombra); }
+.instalar { position: fixed; left: 12px; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); z-index: 50; max-width: 460px; margin: 0 auto; background: var(--surface); color: var(--ink); border-radius: 20px; padding: 14px 14px 14px 16px; box-shadow: 0 16px 40px -12px rgba(12,37,114,.35); display: flex; gap: 12px; align-items: center; }
+.instalar img { width: 44px; height: 44px; border-radius: 12px; flex: none; }
 .instalar p { margin: 0; font-size: .88rem; color: var(--muted); }
 .instalar b { color: var(--ink); display: block; font-size: .95rem; }
 .instalar .btn { min-height: 40px; padding: 8px 16px; flex: none; }
 .instalar .x { background: none; border: 0; font-size: 1.4rem; line-height: 1; cursor: pointer; color: var(--muted); width: 36px; height: 36px; flex: none; }
 .ios-ico { display: inline-block; width: 16px; height: 16px; vertical-align: -3px; }
+@keyframes sube { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 </style>
 <link rel="stylesheet" href="tema.css">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#3a63d9">
+<meta name="theme-color" content="#ffffff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -130,12 +166,11 @@ main { max-width: 980px; margin: 0 auto; padding: 24px 16px 150px; }
 </section>
 
 <section id="v-panel" hidden>
-  <div class="top"><div class="in">
-    <img src="logo-mark-blanco.png" alt="">
-    <div><h1 id="hola">Panel</h1><span class="yo" id="yo"></span><span class="rol" id="rol"></span></div>
-    <span class="sp"></span>
-    <button class="btn borde" id="salir" type="button">Salir</button>
-  </div></div>
+  <header class="cab"><div class="in">
+    <img src="logo-mark.png" alt="">
+    <h1>Muebles Ideal</h1>
+    <a class="avatar" id="avatar" href="#ajustes" aria-label="Mi cuenta y ajustes"></a>
+  </div></header>
   <main id="secciones"></main>
   <nav class="mbar" id="mbar" aria-label="Funciones" hidden></nav>
 </section>
@@ -183,19 +218,21 @@ const ICO = {
   inventario: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
   pagina: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
   portal: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
-  mensajes: '<path d="M4 5h16v11H9l-5 4z"/>'
+  mensajes: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  inicio: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  ajustes: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'
 };
 const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 const PAGINA = "https://mueblesideal2020-commits.github.io/muebles-ideal/";
 const SECCIONES = [
-  { k: "contabilidad.html#ventas", i: "ventas", t: "Ventas y cobros", roles: ["dueno", "admin"], d: "Registra cada venta, el equipo que la fabrica y los abonos del cliente. Ve quién te debe." },
+  { tab: "Ventas", k: "contabilidad.html#ventas", i: "ventas", t: "Ventas y cobros", roles: ["dueno", "admin"], d: "Registra cada venta, el equipo que la fabrica y los abonos del cliente. Ve quién te debe." },
   { k: "contabilidad.html#resumen", i: "conta", t: "Dinero y bancos", roles: ["dueno", "admin"], d: "Cuánto entró y salió, Banesco y Mercantil, gastos fijos, reserva y ganancia." },
   { k: "contabilidad.html#nomina", i: "equipo", t: "Empleados y nómina", roles: ["dueno", "admin"], d: "Lo que se le debe a cada trabajador, pagos de la semana, asistencia y fichas." },
-  { k: "contabilidad.html", i: "conta", t: "Anotar gastos e ingresos", roles: ["ayudante"], d: "Anota las compras y los cobros del día." },
+  { tab: "Gastos", k: "contabilidad.html", i: "conta", t: "Anotar gastos e ingresos", roles: ["ayudante"], d: "Anota las compras y los cobros del día." },
   { k: "catalogo.html", i: "catalogo", t: "Catálogo de la página", roles: ["dueno"], d: "Productos, fotos, precios, categorías, telas y colores que ven los clientes." },
-  { k: "inventario.html", i: "inventario", t: "Inventario del almacén", roles: ["dueno", "admin", "ayudante"], d: "Materiales en el taller: tornillos, grapas, madera, goma espuma, tela, pega. Cuánto hay y qué falta." },
+  { tab: "Inventario", k: "inventario.html", i: "inventario", t: "Inventario del almacén", roles: ["dueno", "admin", "ayudante"], d: "Materiales en el taller: tornillos, grapas, madera, goma espuma, tela, pega. Cuánto hay y qué falta." },
   { k: "planos.html", i: "planos", t: "Planos y despieces", roles: ["dueno", "admin"], d: "Estructura de madera, lista de cortes y compras de cada modelo." },
-  { k: "mensajes.html", i: "mensajes", t: "Mensajes de clientes", roles: ["dueno", "admin", "ayudante"], d: "Lo que escriben los clientes desde la página y lo que te escribe el equipo." },
+  { tab: "Mensajes", k: "mensajes.html", i: "mensajes", t: "Mensajes de clientes", roles: ["dueno", "admin", "ayudante"], d: "Lo que escriben los clientes desde la página y lo que te escribe el equipo." },
   { k: PAGINA, i: "pagina", t: "Ver la página", roles: ["dueno", "admin", "ayudante"], d: "La tienda como la ven los clientes.", nueva: true }
 ];
 const NOMBRE_ROL = { dueno: "Dueño", admin: "Administrador", ayudante: "Ayudante" };
@@ -212,7 +249,6 @@ $("l-reset").addEventListener("click", async () => {
   try { await auth.sendPasswordResetEmail(em); msg("Te enviamos un enlace a " + em + " para crear tu contraseña.", "ok"); }
   catch (err) { msg("No se pudo enviar el enlace: " + (err.message || err), "err"); }
 });
-$("salir").addEventListener("click", () => auth.signOut());
 $("l-ver").addEventListener("click", () => {
   const i = $("l-pass"), b = $("l-ver"), ver = i.type === "password";
   i.type = ver ? "text" : "password"; b.setAttribute("aria-pressed", ver);
@@ -222,15 +258,30 @@ $("l-ver").addEventListener("click", () => {
 $("sin-salir").addEventListener("click", () => auth.signOut());
 try { const u = localStorage.getItem("mi-contab-email"); if (u) $("l-email").value = u; } catch (e) {}
 
-/* Barra inferior: la primera función es la del botón azul; el resto se reparte a los lados */
+/* Barra inferior: Inicio, hasta tres funciones del rol y Ajustes, con ícono y texto */
 function pintarBarra(ls) {
   const barra = $("mbar");
-  const it = s => `<a href="${s.k}" title="${esc(s.t)}" aria-label="${esc(s.t)}"${s.nueva ? ' target="_blank" rel="noopener"' : ""}>${ico(s.i)}</a>`;
-  const [principal, ...resto] = ls;
-  const mitad = Math.ceil(resto.length / 2);
-  barra.innerHTML = `<div class="mbar-g">${resto.slice(0, mitad).map(it).join("")}</div><span class="mbar-c" aria-hidden="true"></span><div class="mbar-g">${resto.slice(mitad).map(it).join("")}</div>`
-    + (principal ? `<a class="mbar-main" href="${principal.k}" title="${esc(principal.t)}" aria-label="${esc(principal.t)}"${principal.nueva ? ' target="_blank" rel="noopener"' : ""}>${ico(principal.i)}</a>` : "");
-  barra.hidden = !principal;
+  const tabs = [{ k: "index.html", i: "inicio", tab: "Inicio", act: true }, ...ls.filter(s => s.tab).slice(0, 3), { k: "#ajustes", i: "ajustes", tab: "Ajustes" }];
+  barra.innerHTML = tabs.map(s => `<a href="${s.k}"${s.act ? ' aria-current="page"' : ""}>${ico(s.i)}<span>${esc(s.tab)}</span></a>`).join("");
+  barra.querySelector('a[aria-current="page"]').addEventListener("click", e => { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); });
+  barra.hidden = false;
+}
+/* Tarjeta de bienvenida y cuadrícula "Tu espacio" */
+function pintarInicio(rol, em, nombre, ls) {
+  const primero = (nombre || "").trim().split(/\s+/)[0] || NOMBRE_ROL[rol];
+  const principal = ls[0], msj = ls.find(s => s.k === "mensajes.html");
+  const enlace = (s, cls, txt) => `<a class="btn ${cls}" href="${s.k}"${s.nueva ? ' target="_blank" rel="noopener"' : ""}>${esc(txt)}</a>`;
+  $("avatar").textContent = primero.charAt(0).toUpperCase();
+  return `<section class="hero" aria-label="Bienvenida">
+      <div class="hero-top"><span class="hero-ini"><img src="logo-mark.png" alt=""></span>
+        <div><small>Bienvenido(a)</small><h2>${esc(primero)}</h2></div></div>
+      <div class="pastillas"><span>${esc(NOMBRE_ROL[rol])}</span><span>${esc(em)}</span></div>
+      <p>Muebles hechos a la medida de cada hogar.</p>
+      <div class="hero-acc">${principal ? enlace(principal, "oro", principal.t) : ""}${msj ? enlace(msj, "vidrio", "Abrir mensajes") : ""}</div>
+    </section>
+    <h2 class="sec-r">Tu espacio</h2>
+    <div class="grid">${ls.map((s, n) => `<a class="tarjeta${n === 0 ? " destacada" : ""}" href="${s.k}" style="animation-delay:${60 + n * 40}ms"${s.nueva ? ' target="_blank" rel="noopener"' : ""}>
+        <span class="ic">${ico(s.i)}</span><h3>${esc(s.t)}</h3><p>${esc(s.d)}</p></a>`).join("")}</div>`;
 }
 /* ===== Resumen del inicio ===== */
 const numR = s => { if (typeof s === "number") return isFinite(s) ? s : 0; s = String(s == null ? "" : s).trim().replace(/[^\d.,-]/g, ""); if (!s) return 0; if (s.includes(",")) s = s.replace(/\./g, "").replace(",", "."); else if ((s.match(/\./g) || []).length > 1 || /^-?\d{1,3}\.\d{3}$/.test(s)) s = s.replace(/\./g, ""); const n = parseFloat(s); return isFinite(n) ? n : 0; };
@@ -319,10 +370,11 @@ function pintarResumen(rol, inv, fin) {
   const b = $("res-act"); if (b) b.addEventListener("click", () => cargarResumen(rol));
 }
 
+let NOMBRE_EQ = "";
 async function rolDe(em){
   if (em === DUENO) return "dueno";
   try { const d = await db.collection("equipo").doc(em).get();
-    if (d.exists && d.data().activo !== false) return d.data().rol === "administrador" ? "admin" : "ayudante"; } catch (e) {}
+    if (d.exists && d.data().activo !== false) { NOMBRE_EQ = d.data().nombre || ""; return d.data().rol === "administrador" ? "admin" : "ayudante"; } } catch (e) {}
   try { const s = await db.collection("empleados").where("acceso.email", "==", em).limit(1).get(); if (!s.empty) return "empleado"; } catch (e) {}
   return null;
 }
@@ -334,10 +386,19 @@ auth.onAuthStateChanged(async u => {
   const rol = await rolDe(em);
   if (rol === "empleado") { location.replace("personal.html"); return; }
   if (!rol) { $("sin-msg").textContent = `La cuenta ${em} no tiene acceso al panel. Pídele al dueño que te agregue (Dinero y bancos → Cajas y ajustes → Administrador y ayudantes, o Empleados si eres del taller).`; $("v-sin").hidden = false; return; }
-  $("yo").textContent = em; $("rol").textContent = NOMBRE_ROL[rol];
-  $("hola").textContent = rol === "dueno" ? "Panel Muebles Ideal" : "Hola";
   const ls = SECCIONES.filter(s => s.roles.includes(rol));
-  $("secciones").innerHTML = `<div id="resumen"></div><p class="sec">Seguridad de este teléfono</p>${window.MI_BLOQUEO ? MI_BLOQUEO.bloqueHTML("tarjeta seg") : ""}<p class="sec">Apariencia de esta pantalla</p><div id="tema-caja"></div>`;
+  const nombre = rol === "dueno" ? (u.displayName || "Dueño") : (NOMBRE_EQ || u.displayName || em.split("@")[0]);
+  $("secciones").innerHTML = pintarInicio(rol, em, nombre, ls) + `<div id="resumen"></div>
+    <h2 class="sec-r" id="ajustes">Ajustes de este teléfono</h2>
+    <div class="ajustes">
+      ${window.MI_BLOQUEO ? MI_BLOQUEO.bloqueHTML("tarjeta seg") : ""}
+      <div class="tarjeta seg"><h2 style="margin:0 0 6px">Apariencia</h2><p style="margin:0 0 12px">«Sistema» sigue el modo claro u oscuro de tu teléfono.</p><div id="tema-caja"></div></div>
+      <div class="tarjeta seg"><h2 style="margin:0 0 6px">Mi cuenta</h2><p style="margin:0 0 12px">${esc(em)} · ${esc(NOMBRE_ROL[rol])}</p>
+        <div class="fila-acc"><button class="btn borde" id="cambiar-clave" type="button">Cambiar mi contraseña</button><button class="btn salir" id="salir" type="button">Cerrar sesión</button></div>
+        <p class="msg ok" id="clave-msg" hidden style="margin-top:10px"></p></div>
+    </div>`;
+  $("salir").addEventListener("click", () => auth.signOut());
+  $("cambiar-clave").addEventListener("click", async () => { const m = $("clave-msg"); try { await auth.sendPasswordResetEmail(em); m.className = "msg ok"; m.textContent = "Te enviamos un correo a " + em + " para cambiar la contraseña."; } catch (e) { m.className = "msg err"; m.textContent = "No se pudo enviar el correo. Revisa tu conexión."; } m.hidden = false; });
   pintarBarra(ls);
   cargarResumen(rol);
   if (window.MI_BLOQUEO) MI_BLOQUEO.conectarUI();
@@ -345,10 +406,11 @@ auth.onAuthStateChanged(async u => {
   if (window.MiChat && ls.some(s => s.k === "mensajes.html")) {
     if (window.quitarSinLeer) window.quitarSinLeer();
     window.quitarSinLeer = MiChat.sinLeerStaff(db, n => {
-      const a = document.querySelector('#mbar a[href="mensajes.html"]'); if (!a) return;
-      let b = a.querySelector(".mc-n");
-      if (!b) { b = document.createElement("b"); b.className = "mc-n"; a.appendChild(b); }
-      b.textContent = n > 9 ? "9+" : n; b.hidden = !n;
+      document.querySelectorAll('#mbar a[href="mensajes.html"], .grid a[href="mensajes.html"]').forEach(a => {
+        let b = a.querySelector(".mc-n");
+        if (!b) { b = document.createElement("b"); b.className = "mc-n"; a.appendChild(b); }
+        b.textContent = n > 9 ? "9+" : n; b.hidden = !n;
+      });
     });
   }
   $("v-panel").hidden = false;

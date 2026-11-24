@@ -29,15 +29,17 @@
     return '<svg viewBox="0 0 24 24" width="' + tam + '" height="' + tam + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + "</svg>";
   }
   var css = document.createElement("style");
-  css.textContent = ".mi-menu{position:relative;z-index:30;display:flex;align-items:center;gap:4px;background:var(--nav-bg,#3a63d9);padding:6px 12px;overflow-x:auto;scrollbar-width:none;font-family:Karla,system-ui,sans-serif;font-size:13px;font-weight:700}"
-    + ".mi-menu::-webkit-scrollbar{display:none}.mi-menu b{color:var(--nav-brand,#fff);font-family:Lexend,system-ui,sans-serif;font-weight:500;letter-spacing:.08em;font-size:12px;margin-right:8px;white-space:nowrap}"
-    + ".mi-menu a{color:var(--nav-link,#e6eeff);text-decoration:none;padding:7px 13px;border-radius:999px;white-space:nowrap;min-height:30px;display:inline-flex;align-items:center;transition:background .2s,color .2s}"
-    + ".mi-menu a:hover{background:var(--nav-hover,rgba(255,255,255,.16));color:#fff}.mi-menu a[aria-current=page]{background:var(--nav-act,#fff);color:var(--nav-act-txt,#2a4fbd)}"
-    + ".mi-menu a svg{margin-right:7px;transition:transform .3s cubic-bezier(.3,1.5,.5,1)}"
-    + ".mi-menu a:hover svg{transform:translateY(-2px) scale(1.08)}"
-    + ".mi-menu a[aria-current=page] svg{animation:mi-salta .55s cubic-bezier(.3,1.4,.5,1)}"
+  css.textContent = ".mi-menu{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:6px;background:var(--barra-bg,rgba(255,255,255,.92));-webkit-backdrop-filter:blur(14px) saturate(1.5);backdrop-filter:blur(14px) saturate(1.5);border-bottom:1px solid var(--barra-linea,#e6eaf8);padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top,0px));overflow-x:auto;scrollbar-width:none;font-family:Karla,system-ui,sans-serif;font-size:13.5px;font-weight:700}"
+    + ".mi-menu::-webkit-scrollbar{display:none}"
+    + ".mi-menu .mi-marca{display:inline-flex;align-items:center;gap:8px;margin-right:6px;color:var(--titulo,#0c2572);font-family:Lexend,system-ui,sans-serif;font-weight:600;letter-spacing:.02em;font-size:14px;white-space:nowrap;text-decoration:none}"
+    + ".mi-menu .mi-marca img{width:30px;height:30px;border-radius:9px;object-fit:contain;background:#fff;box-shadow:0 2px 8px -3px rgba(12,37,114,.35)}"
+    + ".mi-menu a.mi-it{color:var(--barra-txt,#5e6889);text-decoration:none;padding:8px 14px;border-radius:999px;white-space:nowrap;min-height:38px;display:inline-flex;align-items:center;transition:background .2s,color .2s}"
+    + ".mi-menu a.mi-it:hover{background:var(--barra-act-bg,#e3eaff);color:var(--barra-act-txt,#1d47b8)}.mi-menu a.mi-it[aria-current=page]{background:var(--barra-act-bg,#e3eaff);color:var(--barra-act-txt,#1d47b8)}"
+    + ".mi-menu a.mi-it svg{margin-right:7px;transition:transform .3s cubic-bezier(.3,1.5,.5,1)}"
+    + ".mi-menu a.mi-it:hover svg{transform:translateY(-2px) scale(1.08)}"
+    + ".mi-menu a.mi-it[aria-current=page] svg{animation:mi-salta .55s cubic-bezier(.3,1.4,.5,1)}"
     + "@keyframes mi-salta{0%{transform:scale(.8)}45%{transform:translateY(-2px) scale(1.14)}75%{transform:scale(.97)}100%{transform:none}}"
-    + ".mi-tema{margin-left:auto;flex:0 0 auto;width:36px;height:36px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:var(--nav-brand,#fff);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .25s}"
+    + ".mi-tema{margin-left:auto;flex:0 0 auto;width:38px;height:38px;padding:0;border-radius:50%;border:0;background:linear-gradient(135deg,#c9b6ff,#9fb7ff);color:#0c2572;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .25s;box-shadow:0 4px 12px -6px rgba(80,60,200,.7)}"
     + ".mi-tema:active{transform:scale(.9)}"
     + "@media (prefers-reduced-motion:reduce){.mi-menu a,.mi-menu a svg,.mi-tema{animation:none!important;transition:none!important}}"
     + "@media print{.mi-menu{display:none}}";
@@ -45,6 +47,8 @@
   var nav = document.createElement("nav");
   nav.className = "mi-menu"; nav.setAttribute("aria-label", "Secciones del panel"); nav.hidden = true;
   document.body.insertBefore(nav, document.body.firstChild);
+  /* Si la página ya tiene su propia barra fija (Documentos, Planos), el menú se desplaza con el contenido */
+  if ([].some.call(document.querySelectorAll(".barra"), function (e) { return getComputedStyle(e).position === "sticky"; })) nav.style.position = "relative";
 
   var boton = document.createElement("button");
   boton.type = "button"; boton.className = "mi-tema";
@@ -62,8 +66,8 @@
 
   function pintar(rol) {
     var ls = rol ? ITEMS.filter(function (i) { return i[2].indexOf(rol) >= 0; }) : [ITEMS[0]];
-    nav.innerHTML = "<b>MUEBLES IDEAL</b>" + ls.map(function (i) {
-      return '<a href="' + i[0] + '"' + (i[0] === aqui ? ' aria-current="page"' : "") + ">" + svg(ICO[i[3]], 16) + i[1] + "</a>";
+    nav.innerHTML = '<a class="mi-marca" href="index.html" aria-label="Inicio del panel"><img src="logo-mark.png" alt="">Muebles Ideal</a>' + ls.slice(1).map(function (i) {
+      return '<a class="mi-it" href="' + i[0] + '"' + (i[0] === aqui ? ' aria-current="page"' : "") + ">" + svg(ICO[i[3]], 16) + i[1] + "</a>";
     }).join("");
     boton.hidden = !window.MI_TEMA;
     nav.appendChild(boton);

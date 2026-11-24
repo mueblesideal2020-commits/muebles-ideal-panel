@@ -20,10 +20,10 @@
 
   /* ---------- Pantalla de bloqueo ---------- */
   var css = document.createElement("style");
-  css.textContent = ".mi-lock{position:fixed;inset:0;z-index:9999;background:#3a63d9;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;font-family:Karla,system-ui,sans-serif}"
+  css.textContent = ".mi-lock{position:fixed;inset:0;z-index:9999;background:radial-gradient(120% 80% at 80% 0%,rgba(140,180,255,.4),transparent 45%),linear-gradient(160deg,#0c2572,#1543b8 60%,#2a66ee);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;font-family:Karla,system-ui,sans-serif}"
     + ".mi-lock img{width:120px;height:auto}.mi-lock h1{font-family:Lexend,system-ui,sans-serif;font-weight:500;font-size:1.3rem;margin:0;letter-spacing:.04em}"
     + ".mi-lock p{margin:0;color:#dbe6ff;max-width:300px;font-size:.95rem}.mi-lock button{font:inherit;cursor:pointer;border-radius:999px;min-height:50px;padding:12px 26px}"
-    + ".mi-lock .ok{background:#fff;color:#2a4fbd;border:0;font-family:Lexend,system-ui,sans-serif;font-weight:500;font-size:1rem;display:inline-flex;align-items:center;gap:10px}"
+    + ".mi-lock .ok{background:#f7c543;color:#0c2572;border:0;font-family:Lexend,system-ui,sans-serif;font-weight:500;font-size:1rem;display:inline-flex;align-items:center;gap:10px}"
     + ".mi-lock .ok svg{width:22px;height:22px}.mi-lock .alt{background:none;border:1px solid rgba(255,255,255,.45);color:#fff;font-size:.9rem;min-height:42px}"
     + ".mi-lock .err{color:#ffd9d4;min-height:1.3em;font-size:.9rem}";
   document.head.appendChild(css);

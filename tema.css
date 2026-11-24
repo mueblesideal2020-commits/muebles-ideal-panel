@@ -1,29 +1,79 @@
 /* Apariencia de Muebles Ideal. tema.js pone data-tema-activo="oscuro" o "claro" en <html>.
-   Con "sistema" sigue el modo del teléfono. Todas las pantallas usan estas mismas variables. */
-/* Paleta clara: fondo azul pastel, base azul rey. Para cambiar el azul, edita estas variables. */
-:root { --azul:#3a63d9; --azul-fuerte:#2a4fbd;
-  --bg:#dce8fb; --soft:#e9f1fd; --line:#c5d5ef; --muted:#56627c; --ink:#0f1a30;
-  --negro:#3a63d9; --campo:#fff; --gold-suave:rgba(58,99,217,.15);
-  --burbuja-yo:#3a63d9; --burbuja-yo-texto:#fff; --burbuja-otro:#fff; --burbuja-otro-texto:#1d1b18;
-  --nav-bg:#3a63d9; --nav-brand:#fff; --nav-link:#e6eeff; --nav-hover:rgba(255,255,255,.16);
-  --nav-act:#fff; --nav-act-txt:#2a4fbd; --grad-a:#6b8ff0; }
+   Con "sistema" sigue el modo del teléfono. Todas las pantallas usan estas mismas variables.
+   Estilo: fondo lavanda claro, tarjetas blancas muy redondeadas, azul marino → azul brillante y
+   amarillo para el botón principal. Para cambiar un color, edita estas variables. */
 
+/* ---------- Paleta clara ---------- */
+:root {
+  /* Colores de marca */
+  --marino:#0c2572; --azul:#2a5bd7; --azul-fuerte:#1d47b8; --azul-vivo:#2f6bf0;
+  --amarillo:#f7c543; --amarillo-txt:#0c2572;
+  --grad-hero: radial-gradient(120% 90% at 85% 10%, rgba(140,180,255,.45), transparent 45%), linear-gradient(135deg, #0c2572 0%, #1543b8 55%, #2a66ee 100%);
+
+  /* Superficies y texto */
+  --bg:#eff1fe; --surface:#fff; --paper:#fff; --soft:#e9efff; --campo:#f5f7ff;
+  --ink:#0f1a3d; --muted:#5e6889; --line:#e1e6f7;
+  --sombra: 0 10px 30px -14px rgba(23, 45, 120, .28);
+  --radio: 20px;
+
+  /* Acentos (antes eran dorado: ahora azul) */
+  --gold:#2a5bd7; --gold-2:#4f7cf0; --gold-ink:#fff; --gold-suave:#e3eaff;
+  --negro:#1d47b8;
+
+  /* Estados */
+  --ok:#1f7a3a; --ok-bg:#e5f5ea; --warn:#8a5a00; --warn-bg:#fff4d6; --bad:#c62f26; --bad-bg:#fdeceb;
+
+  /* Chat */
+  --burbuja-yo:#2a5bd7; --burbuja-yo-texto:#fff; --burbuja-otro:#fff; --burbuja-otro-texto:#0f1a3d;
+
+  /* Barras de color de cada página (Documentos, Planos) */
+  --nav-bg: linear-gradient(135deg, #0c2572, #2a5bd7); --nav-brand:#fff; --nav-link:#e6eeff;
+  --nav-hover:rgba(255,255,255,.16); --nav-act:#fff; --nav-act-txt:#1d47b8; --grad-a:#2a66ee;
+
+  /* Encabezado blanco y barra inferior (menu.js e Inicio) */
+  --barra-bg: rgba(255,255,255,.92); --barra-linea:#e6eaf8; --barra-txt:#5e6889;
+  --barra-act-bg:#e3eaff; --barra-act-txt:#1d47b8; --titulo:#0c2572;
+}
+
+/* ---------- Paleta oscura: azul marino y amarillo ---------- */
 :root[data-tema-activo="oscuro"] {
   color-scheme: dark;
-  --bg:#0e0e10; --surface:#1a1a1d; --paper:#1a1a1d; --soft:#232227; --ink:#f3efe7; --muted:#aaa497; --line:#34322e;
-  --gold:#d4ad62; --gold-2:#e2c183; --negro:#2b2b30; --campo:#222226; --gold-suave:rgba(212,173,98,.2);
-  --ok:#7fd68a; --ok-bg:#15301b; --warn:#ffd27a; --warn-bg:#3a2d12; --bad:#ff8c84; --bad-bg:#3d1c1a;
-  --burbuja-yo:#d4ad62; --burbuja-yo-texto:#141414; --burbuja-otro:#2b2b30; --burbuja-otro-texto:#f3efe7;
-  --nav-bg:#0b0b0b; --nav-brand:#d4ad62; --nav-link:#d8d3c8; --nav-hover:#222; --nav-act:#b8913f; --nav-act-txt:#141414; --grad-a:#3a3934;
+  --marino:#08143a; --azul:#5b86ff; --azul-fuerte:#7a9dff; --azul-vivo:#6d95ff;
+  --amarillo:#f7c543; --amarillo-txt:#0c2572;
+  --grad-hero: radial-gradient(120% 90% at 85% 10%, rgba(110,150,255,.35), transparent 45%), linear-gradient(135deg, #0a1a52 0%, #1640a8 60%, #2559d8 100%);
+  --bg:#070f2a; --surface:#101c45; --paper:#101c45; --soft:#1a2a60; --campo:#0c173b;
+  --ink:#eef2ff; --muted:#a3afd6; --line:#24346e;
+  --sombra: 0 12px 30px -14px rgba(0,0,0,.6);
+  --gold:#7a9dff; --gold-2:#9db6ff; --gold-ink:#08143a; --gold-suave:#1f3172;
+  --negro:#2f5fe0;
+  --ok:#7fd68a; --ok-bg:#12321f; --warn:#ffd27a; --warn-bg:#3a2d12; --bad:#ff8c84; --bad-bg:#3d1c1f;
+  --burbuja-yo:#2f5fe0; --burbuja-yo-texto:#fff; --burbuja-otro:#1a2a60; --burbuja-otro-texto:#eef2ff;
+  --nav-bg: linear-gradient(135deg, #0a1a52, #2559d8); --nav-brand:#fff; --nav-link:#d6e0ff;
+  --nav-hover:rgba(255,255,255,.12); --nav-act:#f7c543; --nav-act-txt:#0c2572; --grad-a:#1640a8;
+  --barra-bg: rgba(12,22,58,.92); --barra-linea:#1c2b62; --barra-txt:#a3afd6;
+  --barra-act-bg:#1f3172; --barra-act-txt:#fff; --titulo:#fff;
 }
 :root[data-tema-activo="oscuro"] input,
 :root[data-tema-activo="oscuro"] select,
 :root[data-tema-activo="oscuro"] textarea { background: var(--campo); color: var(--ink); border-color: var(--line); }
 :root[data-tema-activo="oscuro"] ::placeholder { color: var(--muted); opacity: 1; }
-:root[data-tema-activo="oscuro"] .btn.oro { color: #141414; }
-:root[data-tema-activo="oscuro"] .campana { border-color: #4a4843; }
+:root[data-tema-activo="oscuro"] .campana { border-color: rgba(255,255,255,.3); }
+
+/* ---------- Piezas comunes a todas las pantallas ---------- */
+/* Botón principal: amarillo con texto azul marino (como "Hacer un reporte") */
+.btn.oro { background: var(--amarillo); color: var(--amarillo-txt); box-shadow: 0 6px 16px -8px rgba(200,150,20,.7); }
+.btn.oro:hover { filter: brightness(1.03); }
+/* Botón azul sólido y botón suave */
+.btn { border-radius: 999px; }
+.btn.borde { background: var(--surface); color: var(--azul-fuerte); border-color: var(--line); }
+:root[data-tema-activo="oscuro"] .btn.borde { color: var(--ink); }
 
 /* Selector Sistema · Claro · Oscuro */
-.mt-seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 4px; border-radius: 999px; background: var(--soft, #e9f1fd); border: 1px solid var(--line, #c5d5ef); }
-.mt-seg button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--muted, #6a655d); font: inherit; font-weight: 600; cursor: pointer; }
-.mt-seg button[aria-checked="true"] { background: var(--negro, #3a63d9); color: #fff; }
+.mt-seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 4px; border-radius: 999px; background: var(--soft, #e9efff); border: 1px solid var(--line, #e1e6f7); }
+.mt-seg button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: transparent; color: var(--muted, #5e6889); font: inherit; font-weight: 700; cursor: pointer; transition: background .2s, color .2s; }
+.mt-seg button[aria-checked="true"] { background: var(--azul, #2a5bd7); color: #fff; box-shadow: 0 4px 12px -6px rgba(42,91,215,.8); }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
+/* Bloque de "Bloqueo con huella" (bloqueo.js trae colores fijos) */
+#mi-bl-txt { color: var(--muted) !important; }
