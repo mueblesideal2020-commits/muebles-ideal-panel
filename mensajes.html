@@ -30,7 +30,7 @@ h1 { font-family: var(--display); font-weight: 500; font-size: 1.2rem; letter-sp
 <script src="bloqueo.js"></script>
 <main>
   <h1>Mensajes de clientes</h1>
-  <p class="sub">Aquí llega lo que escriben los clientes desde la página y lo que escribe el equipo. Responde desde aquí.</p>
+  <p class="sub">Aquí llega lo que escriben los clientes desde la página y lo que escribe el equipo. Con «Nuevo chat» hablas en privado con cualquier persona del equipo, y con el clip adjuntas fotos o PDF.</p>
   <div id="chat"><p class="cargando">Cargando…</p></div>
 </main>
 
@@ -58,20 +58,23 @@ const $ = id => document.getElementById(id);
 auth.onAuthStateChanged(async u => {
   if (!u) { location.replace("index.html"); return; }
   const em = (u.email || "").toLowerCase();
-  let rol = null, nombre = "";
-  if (em === DUENO) { rol = "dueno"; nombre = "Dueño"; }
+  let rol = null, nombre = "", cargo = "";
+  if (em === DUENO) { rol = "dueno"; nombre = "Dueño"; cargo = "Dueño"; }
   else {
     try {
       const d = await db.collection("equipo").doc(em).get();
       if (d.exists && d.data().activo !== false) {
-        rol = "equipo";
+        rol = d.data().rol === "administrador" ? "admin" : "ayudante";
         nombre = d.data().nombre || "Equipo";
+        cargo = rol === "admin" ? "Administrador" : "Ayudante";
       }
     } catch (e) { console.error(e); }
   }
   if (!rol) { location.replace("index.html"); return; }
+  /* El nombre que cada quien puso en su perfil es el que ven los demás en los chats privados */
+  try { const p = await db.collection("perfiles").doc(em).get(); if (p.exists && p.data().nombre) nombre = p.data().nombre; } catch (e) {}
   $("chat").innerHTML = "";
-  MiChat.bandeja({ db, firebase, nombre, el: $("chat") });
+  MiChat.bandeja({ db, firebase, nombre, email: em, rol: cargo, gestor: rol === "dueno" || rol === "admin", dueno: rol === "dueno", el: $("chat") });
 });
 </script>
 <script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>

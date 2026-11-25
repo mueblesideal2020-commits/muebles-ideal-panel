@@ -48,9 +48,12 @@ input:focus { outline: none; border-color: var(--azul); background: var(--surfac
 
 /* ---- Encabezado blanco fijo ---- */
 .cab { position: sticky; top: 0; z-index: 30; background: var(--barra-bg); -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5); border-bottom: 1px solid var(--barra-linea); padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px; }
-.cab .in { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 10px; }
+.cab .in { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 96px 1fr 96px; align-items: center; gap: 10px; }
 .cab img { width: 40px; height: 40px; object-fit: contain; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px -3px rgba(12,37,114,.35); }
 .cab h1 { text-align: center; font-size: 1.02rem; color: var(--titulo); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cab .avatar { justify-self: end; }
+.cab .logo-izq { justify-self: start; width: auto; height: 36px; border-radius: 0; background: none; box-shadow: none; object-fit: contain; }
+:root[data-tema-activo="oscuro"] .cab .logo-izq { filter: brightness(0) invert(1); }
 .avatar { width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; background: linear-gradient(135deg, #c9b6ff, #9fb7ff); color: #0c2572; font-family: var(--display); font-weight: 600; font-size: 1.05rem; cursor: pointer; text-decoration: none; box-shadow: 0 4px 12px -6px rgba(80,60,200,.7); }
 
 main { max-width: 980px; margin: 0 auto; padding: 22px 16px calc(110px + env(safe-area-inset-bottom, 0px)); }
@@ -171,7 +174,7 @@ main { max-width: 980px; margin: 0 auto; padding: 22px 16px calc(110px + env(saf
 
 <section id="v-panel" hidden>
   <header class="cab"><div class="in">
-    <img src="logo-mark.png" alt="">
+    <img class="logo-izq" src="logo-completo.png" alt="Muebles Ideal" width="95" height="36">
     <h1>Muebles Ideal</h1>
     <a class="avatar" id="avatar" href="perfil.html" aria-label="Mi perfil"></a>
   </div></header>
@@ -223,6 +226,7 @@ const ICO = {
   pagina: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
   portal: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
   mensajes: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  despiece: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
   inicio: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   ajustes: '<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'
 };
@@ -234,9 +238,10 @@ const SECCIONES = [
   { k: "contabilidad.html#nomina", i: "equipo", t: "Empleados y nómina", roles: ["dueno", "admin"], d: "Lo que se le debe a cada trabajador, pagos de la semana, asistencia y fichas." },
   { tab: "Gastos", k: "contabilidad.html", i: "conta", t: "Anotar gastos e ingresos", roles: ["ayudante"], d: "Anota las compras y los cobros del día." },
   { k: "catalogo.html", i: "catalogo", t: "Catálogo de la página", roles: ["dueno"], d: "Productos, fotos, precios, categorías, telas y colores que ven los clientes." },
+  { k: "despiece.html", i: "despiece", t: "Despiece con IA", roles: ["dueno", "admin"], d: "Tómale una foto a un sofá, poltrona o cama y te da la estructura, los cortes, patas y materiales." },
   { tab: "Inventario", k: "inventario.html", i: "inventario", t: "Inventario del almacén", roles: ["dueno", "admin", "ayudante"], d: "Materiales en el taller: tornillos, grapas, madera, goma espuma, tela, pega. Cuánto hay y qué falta." },
   { k: "planos.html", i: "planos", t: "Planos y despieces", roles: ["dueno", "admin"], d: "Estructura de madera, lista de cortes y compras de cada modelo." },
-  { tab: "Mensajes", k: "mensajes.html", i: "mensajes", t: "Mensajes de clientes", roles: ["dueno", "admin", "ayudante"], d: "Lo que escriben los clientes desde la página y lo que te escribe el equipo." },
+  { tab: "Mensajes", k: "mensajes.html", i: "mensajes", t: "Mensajes de clientes", roles: ["dueno", "admin", "ayudante"], d: "Clientes de la página, tu equipo y chats privados. Puedes enviar fotos y PDF." },
   { k: "perfil.html?equipo", i: "portal", t: "Perfiles del equipo", roles: ["dueno"], d: "Fotos, datos, estudios y documentos de cada trabajador: récipes, cursos, exámenes." },
   { k: "perfil.html", i: "portal", t: "Mi perfil", roles: ["admin", "ayudante"], d: "Tu foto, reseña, estudios y documentos." },
   { k: PAGINA, i: "pagina", t: "Ver la página", roles: ["dueno", "admin", "ayudante"], d: "La tienda como la ven los clientes.", nueva: true }
@@ -412,13 +417,17 @@ auth.onAuthStateChanged(async u => {
   if (window.MI_TEMA) MI_TEMA.montar($("tema-caja"));
   if (window.MiChat && ls.some(s => s.k === "mensajes.html")) {
     if (window.quitarSinLeer) window.quitarSinLeer();
-    window.quitarSinLeer = MiChat.sinLeerStaff(db, n => {
+    let nStaff = 0, nPriv = 0;
+    if (window.quitarSinLeerP) window.quitarSinLeerP();
+    window.quitarSinLeerP = MiChat.sinLeerPrivados(db, em, n => { nPriv = n; ponerGlobo(nStaff + nPriv); });
+    window.quitarSinLeer = MiChat.sinLeerStaff(db, n => { nStaff = n; ponerGlobo(nStaff + nPriv); });
+    function ponerGlobo(n) {
       document.querySelectorAll('#mbar a[href="mensajes.html"], .grid a[href="mensajes.html"]').forEach(a => {
         let b = a.querySelector(".mc-n");
         if (!b) { b = document.createElement("b"); b.className = "mc-n"; a.appendChild(b); }
         b.textContent = n > 9 ? "9+" : n; b.hidden = !n;
       });
-    });
+    }
   }
   if (rol === "dueno") {
     db.collection("perfiles").get().then(q => {

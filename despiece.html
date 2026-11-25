@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Despiece con IA · Muebles Ideal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/png" href="logo-mark.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+/* Despiece con IA: foto del mueble → la IA lo reconoce → medidas → estructura y materiales */
+:root { --display:Lexend, system-ui, sans-serif; --body:Karla, system-ui, sans-serif; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+main { max-width: 980px; margin: 0 auto; padding: 18px 14px calc(110px + env(safe-area-inset-bottom, 0px)); }
+
+.portada { background: var(--grad-hero); color: #fff; border-radius: 28px; padding: 22px 20px; box-shadow: 0 22px 40px -22px rgba(20,60,190,.75); margin-bottom: 16px; }
+.portada small { color: #d3defd; letter-spacing: .14em; text-transform: uppercase; font-size: .72rem; font-weight: 700; }
+.portada h1 { font-size: 1.5rem; margin: 4px 0 6px; }
+.portada p { margin: 0; color: #e6edff; }
+.pasos { display: flex; gap: 6px; margin-top: 14px; }
+.pasos span { flex: 1; height: 6px; border-radius: 999px; background: rgba(255,255,255,.22); }
+.pasos span.ok { background: var(--amarillo); }
+
+.card { background: var(--surface); border-radius: 22px; padding: 18px; box-shadow: var(--sombra); margin-bottom: 14px; animation: sube .45s cubic-bezier(.2,.9,.3,1) both; }
+.card > h2 { font-size: .74rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; gap: 8px; align-items: center; }
+.card > h2 .der { margin-left: auto; letter-spacing: 0; text-transform: none; font-family: var(--body); }
+.ayuda { color: var(--muted); font-size: .88rem; margin: 0 0 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 20px; min-height: 48px; border-radius: 999px; border: 1.5px solid transparent; background: var(--negro); color: #fff; font-family: var(--display); font-weight: 600; cursor: pointer; text-decoration: none; transition: transform .15s; }
+.btn:active { transform: scale(.97); }
+.btn.borde { background: var(--surface); color: var(--azul-fuerte); border-color: var(--line); }
+.btn.suave { background: var(--soft); color: var(--azul-fuerte); }
+.btn.ancho { width: 100%; }
+.btn:disabled { opacity: .6; cursor: default; }
+.btn svg { width: 20px; height: 20px; }
+.acc { display: flex; flex-wrap: wrap; gap: 10px; }
+.acc .btn { flex: 1 1 160px; }
+
+/* Foto */
+.foto-zona { position: relative; display: grid; place-items: center; min-height: 220px; border: 2px dashed var(--line); border-radius: 20px; background: var(--campo); overflow: hidden; cursor: pointer; text-align: center; color: var(--azul-fuerte); font-weight: 700; padding: 16px; }
+.foto-zona svg { width: 44px; height: 44px; margin-bottom: 8px; }
+.foto-zona img { width: 100%; max-height: 380px; object-fit: contain; border-radius: 14px; }
+.foto-zona input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.foto-zona small { display: block; color: var(--muted); font-weight: 400; margin-top: 4px; }
+.pensando { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; background: var(--soft); color: var(--azul-fuerte); font-weight: 700; }
+.pensando i { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--azul); border-right-color: transparent; animation: gira .8s linear infinite; flex: none; }
+
+/* Lo que vio la IA */
+.visto { display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: start; }
+.visto img { width: 110px; height: 110px; object-fit: cover; border-radius: 16px; }
+.visto b { font-family: var(--display); font-size: 1.05rem; display: block; }
+.conf { display: inline-block; margin-top: 6px; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; background: var(--ok-bg); color: var(--ok); }
+.conf.media { background: var(--warn-bg); color: var(--warn); }
+.notas-ia { margin: 10px 0 0; padding-left: 18px; color: var(--muted); font-size: .88rem; }
+.grupo-op { margin: 14px 0 0; }
+.grupo-op > span { display: block; font-weight: 700; font-size: .88rem; margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--azul); border-color: var(--azul); color: #fff; }
+.chips button .ia { font-size: .7rem; margin-left: 4px; opacity: .8; }
+.fila { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .fila { grid-template-columns: repeat(2, minmax(0, 1fr)); } .visto { grid-template-columns: 84px 1fr; } .visto img { width: 84px; height: 84px; } }
+label.f { display: flex; flex-direction: column; gap: 5px; font-weight: 700; font-size: .84rem; }
+label.f small { font-weight: 400; color: var(--muted); }
+input, select { width: 100%; min-height: 46px; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--campo); }
+input:focus, select:focus { outline: none; border-color: var(--azul); background: var(--surface); }
+.sugerido { font-size: .74rem; color: var(--azul); font-weight: 700; }
+
+/* Resultado */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+@media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { background: var(--soft); border-radius: 16px; padding: 12px 14px; }
+.kpi span { display: block; font-size: .74rem; color: var(--muted); font-weight: 700; }
+.kpi b { font-family: var(--display); font-size: 1.15rem; color: var(--titulo); }
+.aviso { background: var(--warn-bg); color: var(--warn); border-radius: 12px; padding: 9px 12px; font-size: .88rem; margin: 0 0 10px; }
+.dib { border: 1px solid var(--line); border-radius: 16px; padding: 8px; background: #fffdf8; color: #141414; --ink: #141414; --muted: #615d56; color-scheme: light; overflow: hidden; }
+.dib svg { width: 100%; height: auto; display: block; }
+.dos { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; align-items: center; }
+@media (max-width: 700px) { .dos { grid-template-columns: 1fr; } }
+.wrap-t { overflow-x: auto; }
+table.t { width: 100%; border-collapse: collapse; font-size: .88rem; }
+table.t th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 6px; border-bottom: 1.5px solid var(--line); }
+table.t td { padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.t td.n { text-align: right; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+table.t td.c { text-align: center; font-weight: 700; }
+table.t .sub { display: block; color: var(--muted); font-size: .78rem; }
+table.t tr.sec td { background: var(--soft); font-weight: 700; color: var(--azul-fuerte); font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
+details.grupo { border-top: 1px solid var(--line); padding: 10px 0; }
+details.grupo summary { cursor: pointer; font-weight: 700; display: flex; gap: 8px; align-items: baseline; list-style: none; }
+details.grupo summary::-webkit-details-marker { display: none; }
+details.grupo summary::before { content: "›"; color: var(--azul); font-size: 1.3rem; line-height: 1; transition: transform .2s; }
+details.grupo[open] summary::before { transform: rotate(90deg); }
+details.grupo summary em { font-style: normal; background: var(--soft); color: var(--azul-fuerte); border-radius: 999px; padding: 1px 9px; font-size: .8rem; }
+details.grupo summary small { color: var(--muted); font-weight: 400; }
+details.grupo .dib { margin: 10px 0; }
+
+/* Historial */
+.hist { display: flex; flex-direction: column; gap: 8px; }
+.hist button { display: flex; gap: 12px; align-items: center; padding: 10px; border: 0; border-radius: 16px; background: var(--soft); text-align: left; cursor: pointer; width: 100%; }
+.hist img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; flex: none; background: var(--surface); }
+.hist b { display: block; }
+.hist small { color: var(--muted); }
+
+.msg { padding: 10px 12px; border-radius: 12px; font-size: .9rem; margin: 10px 0 0; }
+.msg.err { background: var(--bad-bg); color: var(--bad); } .msg.ok { background: var(--ok-bg); color: var(--ok); }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70; background: var(--marino); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .92rem; max-width: calc(100% - 32px); text-align: center; }
+@keyframes sube { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes gira { to { transform: rotate(360deg); } }
+@page { size: letter; margin: 10mm; }
+@media print {
+  html, body { background: #fff; font-size: 11px; }
+  .mi-menu, .portada, .no-print, .toast { display: none !important; }
+  main { padding: 0; max-width: none; }
+  .card { box-shadow: none; border: 0; padding: 0 0 6mm; break-inside: avoid; }
+  details.grupo { break-inside: avoid; }
+  details.grupo > *:not(summary) { display: block !important; }
+}
+</style>
+<link rel="stylesheet" href="tema.css">
+<script src="tema.js"></script>
+</head>
+<body>
+<script src="bloqueo.js"></script>
+<main id="app"><p class="ayuda" style="text-align:center;padding:60px 0">Cargando…</p></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-firestore-compat.js"></script>
+<script src="estructura.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBJXjU2TUQvCa7xxe1bEa8WchLrn8LDsyM",
+  authDomain: "muebles-ideal-38af6.firebaseapp.com",
+  projectId: "muebles-ideal-38af6",
+  storageBucket: "muebles-ideal-38af6.firebasestorage.app",
+  messagingSenderId: "971429499996",
+  appId: "1:971429499996:web:ba6aabf7e61514e0e8c299"
+});
+const auth = firebase.auth(), db = firebase.firestore(), FV = firebase.firestore.FieldValue;
+const DUENO = "mueblesideal2020@gmail.com";
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const toast = t => { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 3400); };
+const fmt = Estructura.fmt;
+const num = v => { const n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : 0; };
+const MODELO_DEF = "claude-sonnet-5-5";
+
+/* ---------- Tipos de mueble que entiende el despiece ---------- */
+const TIPOS = {
+  recto:    { n: "Sofá recto", med: { largo: 220, fondo: 85, alto: 85 } },
+  divan:    { n: "Sofá con diván", med: { largo: 280, fondo: 95, alto: 85, divanLargo: 160 } },
+  divanL:   { n: "Sofá en L (modelo v7)", med: {} },
+  sofaCama: { n: "Sofá cama (modelo v7)", med: {} },
+  poltrona: { n: "Poltrona / butaca", med: { largo: 85, fondo: 85, alto: 90 } },
+  cama:     { n: "Cama con cabecero", med: { largo: 200, fondo: 140, alto: 120 } }
+};
+const SOPORTES = { patas: "Patas", deslizadores: "Deslizadores", zocalo: "Zócalo (base al piso)" };
+const MAT_PATA = { madera: "Madera", metal: "Metal", plastico: "Plástico" };
+
+/* Estado */
+let ROL = "", YO = "", CLAVE = null, MODELO = MODELO_DEF, FOTO = "", MINI = "", IA = null, OP = null, RES = null, HIST = [], paso = 1, pensando = false, errorIA = "";
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { location.replace("index.html"); return; }
+  YO = (u.email || "").toLowerCase();
+  if (YO === DUENO) ROL = "dueno";
+  else { try { const d = await db.collection("equipo").doc(YO).get(); const x = d.exists ? d.data() : null; ROL = x && x.activo !== false && x.rol === "administrador" ? "admin" : ""; } catch (e) { ROL = ""; } }
+  if (!ROL) { $("app").innerHTML = `<div class="card"><p>Esta sección es para el dueño y el administrador.</p><a class="btn borde" href="index.html">Volver al inicio</a></div>`; return; }
+  try { const c = await db.collection("ia").doc("clave").get(); if (c.exists) { CLAVE = c.data().clave || null; MODELO = c.data().modelo || MODELO_DEF; } } catch (e) { console.warn(e); }
+  try { const h = await db.collection("despieces").orderBy("fecha", "desc").limit(12).get(); HIST = h.docs.map(d => Object.assign({ id: d.id }, d.data())); } catch (e) { console.warn(e); }
+  pintar();
+});
+
+/* ---------- Pantalla ---------- */
+function pintar(){
+  $("app").innerHTML = `
+    <section class="portada no-print"><small>Taller · Despiece</small><h1>Despiece con IA</h1>
+      <p>Tómale una foto al mueble, confirma las medidas y te doy la estructura, los cortes y los materiales.</p>
+      <div class="pasos" aria-hidden="true"><span class="${paso >= 1 ? "ok" : ""}"></span><span class="${paso >= 2 ? "ok" : ""}"></span><span class="${paso >= 3 ? "ok" : ""}"></span></div></section>
+    ${!CLAVE ? bloqueClave() : ""}
+    ${paso === 1 ? pasoFoto() : ""}
+    ${paso >= 2 && OP ? pasoConfirmar() : ""}
+    <div id="resultado"></div>
+    ${paso === 1 && HIST.length ? `<div class="card no-print"><h2>Despieces anteriores</h2><div class="hist">${HIST.map(h => `<button type="button" data-h="${h.id}"><img src="${h.mini || ""}" alt=""><span><b>${esc(h.nombre || (TIPOS[h.op && h.op.tipo] || {}).n || "Mueble")}</b><small>${esc(medTexto(h.op || {}))} · ${esc(fechaTs(h.fecha))}</small></span></button>`).join("")}</div></div>` : ""}
+    ${CLAVE && ROL === "dueno" ? `<p class="ayuda no-print" style="text-align:center"><button type="button" class="btn suave" id="b-clave-ed" style="min-height:36px;padding:4px 14px;font-size:.82rem">Ajustes de la IA</button></p><div id="clave-ed"></div>` : ""}`;
+  eventos();
+  if (paso === 3 && RES) pintarResultado();
+}
+const fechaTs = t => { const d = t && t.toDate ? t.toDate() : t && t.seconds ? new Date(t.seconds * 1000) : null; return d ? d.toLocaleDateString("es-VE", { day: "numeric", month: "short" }) : ""; };
+const medTexto = o => o.tipo === "divanL" || o.tipo === "sofaCama" ? "medidas fijas" : o.tipo === "cama" ? `${fmt(num(o.fondo))} × ${fmt(num(o.largo))} cm` : `${fmt(num(o.largo))} × ${fmt(num(o.fondo))} cm`;
+
+function bloqueClave(){
+  if (ROL !== "dueno") return `<div class="card"><h2>IA sin conectar</h2><p class="ayuda" style="margin:0">El dueño debe conectar la IA una vez. Mientras tanto puedes elegir el tipo de mueble a mano.</p></div>`;
+  return `<div class="card no-print"><h2>Conectar la IA (una sola vez)</h2>
+    <p class="ayuda">1. Entra a <b>console.anthropic.com</b> con tu correo, agrega un saldo pequeño (con 5 $ alcanza para cientos de fotos) y crea una <b>API key</b>.<br>2. Pégala aquí. Se guarda en tu base de datos y solo la usan tú y el administrador.</p>
+    <label class="f">Clave de la API<input id="k-in" type="password" placeholder="sk-ant-…" autocomplete="off"></label>
+    <div class="acc" style="margin-top:10px"><button class="btn oro" type="button" id="k-ok">Guardar y probar</button></div><p class="msg" id="k-msg" hidden></p></div>`;
+}
+function pasoFoto(){
+  return `<div class="card no-print"><h2>1 · Foto del mueble</h2>
+    <label class="foto-zona" id="foto-zona">${FOTO ? `<img src="${FOTO}" alt="Foto del mueble">` : `<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><br>Tomar o elegir una foto<small>Sofá, poltrona o cama. Mejor de frente o en diagonal, con todo el mueble a la vista.</small></span>`}
+      <input type="file" accept="image/*" id="foto-in"></label>
+    ${pensando ? `<div class="pensando" style="margin-top:12px"><i></i>La IA está mirando el mueble…</div>` : ""}
+    ${errorIA ? `<p class="msg err">${esc(errorIA)}</p>` : ""}
+    <div class="acc" style="margin-top:12px">
+      ${FOTO && CLAVE && !pensando ? `<button class="btn oro" type="button" id="b-analizar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>Analizar con IA</button>` : ""}
+      ${!pensando ? `<button class="btn borde" type="button" id="b-manual">Elegir el tipo a mano</button>` : ""}
+    </div></div>`;
+}
+
+/* ---------- Paso 2: confirmar lo que vio la IA y las medidas ---------- */
+function opciones(nombre, k, lista, sug){
+  return `<div class="grupo-op"><span>${nombre}</span><div class="chips">${Object.entries(lista).map(([v, t]) => `<button type="button" data-op="${k}" data-v="${v}" aria-pressed="${String(OP[k]) === v}">${esc(t)}${sug != null && String(sug) === v ? '<span class="ia">· IA</span>' : ""}</button>`).join("")}</div></div>`;
+}
+function campo(etq, k, ayuda, extra){
+  const s = IA && IA.medidas && IA.medidas[k] != null && k in IA.medidas ? `<span class="sugerido">IA: ≈${fmt(num(IA.medidas[k]))}</span>` : "";
+  return `<label class="f">${etq} ${ayuda ? `<small>${ayuda}</small>` : ""}<input inputmode="decimal" data-m="${k}" value="${OP[k] == null ? "" : String(OP[k]).replace(".", ",")}" ${extra || ""}>${s}</label>`;
+}
+function pasoConfirmar(){
+  const t = OP.tipo, fijo = t === "divanL" || t === "sofaCama", cama = t === "cama", sofa = !cama;
+  const sug = IA || {};
+  return `<div class="card no-print"><h2>2 · Lo que veo y las medidas</h2>
+    <div class="visto">${MINI ? `<img src="${MINI}" alt="">` : ""}<div>
+      <b>${esc(sug.descripcion || TIPOS[t].n)}</b>
+      ${IA ? `<span class="conf ${sug.confianza < .7 ? "media" : ""}">IA ${Math.round((sug.confianza || 0) * 100)} % segura</span>` : `<span class="conf media">Elegido a mano</span>`}
+      ${IA && (sug.notas || []).length ? `<ul class="notas-ia">${sug.notas.slice(0, 4).map(n => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
+    </div></div>
+    ${opciones("Tipo de mueble", "tipo", Object.fromEntries(Object.entries(TIPOS).map(([k, v]) => [k, v.n])), sug.tipo)}
+    ${fijo ? `<p class="ayuda" style="margin-top:12px">Este modelo usa las medidas fijas del plano v7 del taller.</p>` : `
+      ${sofa && t !== "poltrona" ? opciones("Puestos", "puestos", { 1: "1", 2: "2", 3: "3", 4: "4" }, sug.puestos) : ""}
+      ${sofa ? opciones("Brazos", "brazos", { ambos: "Ambos", izquierdo: "Solo izquierdo", derecho: "Solo derecho", ninguno: "Sin brazos" }, sug.brazos) : ""}
+      ${t === "divan" ? opciones("Lado del diván", "divanLado", { izquierda: "Izquierda", derecha: "Derecha" }, sug.divanLado) + opciones("Baúl en el diván", "baul", { true: "Sí", false: "No" }, sug.baul) : ""}
+      ${cama ? opciones("Gavetas", "cantGavetas", { 0: "Sin gavetas", 2: "2", 4: "4" }, sug.gavetas) : ""}
+      <div class="grupo-op"><span>Medidas en cm</span><div class="fila">
+        ${cama ? campo("Ancho interior", "fondo", "colchón") + campo("Largo externo", "largo") + campo("Alto del cabecero", "altoCabecero", "desde el piso")
+          : campo("Largo total", "largo") + campo("Fondo total", "fondo") + campo("Alto del espaldar", "altoEspaldar", "desde la base")}
+        ${t === "divan" ? campo("Largo del diván", "divanLargo", "con espaldar") : ""}
+        ${sofa ? campo("Alto del brazo", "altoBrazo") + campo("Ancho del brazo", "anchoBrazo") : ""}
+      </div></div>`}
+    ${opciones("Apoyo en el piso", "soporte", SOPORTES, sug.soporte)}
+    ${OP.soporte === "patas" ? opciones("Material de las patas", "matPata", MAT_PATA, sug.materialPata) : ""}
+    <div class="fila" style="margin-top:12px">
+      ${OP.soporte !== "zocalo" ? campo(OP.soporte === "deslizadores" ? "Alto del deslizador" : "Alto de la pata", "altoPata", "cm") : ""}
+    </div>
+    <div class="acc" style="margin-top:16px"><button class="btn oro" type="button" id="b-calcular">Calcular despiece</button><button class="btn borde" type="button" id="b-otra">Otra foto</button></div>
+  </div>`;
+}
+
+/* ---------- Eventos ---------- */
+function eventos(){
+  const fi = $("foto-in"); if (fi) fi.addEventListener("change", elegirFoto);
+  const an = $("b-analizar"); if (an) an.addEventListener("click", analizar);
+  const ma = $("b-manual"); if (ma) ma.addEventListener("click", () => { IA = null; OP = opsDesde({ tipo: "recto" }); paso = 2; pintar(); });
+  const ot = $("b-otra"); if (ot) ot.addEventListener("click", () => { FOTO = MINI = ""; IA = OP = RES = null; paso = 1; errorIA = ""; pintar(); window.scrollTo(0, 0); });
+  const ca = $("b-calcular"); if (ca) ca.addEventListener("click", () => { calcular(); });
+  document.querySelectorAll("[data-op]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.op, v = b.dataset.v;
+    if (k === "tipo") {
+      /* Si el tipo es el que vio la IA, se usan sus medidas; si no, las típicas del taller para ese tipo */
+      const viejo = OP, base = IA && IA.tipo === v ? IA : { tipo: v, puestos: IA && IA.puestos, brazos: IA && IA.brazos, divanLado: IA && IA.divanLado };
+      OP = opsDesde(Object.assign({}, base, { tipo: v, soporte: viejo.soporte, materialPata: viejo.matPata }));
+      OP.altoPata = viejo.altoPata;
+    }
+    else if (k === "soporte") { OP.soporte = v; OP.altoPata = v === "deslizadores" ? 2 : v === "zocalo" ? 1 : (IA && IA.soporte === "patas" && IA.medidas.altoPata) || 10; }
+    else OP[k] = v === "true" ? true : v === "false" ? false : /^\d+$/.test(v) ? +v : v;
+    const y = window.scrollY; pintar(); window.scrollTo(0, y);
+  }));
+  document.querySelectorAll("[data-m]").forEach(i => i.addEventListener("input", () => { OP[i.dataset.m] = i.value; }));
+  document.querySelectorAll("[data-h]").forEach(b => b.addEventListener("click", () => { const h = HIST.find(x => x.id === b.dataset.h); if (!h) return; MINI = FOTO = h.mini || ""; IA = h.ia || null; OP = Object.assign({}, h.op); calcular(true); }));
+  const kok = $("k-ok"); if (kok) kok.addEventListener("click", guardarClave);
+  const ke = $("b-clave-ed"); if (ke) ke.addEventListener("click", () => {
+    $("clave-ed").innerHTML = `<div class="card no-print"><h2>Ajustes de la IA</h2><label class="f">Nueva clave de la API <small>déjala vacía para no cambiarla</small><input id="k-in" type="password" placeholder="sk-ant-…" autocomplete="off"></label>
+      <label class="f" style="margin-top:10px">Modelo <small>el que se usa para mirar las fotos</small><input id="k-mod" value="${esc(MODELO)}"></label>
+      <div class="acc" style="margin-top:10px"><button class="btn oro" type="button" id="k-ok">Guardar y probar</button></div><p class="msg" id="k-msg" hidden></p></div>`;
+    $("k-ok").addEventListener("click", guardarClave); ke.remove();
+  });
+}
+
+/* ---------- Foto: se comprime antes de enviarla ---------- */
+function leerImagen(file){ return new Promise((ok, no) => { const r = new FileReader(); r.onload = () => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = r.result; }; r.onerror = no; r.readAsDataURL(file); }); }
+function aJPG(im, lado, q){ const k = Math.min(1, lado / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const x = c.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height); return c.toDataURL("image/jpeg", q); }
+async function elegirFoto(e){
+  const f = e.target.files[0]; if (!f) return;
+  try { const im = await leerImagen(f); FOTO = aJPG(im, 1400, .85); MINI = aJPG(im, 260, .72); IA = OP = RES = null; errorIA = ""; paso = 1; pintar();
+    if (CLAVE) analizar(); }
+  catch (err) { toast("No se pudo leer esa imagen. Prueba con otra."); }
+}
+
+/* ---------- La IA mira la foto ---------- */
+const INSTRUCCION = `Eres un maestro tapicero y carpintero de una fábrica de muebles en Venezuela (Muebles Ideal). Mira la foto y describe el mueble para hacer el despiece de su ESTRUCTURA de madera.
+Responde SOLO con un objeto JSON válido, sin texto antes ni después, con estas claves:
+{
+ "tipo": "recto" | "divan" | "divanL" | "sofaCama" | "poltrona" | "cama",
+ "descripcion": "frase corta en español, p. ej. 'Sofá de 3 puestos con brazos rectos y patas de madera'",
+ "confianza": número de 0 a 1,
+ "puestos": número de puestos o módulos de asiento (poltrona = 1; en diván, el diván cuenta como uno),
+ "brazos": "ambos" | "izquierdo" | "derecho" | "ninguno" (vistos de frente),
+ "divanLado": "izquierda" | "derecha" (solo si es diván, vista de frente),
+ "baul": true | false,
+ "gavetas": 0 | 2 | 4 (solo camas),
+ "soporte": "patas" | "deslizadores" | "zocalo",
+ "materialPata": "madera" | "metal" | "plastico",
+ "medidas": { "largo": cm, "fondo": cm, "altoEspaldar": cm, "altoBrazo": cm, "anchoBrazo": cm, "altoPata": cm, "divanLargo": cm, "altoCabecero": cm },
+ "notas": ["2 a 4 observaciones útiles para el taller: forma del brazo, capitoneado, cojines sueltos, curvas, etc."]
+}
+Reglas: "divanL" es un sofá en L grande con diván; "sofaCama" se abre en cama; "cama" es base con cabecero (en cama, "fondo" es el ANCHO interior del colchón y "largo" el largo externo, normalmente 200).
+"zocalo" = la base llega casi al piso sin patas visibles; "deslizadores" = topes muy bajos (1 a 3 cm) apenas visibles.
+Las medidas son estimadas por las proporciones de un mueble estándar (asiento a unos 43 cm del piso); usa números enteros y omite las que no apliquen.`;
+async function analizar(){
+  if (!FOTO || !CLAVE || pensando) return;
+  pensando = true; errorIA = ""; pintar();
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": CLAVE, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: MODELO, max_tokens: 900,
+        messages: [{ role: "user", content: [
+          { type: "image", source: { type: "base64", media_type: "image/jpeg", data: FOTO.split(",")[1] } },
+          { type: "text", text: INSTRUCCION } ] }] })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(r.status === 401 ? "La clave de la IA no es válida. Revísala en Ajustes de la IA." : r.status === 400 && /credit|balance/i.test(JSON.stringify(j)) ? "La cuenta de la IA no tiene saldo. Recárgala en console.anthropic.com." : r.status === 404 ? `El modelo «${MODELO}» no existe. Cámbialo en Ajustes de la IA.` : (j.error && j.error.message) || "La IA no respondió (" + r.status + ").");
+    const texto = (j.content || []).filter(c => c.type === "text").map(c => c.text).join("");
+    const m = texto.match(/\{[\s\S]*\}/); if (!m) throw new Error("La IA no devolvió un resultado legible. Intenta de nuevo.");
+    IA = limpiarIA(JSON.parse(m[0]));
+    OP = opsDesde(IA); paso = 2; pensando = false; pintar();
+    setTimeout(() => { const c = document.querySelectorAll(".card")[CLAVE ? 1 : 2]; if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); }, 80);
+  } catch (e) {
+    console.error(e); pensando = false;
+    errorIA = /Failed to fetch|NetworkError|Load failed/i.test(e.message) ? "No hay conexión con la IA. Revisa tu internet." : e.message;
+    pintar();
+  }
+}
+function limpiarIA(a){
+  const t = TIPOS[a.tipo] ? a.tipo : "recto";
+  const m = {}; Object.entries(a.medidas || {}).forEach(([k, v]) => { const n = num(v); if (n > 0 && n < 500) m[k] = Math.round(n); });
+  return { tipo: t, descripcion: String(a.descripcion || "").slice(0, 120), confianza: Math.max(0, Math.min(1, num(a.confianza))),
+    puestos: Math.max(1, Math.min(6, Math.round(num(a.puestos) || 1))), brazos: ["ambos", "izquierdo", "derecho", "ninguno"].includes(a.brazos) ? a.brazos : "ambos",
+    divanLado: a.divanLado === "derecha" ? "derecha" : "izquierda", baul: a.baul === true, gavetas: [0, 2, 4].includes(+a.gavetas) ? +a.gavetas : 0,
+    soporte: SOPORTES[a.soporte] ? a.soporte : "patas", materialPata: MAT_PATA[a.materialPata] ? a.materialPata : "madera",
+    medidas: m, notas: (Array.isArray(a.notas) ? a.notas : []).map(n => String(n).slice(0, 160)).slice(0, 4) };
+}
+/* Opciones del formulario a partir de lo que dijo la IA (o valores típicos del taller) */
+function opsDesde(a){
+  const t = a.tipo || "recto", B = Estructura.BASE, med = Object.assign({}, TIPOS[t].med, a.medidas || {});
+  const o = { tipo: t, puestos: t === "poltrona" ? 1 : a.puestos || (t === "divan" ? 3 : 3), brazos: a.brazos || "ambos", divanLado: a.divanLado || "izquierda", baul: !!a.baul,
+    cantGavetas: a.gavetas || 0, soporte: a.soporte || "patas", matPata: a.materialPata || "madera",
+    largo: med.largo, fondo: med.fondo, divanLargo: med.divanLargo || B.divanLargo,
+    altoEspaldar: med.altoEspaldar || B.altoEspaldar, altoBrazo: med.altoBrazo || B.altoBrazo, anchoBrazo: med.anchoBrazo || B.anchoBrazo,
+    altoCabecero: med.altoCabecero || B.altoCabecero, altoPata: a.soporte === "zocalo" ? 1 : med.altoPata || (a.soporte === "deslizadores" ? 2 : B.altoPata) };
+  if (t === "cama") { o.fondo = Estructura.CAMAS[Object.keys(Estructura.CAMAS).sort((x, y) => Math.abs(Estructura.CAMAS[x].ancho - num(med.fondo)) - Math.abs(Estructura.CAMAS[y].ancho - num(med.fondo)))[0]].ancho; o.largo = 200; o.brazos = "ninguno"; }
+  if (t === "poltrona") { o.largo = med.largo || 85; o.fondo = med.fondo || 85; }
+  return o;
+}
+
+/* ---------- Paso 3: calcular ---------- */
+function paramsMotor(o){
+  if (o.tipo === "divanL" || o.tipo === "sofaCama") return { tipo: o.tipo };
+  const p = Object.assign({}, Estructura.BASE, {
+    tipo: o.tipo === "poltrona" ? "recto" : o.tipo, puestos: o.tipo === "poltrona" ? 1 : num(o.puestos) || 1, brazos: o.brazos,
+    largo: num(o.largo), fondo: num(o.fondo), divanLado: o.divanLado, divanLargo: num(o.divanLargo), baul: !!o.baul,
+    altoEspaldar: num(o.altoEspaldar) || Estructura.BASE.altoEspaldar, altoBrazo: num(o.altoBrazo) || Estructura.BASE.altoBrazo, anchoBrazo: num(o.anchoBrazo) || Estructura.BASE.anchoBrazo,
+    altoPata: o.soporte === "zocalo" ? 0.1 : num(o.altoPata) || Estructura.BASE.altoPata, altoCabecero: num(o.altoCabecero) || Estructura.BASE.altoCabecero, cantGavetas: num(o.cantGavetas) || 0 });
+  if (o.tipo === "poltrona") { p.altoEspaldar = num(o.altoEspaldar) || 55; p.fondoEspaldar = 22; }
+  return p;
+}
+function calcular(desdeHistorial){
+  const t = OP.tipo;
+  if (t !== "divanL" && t !== "sofaCama") {
+    if (!(num(OP.largo) > 0) || !(num(OP.fondo) > 0)) { toast("Escribe el largo y el fondo."); return; }
+  }
+  const p = paramsMotor(OP);
+  RES = Estructura.calcular(p); RES.planos = Estructura.planos(RES); RES.p = p;
+  RES.extra = complementos(OP, RES);
+  paso = 3; pintar();
+  setTimeout(() => { const r = $("resultado"); if (r) r.scrollIntoView({ behavior: "smooth", block: "start" }); }, 60);
+  if (!desdeHistorial) guardarHistorial();
+}
+
+/* Patas o deslizadores y tapicería aproximada (lo que no trae el motor de estructura) */
+function complementos(o, r){
+  const t = o.tipo, x = r.x || {}, items = [], tap = [];
+  const largo = t === "divanL" ? 300 : t === "sofaCama" ? 200 : num(o.largo);
+  /* Puntos de apoyo: esquinas + uno cada ±1,1 m en frente y fondo */
+  let apoyos, detalle;
+  if (t === "cama") { const cajas = (r.grupos.find(g => g.id === "base") || { cant: 2 }).cant; apoyos = cajas * 4; detalle = `${cajas} cajas de base × 4 esquinas`; }
+  else if (t === "divanL") { apoyos = 10; detalle = "Sofá + diván del plano v7"; }
+  else if (t === "sofaCama") { apoyos = 6; detalle = "Caja del sofá cama"; }
+  else { const porLinea = 1 + Math.ceil(largo / 110); apoyos = porLinea * 2; detalle = `${porLinea} en el frente y ${porLinea} atrás`;
+    if (t === "divan") { apoyos += num(o.divanLargo) > 170 ? 3 : 2; detalle += " + puntas del diván"; } }
+  const alto = num(o.altoPata) || 5;
+  if (o.soporte === "patas") {
+    const mat = { madera: "de madera", metal: "metálica", plastico: "plástica" }[o.matPata] || "";
+    items.push({ n: `Pata ${mat} de ${fmt(alto)} cm`, c: apoyos, u: "unid.", nota: detalle });
+    items.push({ n: o.matPata === "madera" ? "Placa de montaje para pata (con tornillo)" : "Placa de montaje con rosca", c: apoyos, u: "unid.", nota: "Una por pata, atornillada al marco inferior" });
+    items.push({ n: 'Tornillo 1 1/4" para placas', c: apoyos * 4, u: "unid.", nota: "4 por placa" });
+    items.push({ n: "Regatón o fieltro para pata", c: apoyos, u: "unid.", nota: "Protege el piso" });
+  } else if (o.soporte === "deslizadores") {
+    items.push({ n: `Deslizador (regatón) de ${fmt(alto)} cm`, c: apoyos, u: "unid.", nota: detalle + " · de clavo o tornillo" });
+    if (largo > 180 || t === "cama") items.push({ n: "Taco de madera bajo el marco inferior", c: apoyos, u: "unid.", nota: "Para que el deslizador agarre en madera maciza" });
+  } else {
+    const per = t === "cama" ? 2 * (num(o.largo) + num(o.fondo) + 5) : 2 * (largo + num(o.fondo) - (num(Estructura.BASE.fondoEspaldar) || 25));
+    items.push({ n: "Listón para zócalo (rodapié de la base)", c: Math.ceil(per / 100 * 1.1 * 10) / 10, u: "m", nota: "Alrededor de la base, retirado 3 a 5 cm hacia adentro" });
+    items.push({ n: "Deslizador bajo el zócalo", c: apoyos, u: "unid.", nota: "Para que no raye el piso" });
+  }
+  /* Tapicería aproximada (tela de 1,40 m de ancho) */
+  let tela, gomaBE, guata;
+  if (t === "cama") { const anC = num(o.fondo) + 5, alC = num(o.altoCabecero) || 120, per = 2 * (num(o.largo) + anC);
+    tela = ((anC + 40) * (alC + 30)) / 14000 * 1.2 + per * (35 + 15) / 14000 * 1.15; gomaBE = (anC * alC) / 10000; guata = gomaBE + per * 0.5 / 100; }
+  else { const pu = t === "divanL" ? 4 : t === "sofaCama" ? 3 : t === "poltrona" ? 1 : num(o.puestos) || 1, nb = t === "divanL" || t === "sofaCama" ? 2 : r.nb || 0;
+    tela = 2 + pu * 3 + nb * 0.8 + (t === "divan" || t === "divanL" ? 4 : 0) - (t === "poltrona" ? 0.4 : 0);
+    gomaBE = (r.grupos || []).filter(g => /brazo|espaldar/i.test(g.id)).reduce((s, g) => s + g.mdf.reduce((tt, m) => tt + m.c * m.an * m.al, 0) * g.cant, 0) / 10000 || pu * 0.8 + nb * 0.6;
+    guata = tela * 1.4 * 0.45; }
+  tap.push({ n: "Tela de tapicería (1,40 m de ancho)", c: Math.ceil(tela * 2) / 2, u: "m", nota: "Aproximado, sin contar casar dibujos o rayas (+10 a 15 %)" });
+  tap.push({ n: 'Goma espuma 1" para brazos, espaldar y cabecero', c: Math.ceil(gomaBE * 1.15 * 10) / 10, u: "m²", nota: "Área a forrar + 15 %" });
+  tap.push({ n: "Guata (napa)", c: Math.ceil(guata * 10) / 10, u: "m²", nota: "Capa sobre la goma" });
+  tap.push({ n: "Pega de contacto", c: Math.max(1, Math.ceil((gomaBE + guata) / 8)), u: "L", nota: "Para pegar goma y guata" });
+  tap.push({ n: "Grapas de tapicería 8 mm", c: Math.max(1, Math.ceil(tela / 6)), u: "cajas", nota: "Caja de 5.000" });
+  if (t !== "cama") tap.push({ n: "Entretela o tela de fondo (debajo)", c: Math.ceil((largo * (num(o.fondo) || 90)) / 14000 * 10) / 10, u: "m", nota: "Cierre de la base por debajo" });
+  return { patas: items, apoyos, tapiceria: tap };
+}
+
+function pintarResultado(){
+  const r = RES, o = OP, x = r.x || {}, ex = r.extra;
+  const titulo = o.tipo === "poltrona" ? "Poltrona" : r.titulo || (r.cama ? `Cama ${Estructura.nombreCama(x.largo, x.fondo)}` : `Sofá ${x.tipo === "divan" ? "con diván " + x.divanLado : "recto"} · ${x.puestos} puesto${x.puestos === 1 ? "" : "s"}`);
+  const tabla = gr => `<div class="wrap-t"><table class="t"><thead><tr><th>Pieza</th><th style="text-align:center">Cant.</th><th style="text-align:right">Medida</th><th>Corte</th></tr></thead><tbody>
+    ${gr.piezas.map(p => `<tr><td>${esc(p.n)}<span class="sub">Listón ${p.sec}${p.nota ? " · " + esc(p.nota) : ""}</span></td><td class="c">${p.c * gr.cant}</td><td class="n">${fmt(p.l)} cm</td><td>${esc(p.corte)}</td></tr>`).join("")}
+    ${(gr.tablas || []).map(tb => `<tr><td>${esc(tb.n)}<span class="sub">${esc(tb.nota || "")}</span></td><td class="c">${tb.c}</td><td class="n" colspan="2" style="text-align:left;white-space:normal">${esc(tb.med)}</td></tr>`).join("")}
+    ${gr.mdf.map(m => `<tr><td>${esc(m.n)}<span class="sub">${m.mat || "MDF"}${m.nota ? " · " + esc(m.nota) : ""}</span></td><td class="c">${m.c * gr.cant}</td><td class="n">${fmt(m.an)} × ${fmt(m.al)}</td><td>Lámina</td></tr>`).join("")}
+    ${gr.herrajes.map(h => `<tr><td>${esc(h.n)}</td><td class="c">${h.c * gr.cant}</td><td></td><td>Herraje</td></tr>`).join("")}</tbody></table></div>`;
+  const lista = (ls) => ls.map(c => `<tr><td>${esc(c.n)}<span class="sub">${esc(c.nota || "")}</span></td><td class="n">${Number.isInteger(c.c) ? c.c : fmt(c.c)} ${esc(c.u)}</td></tr>`).join("");
+  const hash = Estructura.aHash(Object.fromEntries(Object.keys(Estructura.BASE).filter(k => k in r.p).map(k => [k, r.p[k]])));
+  $("resultado").innerHTML = `
+    <div class="card"><h2>3 · Despiece <span class="der">${new Date().toLocaleDateString("es-VE")}</span></h2>
+      <h3 style="font-size:1.2rem;margin-bottom:10px">${esc(titulo)}${IA && IA.descripcion ? `<small style="display:block;font-family:var(--body);font-weight:400;color:var(--muted);font-size:.9rem;margin-top:2px">${esc(IA.descripcion)}</small>` : ""}</h3>
+      ${(r.avisos || []).map(a => `<p class="aviso">⚠ ${esc(a)}</p>`).join("")}
+      <div class="kpis">
+        <div class="kpi"><span>Medida</span><b>${o.tipo === "divanL" || o.tipo === "sofaCama" ? "Plano v7" : r.cama ? `${fmt(x.anchoCabecero)} × ${fmt(x.largo)}` : `${fmt(x.largo)} × ${fmt(x.tipo === "divan" ? x.divanLargo : x.fondo)}`}</b></div>
+        <div class="kpi"><span>${r.cama ? "Alto de la base" : "Alto del asiento"}</span><b>${fmt(r.alturas.asiento)} cm</b></div>
+        <div class="kpi"><span>Listones ${fmt(x.la || 2.5)}×${fmt(x.lb || 5)}</span><b>${r.barras.length} de ${fmt((x.largoListon || 300) / 100)} m</b></div>
+        <div class="kpi"><span>${esc(SOPORTES[o.soporte])}</span><b>${o.soporte === "zocalo" ? "Zócalo" : ex.apoyos + " unid."}</b></div>
+      </div>
+      <div class="dos"><div class="dib">${r.planos.general}</div><div class="dib">${r.planos.alturas}</div></div>
+    </div>
+
+    <div class="card"><h2>Estructura por partes</h2>
+      ${r.grupos.map(gr => `<details class="grupo"><summary>${esc(gr.t)} <em>× ${gr.cant}</em> <small>${esc(gr.med || "")}</small></summary>${gr.svg ? `<div class="dib">${gr.svg}</div>` : ""}${tabla(gr)}</details>`).join("")}
+    </div>
+
+    <div class="card"><h2>Materiales aproximados</h2>
+      <div class="wrap-t"><table class="t"><thead><tr><th>Material</th><th style="text-align:right">Cantidad</th></tr></thead><tbody>
+        <tr class="sec"><td colspan="2">Estructura</td></tr>${lista(r.compra)}
+        <tr class="sec"><td colspan="2">${esc(SOPORTES[o.soporte])}</td></tr>${lista(ex.patas)}
+        <tr class="sec"><td colspan="2">Tapicería (estimado)</td></tr>${lista(ex.tapiceria)}
+      </tbody></table></div>
+      <p class="ayuda" style="margin:12px 0 0">La estructura sale del motor del taller (igual que Planos). Patas y tapicería son cálculos aproximados: ajústalos según el modelo y la tela.</p>
+    </div>
+    <div class="acc no-print"><button class="btn oro" type="button" id="b-print">Imprimir / PDF</button>${o.tipo !== "poltrona" ? `<a class="btn borde" href="planos.html#${o.tipo === "divanL" || o.tipo === "sofaCama" ? "tipo=" + o.tipo : hash}">Abrir en Planos</a>` : ""}<button class="btn borde" type="button" id="b-volver">Cambiar medidas</button><button class="btn suave" type="button" id="b-nueva">Nueva foto</button></div>`;
+  $("b-print").addEventListener("click", () => { document.querySelectorAll("details.grupo").forEach(d => d.open = true); window.print(); });
+  $("b-volver").addEventListener("click", () => { paso = 2; pintar(); setTimeout(() => { const c = document.querySelectorAll(".card")[CLAVE ? 0 : 1]; if (c) c.scrollIntoView({ behavior: "smooth" }); }, 50); });
+  $("b-nueva").addEventListener("click", () => { FOTO = MINI = ""; IA = OP = RES = null; paso = 1; pintar(); window.scrollTo(0, 0); });
+}
+
+/* ---------- Guardar en el historial (con una miniatura de la foto) ---------- */
+async function guardarHistorial(){
+  try {
+    const d = { fecha: FV.serverTimestamp(), por: YO, mini: MINI || "", ia: IA || null, op: OP, nombre: IA && IA.descripcion ? IA.descripcion : TIPOS[OP.tipo].n };
+    const ref = await db.collection("despieces").add(d);
+    HIST.unshift(Object.assign({ id: ref.id }, d, { fecha: { seconds: Date.now() / 1000 } })); HIST = HIST.slice(0, 12);
+  } catch (e) { console.warn("historial", e); }
+}
+
+/* ---------- Clave de la IA (solo el dueño) ---------- */
+async function guardarClave(){
+  const k = ($("k-in").value || "").trim(), mod = $("k-mod") ? $("k-mod").value.trim() || MODELO_DEF : MODELO, m = $("k-msg"), b = $("k-ok");
+  const clave = k || CLAVE;
+  const msg = (t, c) => { m.textContent = t; m.className = "msg " + c; m.hidden = false; };
+  if (!clave || clave.length < 20) return msg("Pega la clave completa (empieza por sk-ant-).", "err");
+  b.disabled = true; b.textContent = "Probando…";
+  try {
+    const r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": clave, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: mod, max_tokens: 5, messages: [{ role: "user", content: "Responde: ok" }] }) });
+    if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(r.status === 401 ? "La clave no es válida." : r.status === 404 ? `El modelo «${mod}» no existe.` : (j.error && j.error.message) || "Error " + r.status); }
+    await db.collection("ia").doc("clave").set({ clave, modelo: mod, por: YO, fecha: FV.serverTimestamp() });
+    CLAVE = clave; MODELO = mod; toast("IA conectada ✓"); pintar();
+  } catch (e) { console.error(e); b.disabled = false; b.textContent = "Guardar y probar"; msg(/fetch/i.test(e.message) ? "No hay conexión. Revisa tu internet." : e.message, "err"); }
+}
+if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+</script>
+<script src="menu.js"></script>
+</body>
+</html>

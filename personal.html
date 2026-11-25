@@ -114,6 +114,10 @@ main { padding: 18px 16px calc(96px + env(safe-area-inset-bottom, 0px)); max-wid
 .mp-av { width: 58px; height: 58px; flex: none; border-radius: 50%; border: 3px solid rgba(255,255,255,.85); background: rgba(255,255,255,.18) center/cover; display: grid; place-items: center; font-family: var(--display); font-size: 1.4rem; }
 .mp-tx { flex: 1; min-width: 0; } .mp-tx b { display: block; font-family: var(--display); font-weight: 600; } .mp-tx small { color: #d3defd; font-size: .85rem; }
 .mp-fl { font-size: 1.8rem; line-height: 1; opacity: .8; }
+.chat-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface); box-shadow: var(--sombra, 0 4px 14px rgba(0,0,0,.06)); }
+.chat-seg button { min-height: 42px; border: 0; border-radius: 999px; background: none; color: var(--muted); font-weight: 700; cursor: pointer; }
+.chat-seg button[aria-selected="true"] { background: var(--barra-act-bg, #e3eaff); color: var(--barra-act-txt, #1d47b8); }
+.chat-seg .cn { display: inline-block; min-width: 18px; height: 18px; line-height: 18px; padding: 0 5px; margin-left: 6px; border-radius: 999px; background: #b3261e; color: #fff; font-size: .7rem; }
 .toast { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; background: var(--negro,#141414); color: #fff; padding: 12px 20px; border-radius: 999px; font-size: .95rem; max-width: calc(100% - 32px); text-align: center; }
 </style>
 <link rel="stylesheet" href="tema.css">
@@ -235,7 +239,10 @@ auth.onAuthStateChanged(async u => {
 /* ---- Datos ---- */
 async function entrarApp(){
   mostrar("v-app");
-  if (!CHAT && window.MiChat) CHAT = MiChat.empleado({ db, firebase, email: YO.email, nombre: E.nombre, onNoLeidas: n => { const b = $("n-chat"); if (b) { b.textContent = n > 9 ? "9+" : n; b.hidden = !n; } } });
+  if (!CHAT && window.MiChat) {
+    CHAT = MiChat.empleado({ db, firebase, email: YO.email, nombre: E.nombre, rol: (E.roles || []).join(", ") || "Taller", onNoLeidas: n => { N_DUENO = n; globoChat(); } });
+    MiChat.sinLeerPrivados(db, YO.email, n => { N_PRIV = n; globoChat(); });
+  }
   $("t-nombre").textContent = "Hola, " + (E.nombre || "").split(" ")[0];
   $("t-cod").textContent = E.codigo || "";
   $("main").innerHTML = `<p class="vacio">Cargando…</p>`;
@@ -276,10 +283,20 @@ function pintar(){
 $("b-avisos").addEventListener("click", () => { vista = "avisos"; pintar(); window.scrollTo(0, 0); });
 
 /* ---- Chat con el dueño ---- */
+let chatVista = "dueno", PRIV = null, N_DUENO = 0, N_PRIV = 0;
 function pintarChat(){
   if (!CHAT) { $("main").innerHTML = '<p class="vacio">El chat no está disponible ahora.</p>'; return; }
-  if (!$("main").querySelector(".mc-hilo")) CHAT.montar($("main"));
+  if (PRIV) { PRIV.salir(); PRIV = null; }
+  $("main").innerHTML = `<div class="chat-seg" role="tablist">
+      <button type="button" role="tab" data-cv="dueno" aria-selected="${chatVista === "dueno"}">Con el dueño${N_DUENO ? `<span class="cn">${N_DUENO}</span>` : ""}</button>
+      <button type="button" role="tab" data-cv="priv" aria-selected="${chatVista === "priv"}">Privados${N_PRIV ? `<span class="cn">${N_PRIV}</span>` : ""}</button></div>
+    <div id="chat-zona"></div>`;
+  document.querySelectorAll("[data-cv]").forEach(b => b.addEventListener("click", () => { chatVista = b.dataset.cv; pintarChat(); }));
+  if (chatVista === "dueno") CHAT.montar($("chat-zona"));
+  else PRIV = MiChat.bandeja({ db, firebase, el: $("chat-zona"), soloPrivados: true, email: (YO.email || "").toLowerCase(), nombre: E.nombre, rol: (E.roles || []).join(", ") || "Taller" });
 }
+function globoChat(){ const b = $("n-chat"), n = N_DUENO + N_PRIV; if (b) { b.textContent = n > 9 ? "9+" : n; b.hidden = !n; }
+  document.querySelectorAll("[data-cv]").forEach(x => { const k = x.dataset.cv === "dueno" ? N_DUENO : N_PRIV, c = x.querySelector(".cn"); if (k && !c) x.insertAdjacentHTML("beforeend", `<span class="cn">${k}</span>`); else if (c) { c.textContent = k; c.hidden = !k; } }); }
 
 /* ---- Avisos (pagos y recordatorios del encargado) ---- */
 function pintarAvisos(){

@@ -1,0 +1,270 @@
+rules_version = "2";
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdmin() {
+      return request.auth != null && request.auth.token.email == "mueblesideal2020@gmail.com";
+    }
+    // Administrador: persona del equipo con rol "administrador" (maneja las cuentas contigo)
+    function esAdministrador() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/equipo/$(request.auth.token.email))
+        && get(/databases/$(database)/documents/equipo/$(request.auth.token.email)).data.activo == true
+        && get(/databases/$(database)/documents/equipo/$(request.auth.token.email)).data.rol == "administrador";
+    }
+    // Dueño o administrador
+    function gestiona() { return esAdmin() || esAdministrador(); }
+    // Personas del equipo (las agregas en Contabilidad > Cajas y ajustes > Administrador y ayudantes)
+    function esEquipo() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/equipo/$(request.auth.token.email))
+        && get(/databases/$(database)/documents/equipo/$(request.auth.token.email)).data.activo == true;
+    }
+
+    // Catálogo: lo ve todo el mundo, solo tú lo cambias desde el panel
+    match /productos/{id} { allow read: if true; allow write: if esAdmin(); }
+    match /telas/{id}     { allow read: if true; allow write: if esAdmin(); }
+    match /config/{id}    { allow read: if true; allow write: if esAdmin() || (id == "personal" && esAdministrador()); }
+
+    // Cotizaciones: los clientes solo pueden crear; tú puedes verlas y gestionarlas
+    match /cotizaciones/{id} {
+      allow create: if request.resource.data.keys().size() <= 40
+        && request.resource.data.nombre is string && request.resource.data.nombre.size() < 100
+        && request.resource.data.email is string && request.resource.data.email.size() < 150;
+      allow read, update: if gestiona();
+      allow delete: if esAdmin();
+    }
+
+    // Club de ofertas
+    match /club/{id} {
+      allow create: if request.resource.data.keys().hasOnly(["nombre", "email", "acepta", "fecha"])
+        && request.resource.data.email is string && request.resource.data.email.size() < 150;
+      allow read, delete: if esAdmin();
+    }
+
+    // ===== CONTABILIDAD (privada: nada de esto es público) =====
+    match /equipo/{correo} {
+      allow read: if esAdmin() || (request.auth != null && request.auth.token.email == correo);
+      allow write: if esAdmin();
+    }
+    match /cuentas/{id} { allow read: if esAdmin() || esEquipo(); allow write: if esAdmin(); }
+    // Ventas, empleados y nómina: el dueño y el administrador (aquí están cédulas y pagos)
+    match /ventas/{id}    { allow read, write: if gestiona(); }
+    // Empleados: tú los manejas; cada empleado solo puede leer su propia ficha (la busca por su correo)
+    match /empleados/{id} {
+      allow read: if gestiona() || (request.auth != null && resource.data.acceso.email == request.auth.token.email);
+      allow write: if gestiona();
+    }
+
+    // Datos bancarios para la nómina: el empleado los anota UNA sola vez desde su perfil.
+    // Los ven el dueño y el administrador; solo el dueño los borra (y entonces el empleado puede anotarlos de nuevo).
+    match /bancarios/{id} {
+      allow get: if gestiona() || (request.auth != null
+        && get(/databases/$(database)/documents/empleados/$(id)).data.acceso.email == request.auth.token.email);
+      allow list: if gestiona();
+      allow create: if request.auth != null
+        && get(/databases/$(database)/documents/empleados/$(id)).data.acceso.email == request.auth.token.email
+        && get(/databases/$(database)/documents/empleados/$(id)).data.acceso.activo == true
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.fecha == request.time
+        && request.resource.data.keys().hasOnly(["email", "nombre", "banco", "tipo", "cuenta", "titular", "cedula", "pmTelefono", "pmBanco", "fecha"])
+        && request.resource.data.cuenta is string && request.resource.data.cuenta.size() <= 30
+        && request.resource.data.titular is string && request.resource.data.titular.size() <= 100;
+      allow update: if false;
+      allow delete: if esAdmin();
+    }
+
+    // Avisos a los trabajadores (pagos y recordatorios): los envían dueño y administrador;
+    // cada trabajador ve solo los suyos y solo puede marcarlos como leídos.
+    match /avisos/{id} {
+      allow read: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email);
+      allow create, delete: if gestiona();
+      allow update: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["leido"]));
+    }
+    // Teléfonos donde cada trabajador activó las notificaciones (el documento es el token del teléfono)
+    match /dispositivos/{token} {
+      allow read: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email);
+      allow create, update: if request.auth != null && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasOnly(["email", "empleadoId", "fecha", "plataforma"]);
+      allow delete: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email);
+    }
+
+    // Inventario del almacén: lo llevan el dueño, el administrador y los ayudantes del panel
+    match /inventario/{id}  { allow read, write: if esAdmin() || esEquipo(); }
+    match /invajustes/{id}  { allow read, write: if esAdmin() || esEquipo(); }
+
+    // ===== PORTAL DEL PERSONAL =====
+    // Código del empleado (cifrado) -> su cuenta. Se puede consultar uno a uno, nunca listar.
+    match /accesos/{h} { allow get: if true; allow list: if false; allow write: if gestiona(); }
+    // Copia de sus trabajos (sin cliente ni precio de venta): cada empleado ve solo los suyos
+    match /trabajos/{id} {
+      allow read: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email);
+      allow write: if gestiona();
+    }
+    // Asistencia: el empleado marca su entrada y su salida con la hora del servidor
+    match /asistencias/{id} {
+      allow read: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email);
+      allow create: if gestiona() || (request.auth != null
+        && request.resource.data.email == request.auth.token.email
+        && get(/databases/$(database)/documents/empleados/$(request.resource.data.empleadoId)).data.acceso.email == request.auth.token.email
+        && get(/databases/$(database)/documents/empleados/$(request.resource.data.empleadoId)).data.acceso.activo == true
+        && request.resource.data.entrada == request.time && request.resource.data.salida == null
+        && request.resource.data.keys().hasOnly(["empleadoId", "email", "nombre", "fecha", "entrada", "salida", "ubicEntrada", "ubicSalida"]));
+      allow update: if gestiona() || (request.auth != null && resource.data.email == request.auth.token.email
+        && resource.data.salida == null && request.resource.data.salida == request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["salida", "ubicSalida"]));
+      allow delete: if gestiona();
+    }
+    match /contab/{id} {
+      // "privado" (sueldo, comisiones, bancos): lo ven dueño y administrador; solo el dueño lo cambia
+      allow read: if gestiona() || (id == "publico" && esEquipo());
+      allow write: if esAdmin() || (id == "publico" && esAdministrador());
+    }
+    match /movimientos/{id} {
+      allow read: if gestiona() || (esEquipo() && resource.data.creadoPor == request.auth.token.email);
+      allow create: if gestiona() || (esEquipo()
+        && request.resource.data.creadoPor == request.auth.token.email
+        && request.resource.data.tipo in ["ingreso", "gasto"]
+        && request.resource.data.monto is number && request.resource.data.monto > 0);
+      allow update, delete: if gestiona();
+    }
+
+    // ===== CHAT (agregado) =====
+// ===== AGREGAR DESDE AQUÍ =====
+
+      function chatEsDueno() {
+        return request.auth != null
+          && request.auth.token.email == "mueblesideal2020@gmail.com";
+      }
+
+      function chatEsEquipo() {
+        return request.auth != null
+          && request.auth.token.email != null
+          && exists(/databases/$(database)/documents/equipo/$(request.auth.token.email))
+          && get(/databases/$(database)/documents/equipo/$(request.auth.token.email)).data.get('activo', true) != false;
+      }
+
+      function chatEsStaff() {
+        return chatEsDueno() || chatEsEquipo();
+      }
+
+      // Cliente de la página (sin cuenta, id = "c_" + uid) o empleado (correo, id = "e_" + correo)
+      function chatEsDeLaConversacion(id) {
+        return request.auth != null && (
+          id == "c_" + request.auth.uid ||
+          (request.auth.token.firebase.sign_in_provider == "password" && id == "e_" + request.auth.token.email)
+        );
+      }
+
+      match /conversaciones/{id} {
+        allow read: if chatEsStaff() || chatEsDeLaConversacion(id);
+        allow create, update: if (chatEsStaff() || chatEsDeLaConversacion(id))
+          && request.resource.data.keys().hasOnly(
+               ['tipo', 'nombre', 'contacto', 'actualizada', 'ultimo', 'ultimoDe', 'noLeidaStaff', 'noLeidaParte']);
+        allow delete: if false;
+
+        match /mensajes/{mid} {
+          allow read: if chatEsStaff() || chatEsDeLaConversacion(id);
+          allow create: if request.resource.data.keys().hasOnly(['texto', 'de', 'autor', 'creado', 'adjunto'])
+            && request.resource.data.texto is string
+            && (request.resource.data.texto.size() > 0 || 'adjunto' in request.resource.data)
+            && request.resource.data.texto.size() <= 1000
+            && request.resource.data.creado == request.time
+            && (
+                 (request.resource.data.de == 'equipo' && chatEsStaff())
+              || (request.resource.data.de == 'cliente' && chatEsDeLaConversacion(id))
+            );
+          allow update, delete: if false;
+        }
+        // Fotos y PDF adjuntos del chat (el archivo completo; el mensaje solo trae la miniatura)
+        match /adjuntos/{aid} {
+          allow read: if chatEsStaff() || chatEsDeLaConversacion(id);
+          allow create: if (chatEsStaff() || chatEsDeLaConversacion(id))
+            && request.resource.data.keys().hasOnly(['datos', 'tipo', 'nombre'])
+            && request.resource.data.datos is string && request.resource.data.datos.size() < 950000
+            && request.resource.data.tipo in ['img', 'pdf'];
+          allow update, delete: if false;
+        }
+      }
+
+    // ===== PERFILES DEL EQUIPO (perfil.html) =====
+    // Cada persona ve y edita solo su perfil y sus documentos; el dueño ve y edita todos.
+    // La fecha de ingreso solo la pone el dueño, y solo el dueño marca un documento como "revisado".
+    // Los récipes y exámenes médicos son privados: solo la persona y el dueño (ni el administrador).
+    function miCorreo() { return request.auth != null && request.auth.token.email != null ? request.auth.token.email.lower() : ""; }
+    function soyDueno() { return miCorreo() == "mueblesideal2020@gmail.com"; }
+
+    match /perfiles/{correo} {
+      allow read: if soyDueno() || miCorreo() == correo;
+      allow create: if soyDueno() || (miCorreo() == correo && !("ingreso" in request.resource.data));
+      allow update: if soyDueno() || (miCorreo() == correo && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["ingreso"]));
+      allow delete: if soyDueno();
+
+      match /documentos/{doc} {
+        allow read, delete: if soyDueno() || miCorreo() == correo;
+        allow create: if soyDueno() || (miCorreo() == correo && request.resource.data.revisado == false);
+        allow update: if soyDueno() || (miCorreo() == correo && !request.resource.data.diff(resource.data).affectedKeys().hasAny(["revisado"]));
+      }
+      match /archivos/{doc} {
+        allow read, write: if soyDueno() || miCorreo() == correo;
+      }
+    }
+
+    // ===== CHATS PRIVADOS (botón "Nuevo chat") =====
+    // Solo las dos personas de la conversación la pueden ver; ni el dueño ve los privados ajenos.
+    function conCuenta() { return request.auth != null && request.auth.token.firebase.sign_in_provider == "password"; }
+    function esParteDe(id) { return miCorreo() in get(/databases/$(database)/documents/privados/$(id)).data.participantes; }
+
+    // Directorio: nombre y cargo de quien se puede elegir en "Nuevo chat"
+    match /directorio/{correo} {
+      allow read: if conCuenta();
+      allow write: if conCuenta() && (miCorreo() == correo || gestiona());
+    }
+
+    match /privados/{id} {
+      allow read: if conCuenta() && miCorreo() in resource.data.participantes;
+      allow create: if conCuenta()
+        && miCorreo() in request.resource.data.participantes
+        && request.resource.data.participantes.size() == 2
+        && id == "p_" + request.resource.data.participantes[0] + "__" + request.resource.data.participantes[1]
+        && request.resource.data.keys().hasOnly(["participantes", "nombres", "actualizada", "ultimo", "ultimoDe", "pendientes"]);
+      allow update: if conCuenta() && miCorreo() in resource.data.participantes
+        && request.resource.data.participantes == resource.data.participantes
+        && request.resource.data.keys().hasOnly(["participantes", "nombres", "actualizada", "ultimo", "ultimoDe", "pendientes"]);
+      allow delete: if false;
+
+      match /mensajes/{mid} {
+        allow read: if conCuenta() && esParteDe(id);
+        allow create: if conCuenta() && esParteDe(id)
+          && request.resource.data.keys().hasOnly(["texto", "de", "autor", "creado", "adjunto"])
+          && request.resource.data.de == miCorreo()
+          && request.resource.data.texto is string && request.resource.data.texto.size() <= 1000
+          && (request.resource.data.texto.size() > 0 || "adjunto" in request.resource.data)
+          && request.resource.data.creado == request.time;
+        allow update, delete: if false;
+      }
+      match /adjuntos/{aid} {
+        allow read: if conCuenta() && esParteDe(id);
+        allow create: if conCuenta() && esParteDe(id)
+          && request.resource.data.keys().hasOnly(["datos", "tipo", "nombre"])
+          && request.resource.data.datos is string && request.resource.data.datos.size() < 950000
+          && request.resource.data.tipo in ["img", "pdf"];
+        allow update, delete: if false;
+      }
+    }
+
+    // ===== DESPIECE CON IA (despiece.html) =====
+    // Clave de la IA: la usan el dueño y el administrador; solo el dueño la cambia.
+    match /ia/{id} {
+      allow read: if gestiona();
+      allow write: if esAdmin();
+    }
+    // Historial de despieces (foto pequeña, lo que vio la IA y las medidas)
+    match /despieces/{id} {
+      allow read, create: if gestiona();
+      allow update, delete: if esAdmin();
+    }
+
+  }
+}

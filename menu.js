@@ -10,6 +10,7 @@
     conta: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
     inventario: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
     planos: '<path d="M3 21V3h18v18z"/><path d="M3 9h18M9 21V9"/>',
+    despiece: '<path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
     mensajes: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>'
   };
   var TEMA_ICO = {
@@ -23,6 +24,7 @@
     ["contabilidad.html", "Contabilidad", ["dueno", "admin", "ayudante"], "conta"],
     ["inventario.html", "Inventario", ["dueno", "admin", "ayudante"], "inventario"],
     ["planos.html", "Planos", ["dueno", "admin"], "planos"],
+    ["despiece.html", "Despiece IA", ["dueno", "admin"], "despiece"],
     ["mensajes.html", "Mensajes", ["dueno", "admin", "ayudante"], "mensajes"]
   ];
   function svg(d, tam) {
