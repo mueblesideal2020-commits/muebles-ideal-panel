@@ -160,7 +160,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const num = v => typeof v === "number" ? v : (parseFloat(String(v || "").replace(/\./g, "").replace(",", ".")) || 0);
 const r2 = n => Math.round(n * 100) / 100;
-const fmtU = n => "$" + (r2(n || 0)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtU = n => "€" + (r2(n || 0)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtB = n => "Bs " + (r2(n || 0)).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const fechaLarga = f => { if (!f) return "—"; const [a, m, d] = String(f).slice(0, 10).split("-").map(Number); return `${d} de ${MESES[m - 1]} de ${a}`; };

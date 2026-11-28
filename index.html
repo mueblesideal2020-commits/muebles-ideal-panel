@@ -297,7 +297,7 @@ function pintarInicio(rol, em, nombre, ls, foto) {
 /* ===== Resumen del inicio ===== */
 const numR = s => { if (typeof s === "number") return isFinite(s) ? s : 0; s = String(s == null ? "" : s).trim().replace(/[^\d.,-]/g, ""); if (!s) return 0; if (s.includes(",")) s = s.replace(/\./g, "").replace(",", "."); else if ((s.match(/\./g) || []).length > 1 || /^-?\d{1,3}\.\d{3}$/.test(s)) s = s.replace(/\./g, ""); const n = parseFloat(s); return isFinite(n) ? n : 0; };
 const fmtR = n => (Math.round((n || 0) * 100) / 100).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtUSD = n => (n < 0 ? "-$" : "$") + fmtR(Math.abs(n || 0));
+const fmtUSD = n => (n < 0 ? "-€" : "€") + fmtR(Math.abs(n || 0));
 const hoyISO = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
 const MESES_R = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const nombreMesR = m => MESES_R[+m.slice(5, 7) - 1] + " " + m.slice(0, 4);

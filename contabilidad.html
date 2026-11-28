@@ -133,6 +133,9 @@ table.t tfoot td { font-weight: 700; border-top: 2px solid var(--line); }
 .equiv b { color: var(--ink); font-weight: 500; }
 .confirma { background: var(--bad-bg); border: 1px solid #f0c4bf; border-radius: 12px; padding: 12px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .resumen-v { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.ancho-pago { width: 100%; min-height: 52px; font-size: 1.05rem; }
+.pago-v { border: 2px solid var(--amarillo, #f7c543); }
+.pago-v .seg { margin-bottom: 12px; }
 .resumen-v div { background: var(--soft); border-radius: 10px; padding: 10px 12px; }
 .resumen-v span { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
 .resumen-v b { font-family: var(--display); font-weight: 500; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
@@ -278,7 +281,8 @@ const nuevoId = p => p + "-" + Date.now().toString(36) + Math.random().toString(
 /* ===== Números y fechas (formato venezolano: 1.234,56) ===== */
 const num = s => { if (typeof s === "number") return isFinite(s) ? s : 0; s = String(s == null ? "" : s).trim().replace(/[^\d.,-]/g, ""); if (!s) return 0; if (s.includes(",")) s = s.replace(/\./g, "").replace(",", "."); else if ((s.match(/\./g) || []).length > 1 || /^-?\d{1,3}\.\d{3}$/.test(s)) s = s.replace(/\./g, ""); /* 1.200 = mil doscientos */ const n = parseFloat(s); return isFinite(n) ? n : 0; };
 const fmtN = n => (Math.round((n || 0) * 100) / 100).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtU = n => (n < 0 ? "-$" : "$") + fmtN(Math.abs(n || 0));
+/* La moneda del negocio es el EURO: todos los montos de referencia se muestran en € (los datos guardados no cambian) */
+const fmtU = n => (n < 0 ? "-€" : "€") + fmtN(Math.abs(n || 0));
 const fmtM = (n, mon) => mon === "VES" ? "Bs " + fmtN(n) : fmtU(n);
 const inNum = n => n ? String(Math.round(n * 100) / 100).replace(".", ",") : "";
 const numP = s => typeof s === "number" ? s : (parseFloat(String(s || "").replace(/[^\d.,-]/g, "").replace(",", ".")) || 0); /* porcentajes: 8.333 o 8,333 */
@@ -296,7 +300,7 @@ const diasDesde = f => Math.max(0, Math.round((new Date(hoy()) - new Date(f)) / 
 const TIPOS = {
   ingreso:       { n: "Ingreso",           s: +1, ayuda: "Dinero que entra por ventas u otros cobros." },
   gasto:         { n: "Gasto",             s: -1, ayuda: "Compras de material, pagos al taller, flete, servicios… todo lo que el negocio paga." },
-  transferencia: { n: "Mover entre cajas", s:  0, ayuda: "Pasar dinero de una caja a otra, por ejemplo cambiar bolívares a dólares. No es ingreso ni gasto." },
+  transferencia: { n: "Mover entre cajas", s:  0, ayuda: "Pasar dinero de una caja a otra, por ejemplo cambiar bolívares a euros. No es ingreso ni gasto." },
   sueldo:        { n: "Sueldo del dueño",  s: -1, ayuda: "Tu pago fijo. Es la forma ordenada de llevar dinero del negocio a lo personal." },
   retiro:        { n: "Retiro personal",   s: -1, ayuda: "Dinero del negocio usado para algo personal fuera del sueldo. Anótalo siempre, aunque sea poco." },
   aporte:        { n: "Aporte del dueño",  s: +1, ayuda: "Dinero tuyo (personal) que metes al negocio." }
@@ -428,28 +432,27 @@ function saldo(c){
   }
   return s;
 }
-/* Tasa de referencia: el negocio trabaja con la tasa BCV del EURO (o del dólar, si se cambia en ajustes).
-   Los montos siguen en "$" (divisa de referencia de los precios); los bolívares se calculan con esta tasa. */
-const tasaTipo = () => (AJ.tasaTipo === "dolar" ? "dolar" : "euro");
-const tasaNom = () => tasaTipo() === "euro" ? "euro BCV" : "dólar BCV";
-const tasaUnidad = () => `Bs por divisa · ${tasaNom()}`;
+/* Tasa de referencia: el negocio trabaja SOLO con la tasa BCV del EURO.
+   Los montos se muestran en € y los bolívares se convierten con esta tasa. */
+const tasaTipo = () => "euro";
+const tasaNom = () => "euro BCV";
+const tasaUnidad = () => "Bs por euro · BCV";
 function bloqueTasaHTML(tv){
   const t = tasaTipo();
   return `<p class="ayuda">Con esta tasa se pasan a bolívares los precios y pagos en divisas (nómina, ventas, gastos). Cada movimiento guarda la tasa de su día.</p>
-    <div class="chips-sel"><label><input type="radio" name="a-ttipo" value="euro" ${t === "euro" ? "checked" : ""}>Tasa euro BCV</label><label><input type="radio" name="a-ttipo" value="dolar" ${t === "dolar" ? "checked" : ""}>Tasa dólar BCV</label></div>
+    <p class="ayuda" style="margin:0 0 8px">El negocio trabaja con la <b>tasa del euro BCV</b>: los montos se ven en € y los bolívares se convierten con esta tasa.</p>
     <div class="fila"><label class="f">Bs por divisa <small id="a-tasa-u">(${tasaNom()})</small><input type="text" inputmode="decimal" id="a-tasa" value="${inNum(tv.valor)}"></label><label class="f">Fecha<input type="date" id="a-tasa-f" value="${tv.fecha || hoy()}"></label></div>
     <p style="display:flex;gap:10px;flex-wrap:wrap;margin:0"><button class="btn oro" id="a-tasa-ok">GUARDAR TASA</button><button class="btn borde" id="a-bcv">Buscar tasa BCV de hoy</button></p>`;
 }
 function eventosTasa(){
   let tipo = tasaTipo();
-  document.querySelectorAll('[name="a-ttipo"]').forEach(r => r.addEventListener("change", () => { tipo = r.value; $("a-tasa-u").textContent = `(${tipo === "euro" ? "euro BCV" : "dólar BCV"})`;
-    if (tipo !== tasaTipo()) { $("a-tasa").value = ""; toast(`Toca «Buscar tasa BCV de hoy» para traer la tasa del ${tipo === "euro" ? "euro" : "dólar"} y luego guarda.`); } }));
+
   const ok = $("a-tasa-ok"); ok.addEventListener("click", async () => { const v = num($("a-tasa").value); if (!(v > 0)) return toast("Escribe la tasa.");
     ok.disabled = true; try { AJ.tasa = { valor: v, fecha: $("a-tasa-f").value || hoy() }; AJ.tasaTipo = tipo; await db.collection("contab").doc("publico").set(AJ); toast(`Tasa ${tasaNom()} guardada.`); pintarTabs(); }
     catch (e) { console.error(e); toast("No se pudo guardar."); } finally { if ($("a-tasa-ok")) $("a-tasa-ok").disabled = false; } });
   const b = $("a-bcv"); b.addEventListener("click", async () => { b.disabled = true; b.textContent = "Buscando…";
-    try { const r = await fetch(`https://ve.dolarapi.com/v1/${tipo === "euro" ? "euros" : "dolares"}/oficial`); const j = await r.json(); const v = num(j.promedio); if (!(v > 0)) throw 0;
-      $("a-tasa").value = inNum(r2(v)); $("a-tasa-f").value = (j.fechaActualizacion || hoy()).slice(0, 10); toast(`Tasa BCV del ${tipo === "euro" ? "euro" : "dólar"} encontrada. Revísala y guarda.`); }
+    try { const r = await fetch("https://ve.dolarapi.com/v1/euros/oficial"); const j = await r.json(); const v = num(j.promedio); if (!(v > 0)) throw 0;
+      $("a-tasa").value = inNum(r2(v)); $("a-tasa-f").value = (j.fechaActualizacion || hoy()).slice(0, 10); toast("Tasa BCV del euro encontrada. Revísala y guarda."); }
     catch (e) { toast("No se pudo consultar la tasa. Escríbela a mano."); } finally { b.disabled = false; b.textContent = "Buscar tasa BCV de hoy"; } });
 }
 const aUSD = (monto, mon) => mon === "VES" ? (AJ.tasa && AJ.tasa.valor ? monto / AJ.tasa.valor : 0) : monto;
@@ -514,7 +517,7 @@ function pintarTabs(){
   $("tabs").innerHTML = t.map(([k, n]) => `<button class="tab" role="tab" data-t="${k}" aria-selected="${k === tab}">${n}</button>`).join("");
   $("tabs").querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { tab = b.dataset.t; pintarTabs(); pintar(); window.scrollTo(0, 0); }));
   const tv = AJ.tasa || {};
-  $("tasa-top").textContent = tv.valor ? `Tasa ${tasaTipo() === "euro" ? "euro" : "dólar"}: Bs ${fmtN(tv.valor)} · ${fechaCorta(tv.fecha)}` : "Tasa sin definir";
+  $("tasa-top").textContent = tv.valor ? `Tasa euro: Bs ${fmtN(tv.valor)} · ${fechaCorta(tv.fecha)}` : "Tasa sin definir";
 }
 function pintar(){
   ["resumen", "movimientos", "ventas", "cobrar", "nomina", "asistencia", "empleados", "ajustes", "anotar", "mios"].forEach(k => $("t-" + k).hidden = k !== tab);
@@ -598,7 +601,9 @@ function bloqueBancos(){
       : `<p class="msg ok" style="margin-top:12px">Todos los cobros de venta están apartados. 👌</p>`}</div>`;
 }
 /* Hoja para pasar al banco de resguardo la parte de un cobro */
-function abrirApartado(ing){
+function abrirApartado(ing, volver){
+  /* volver: si el cobro se anotó desde una venta, al terminar se regresa a esa venta */
+  const fin = () => { if (volver) { refrescar(); volver(); } else { cerrarEditor(); refrescar(); } };
   const ed = $("editor-in"); ed._dueno = null; $("editor").hidden = false; document.body.style.overflow = "hidden"; $("editor").firstElementChild.scrollTop = 0;
   const b = PRIV.bancos, dest = cuenta(b.resguardo), orig = cuenta(ing.cuenta), v = ing.ventaId && venta(ing.ventaId);
   const base = ing.usd || 0, rep = calcReparto(base);
@@ -634,8 +639,8 @@ function abrirApartado(ing){
     on("ap-f", "change", e => x.fecha = e.target.value || hoy());
     on("ap-tasa", "input", e => { x.tasa = num(e.target.value); pintarTot(); });
     on("ap-ref", "input", e => x.ref = e.target.value);
-    on("ap-x", "click", cerrarEditor); on("ap-luego", "click", () => { cerrarEditor(); refrescar(); });
-    on("ap-no", "click", async () => { try { await db.collection("movimientos").doc(ing.id).update({ sinReparto: true }); ing.sinReparto = true; toast("Listo, ese cobro no se aparta."); cerrarEditor(); refrescar(); } catch (e) { console.error(e); toast("No se pudo guardar."); } });
+    on("ap-x", "click", () => volver ? fin() : cerrarEditor()); on("ap-luego", "click", fin);
+    on("ap-no", "click", async () => { try { await db.collection("movimientos").doc(ing.id).update({ sinReparto: true }); ing.sinReparto = true; toast("Listo, ese cobro no se aparta."); fin(); } catch (e) { console.error(e); toast("No se pudo guardar."); } });
     on("ap-ok", "click", guardar);
   }
   function pintarTot(){ const n = ed.querySelector("#ap-tot"), t = total();
@@ -649,7 +654,7 @@ function abrirApartado(ing){
       cuentaDestino: dest.id, monedaDestino: dest.moneda, montoDestino: enMon(t, dest), reparto: { gastos: r2(x.parte.gastos), reserva: r2(x.parte.reserva), dueno: r2(x.parte.dueno) }, repartoDe: ing.id, creadoPor: YO };
     const bt = ed.querySelector("#ap-ok"); bt.disabled = true; bt.textContent = "Guardando…";
     try { const ref = await db.collection("movimientos").add(Object.assign({ creado: firebase.firestore.FieldValue.serverTimestamp() }, d)); MOVS.push(Object.assign({ id: ref.id }, d));
-      toast(`Apartado ${fmtU(t)} para ${dest.nombre}.`); cerrarEditor(); refrescar(); }
+      toast(`Apartado ${fmtU(t)} para ${dest.nombre}.`); fin(); }
     catch (e) { console.error(e); err("No se pudo guardar. Revisa tu conexión."); bt.disabled = false; bt.textContent = "ANOTAR LA TRANSFERENCIA"; }
   }
   render();
@@ -747,7 +752,7 @@ function formMov(el, m, pre, op){
     const usaBs = mon === "VES" || (t === "transferencia" && mon2 === "VES");
     const base = t === "ingreso" ? AJ.categoriasIngreso : t === "gasto" ? AJ.categoriasGasto : [];
     const cats = base.length && x.categoria && !base.includes(x.categoria) ? base.concat([x.categoria]) : base;
-    const opCaja = sel => activas.map(c => `<option value="${c.id}" ${c.id === sel ? "selected" : ""}>${esc(c.nombre)} (${c.moneda === "VES" ? "Bs" : "$"})</option>`).join("");
+    const opCaja = sel => activas.map(c => `<option value="${c.id}" ${c.id === sel ? "selected" : ""}>${esc(c.nombre)} (${c.moneda === "VES" ? "Bs" : "€"})</option>`).join("");
     const ventasAbiertas = VENTAS.filter(v => v.estado !== "Anulado" && (v.estado !== "Entregado" || v.id === x.ventaId || saldoVenta(v) > 0)).sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
     const tm = totalesMes(x.fecha.slice(0, 7));
     const extra = t === "sueldo" ? (sueldoEsperado() ? `Sueldo fijado: <b>${fmtU(num(PRIV.sueldo.monto))}</b> ${PRIV.sueldo.frecuencia}. En ${nombreMes(x.fecha.slice(0, 7)).toLowerCase()} llevas ${fmtU(tm.sueldo)} de ${fmtU(sueldoEsperado())}.` : `Aún no fijas tu sueldo. Hazlo en <b>Cajas y ajustes</b>.`) : "";
@@ -761,13 +766,13 @@ function formMov(el, m, pre, op){
           <div class="fila">
             <label class="f">Fecha<input type="date" id="mv-fecha" value="${x.fecha}"></label>
             <label class="f">${t === "transferencia" ? "Caja de donde sale" : t === "ingreso" || t === "aporte" ? "Caja donde entró" : "Caja de donde salió"}<select id="mv-cuenta">${opCaja(x.cuenta)}</select></label>
-            <label class="f">${multi && t === "gasto" ? "Total de la compra" : "Monto"} <small>en ${mon === "VES" ? "bolívares" : "dólares"}${multi && t === "gasto" ? " · se suma solo" : ""}</small><input type="text" inputmode="decimal" id="mv-monto" value="${inNum(x.monto)}" placeholder="0,00" ${multi && t === "gasto" ? "readonly" : ""}></label>
+            <label class="f">${multi && t === "gasto" ? "Total de la compra" : "Monto"} <small>en ${mon === "VES" ? "bolívares" : "euros"}${multi && t === "gasto" ? " · se suma solo" : ""}</small><input type="text" inputmode="decimal" id="mv-monto" value="${inNum(x.monto)}" placeholder="0,00" ${multi && t === "gasto" ? "readonly" : ""}></label>
             ${usaBs ? `<label class="f">Tasa <small>${tasaUnidad()}</small><input type="text" inputmode="decimal" id="mv-tasa" value="${inNum(x.tasa)}"></label>` : ""}
           </div>
           <p class="equiv" id="mv-eq"></p></div>
         ${t === "transferencia" ? `<div class="bloque"><h3>Entra a</h3><div class="fila">
             <label class="f">Caja que recibe<select id="mv-dest"><option value="">Elige…</option>${opCaja(x.cuentaDestino)}</select></label>
-            <label class="f">Monto que entra <small>en ${mon2 === "VES" ? "bolívares" : "dólares"}</small><input type="text" inputmode="decimal" id="mv-monto2" value="${inNum(x.montoDestino)}"></label></div>
+            <label class="f">Monto que entra <small>en ${mon2 === "VES" ? "bolívares" : "euros"}</small><input type="text" inputmode="decimal" id="mv-monto2" value="${inNum(x.montoDestino)}"></label></div>
             <p class="ayuda">Se calcula con la tasa. Cámbialo si recibiste otra cantidad (por ejemplo, por comisión).</p></div>` : ""}
         ${t === "gasto" ? bloqueCompra(mon) : ""}
         ${bloquePote()}
@@ -824,7 +829,7 @@ function formMov(el, m, pre, op){
   /* ---- Compra con varios artículos ---- */
   function bloqueCompra(mon){
     const arts = articulosConocidos(), provs = [...new Set(MOVS.map(z => z.proveedor).filter(Boolean))];
-    const sim = mon === "VES" ? "Bs" : "$", cats = AJ.categoriasGasto;
+    const sim = mon === "VES" ? "Bs" : "€", cats = AJ.categoriasGasto;
     return `<div class="bloque"><h3>¿Qué compraste?</h3>
       <div class="seg"><button type="button" data-multi="0" aria-pressed="${!multi}">Un solo concepto</button><button type="button" data-multi="1" aria-pressed="${multi}">Varios artículos</button></div>
       <label class="f">Proveedor <small>dónde compraste · opcional</small><input type="text" id="mv-prov" list="dl-prov" value="${esc(x.proveedor)}" placeholder="Ej: Maderera El Roble"></label>
@@ -876,7 +881,7 @@ function formMov(el, m, pre, op){
   function actualizarDest(){ const n = el.querySelector("#mv-monto2"); if (n && !destManual) n.value = inNum(x.montoDestino); }
   function pintarEq(){
     const n = el.querySelector("#mv-eq"); if (!n) return; const mon = monedaDe(x.cuenta);
-    n.innerHTML = mon === "VES" ? (x.tasa ? `Equivale a <b>${fmtU(usdDe())}</b>` : "Escribe la tasa para calcular el equivalente en dólares.") : x.monto ? `Monto: <b>${fmtU(x.monto)}</b>` : "";
+    n.innerHTML = mon === "VES" ? (x.tasa ? `Equivale a <b>${fmtU(usdDe())}</b>` : "Escribe la tasa para calcular el equivalente en euros.") : x.monto ? `Monto: <b>${fmtU(x.monto)}</b>` : "";
   }
   async function guardar(){
     const err = t => { const n = el.querySelector("#mv-err"); n.textContent = t; n.hidden = false; };
@@ -1008,7 +1013,7 @@ function abrirVenta(v0, cot){
   ["equipo", "detalle", "baseComision", "pctEquipo", "pctEquipoManual", "pctIndividual"].forEach(k => delete x[k]);
   if (nuevo && cot) { Object.assign(x, datosDeCot(cot)); setTimeout(() => toast(x.items.length > 1 ? `${x.items.length} productos copiados. Escribe el precio de cada uno, elige el equipo y guarda.` : "Datos copiados. Escribe el precio, elige el equipo y guarda."), 50); }
   const ed = $("editor-in"); $("editor").hidden = false; document.body.style.overflow = "hidden"; $("editor").firstElementChild.scrollTop = 0;
-  let cots = null, confirmar = false, quitar = -1; ed.innerHTML = "";
+  let cots = null, confirmar = false, quitar = -1, pago = null; ed.innerHTML = "";
   const yo = {}; ed._dueno = yo; /* evita que un redibujo pendiente pise otra ventana abierta después */
   const totalItems = () => r2(x.items.reduce((a, it) => a + num(it.precio), 0));
   function render(){
@@ -1030,6 +1035,7 @@ function abrirVenta(v0, cot){
     const foco = clave ? { c: clave, v: act.dataset[clave], pos: act.selectionStart } : null;
     ed.querySelector("#ve-cuerpo").innerHTML = `
         <div class="resumen-v"><div><span>Total</span><b id="ve-tot">${fmtU(tot)}</b></div><div><span>Cobrado</span><b class="mas">${fmtU(c)}</b></div><div><span>Saldo</span><b class="${tot - c > 0.009 && x.estado !== "Anulado" ? "menos" : ""}">${fmtU(x.estado === "Anulado" ? 0 : Math.max(0, tot - c))}</b></div><div><span>Ganancia</span><b>${fmtU(tot - k - com)}</b><small class="sub">menos costos y comisiones</small></div></div>
+        ${!nuevo && x.estado !== "Anulado" ? bloquePago(tot, c) : ""}
         ${nuevo ? `<div class="bloque"><h3>¿Viene de una cotización de la página?</h3>
           ${cots === null ? `<p><button class="btn borde" id="ve-cot">Elegir una cotización</button></p>` : cots.length ? `<div class="lista-cot">${cots.map((q, i) => `<button type="button" data-cot="${i}"><b>${esc(q.orden || "Sin N°")}</b> · ${esc(q.nombre || "")} <span class="sub">${esc(q.modelo || q.producto || "Asesoría")}${q.tamano ? " · " + esc(q.tamano) : ""}${q.f ? " · " + fechaCorta(q.f) : ""}</span></button>`).join("")}</div>` : `<p class="ayuda">No hay cotizaciones pendientes por convertir.</p>`}
         </div>` : ""}
@@ -1053,7 +1059,7 @@ function abrirVenta(v0, cot){
             <label class="f">Producto<input type="text" data-it="${i}|producto" value="${esc(it.producto)}" placeholder="Ej: Cama Nube Matrimonial"></label>
             <div class="fila">
               <label class="f">Cantidad<input type="text" inputmode="numeric" data-it="${i}|cantidad" value="${it.cantidad || 1}"></label>
-              <label class="f">Precio de esta línea <small>en dólares, por todas las unidades</small><input type="text" inputmode="decimal" data-it="${i}|precio" value="${inNum(num(it.precio))}"></label></div>
+              <label class="f">Precio de esta línea <small>en euros, por todas las unidades</small><input type="text" inputmode="decimal" data-it="${i}|precio" value="${inNum(num(it.precio))}"></label></div>
             <label class="f">Detalle <small>tela, color, accesorios…</small><textarea data-it="${i}|detalle" style="min-height:80px">${esc(it.detalle)}</textarea></label>
             ${bloqueEquipo(it, i)}${bloqueQC(it, i, nuevo)}</div>`; }).join("")}
         <p style="margin:0"><button type="button" class="btn borde" id="ve-item-mas">+ Agregar otro producto a esta venta</button></p>
@@ -1067,7 +1073,7 @@ function abrirVenta(v0, cot){
           <div class="bloque"><h3>Abonos del cliente</h3>
           ${abonos.length ? `<div class="wrap-t"><table class="t"><tbody>${abonos.map(m => filaMov(m, false)).join("")}</tbody></table></div>` : `<p class="ayuda">Todavía no hay abonos.</p>`}
           ${abonos.length ? `<p class="ayuda" style="margin-top:8px">Recibo de un abono: ${abonos.slice().reverse().map((m, i) => `<a class="link" href="documentos.html?v=${encodeURIComponent(x.id)}&doc=recibo&m=${encodeURIComponent(m.id)}">R${i + 1} · ${fmtU(m.usd)}</a>`).join(" · ")}</p>` : ""}
-          <p><button class="btn oro mini" id="ve-abono">+ Registrar abono</button></p></div>
+          ${x.estado !== "Anulado" && tot - c > 0.009 ? `<p><button class="btn oro mini" id="ve-abono">+ Registrar pago</button></p>` : ""}</div>
           <div class="bloque"><h3>Costos de esta venta</h3><p class="ayuda">Material o mano de obra comprados específicamente para este pedido. Así sabes cuánto ganaste.</p>
           ${costos.length ? `<div class="wrap-t"><table class="t"><tbody>${costos.map(m => filaMov(m, false)).join("")}</tbody></table></div>` : ""}
           <p><button class="btn borde mini" id="ve-costo">+ Registrar costo</button></p></div>
@@ -1076,7 +1082,11 @@ function abrirVenta(v0, cot){
       `;
     if (foco) { const attr = "data-" + foco.c.replace(/[A-Z]/g, m => "-" + m.toLowerCase()), n = ed.querySelector(`[${attr}="${CSS.escape(foco.v)}"]`);
       if (n) { n.focus({ preventScroll: true }); try { if (foco.pos != null) n.setSelectionRange(foco.pos, foco.pos); } catch (e) {} } }
-    ed.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.tagName === "SELECT" || i.type === "date" ? "change" : "input", () => x[i.dataset.k] = i.value));
+    ed.querySelectorAll("[data-k]").forEach(i => i.addEventListener(i.tagName === "SELECT" || i.type === "date" ? "change" : "input", () => {
+      x[i.dataset.k] = i.value;
+      /* Entregado con saldo pendiente: se ofrece cobrar el saldo ahí mismo */
+      if (i.dataset.k === "estado" && x.estado === "Entregado" && !nuevo && tot - c > 0.009 && !pago) { abrirPago("total"); toast(`Queda un saldo de ${fmtU(tot - c)}. Registra el pago y luego toca GUARDAR.`); }
+    }));
     ed.querySelectorAll("[data-it]").forEach(i => { const [k, campo] = i.dataset.it.split("|"), it = x.items[+k];
       i.addEventListener("input", () => { it[campo] = campo === "precio" ? num(i.value) : campo === "cantidad" ? Math.max(1, parseInt(i.value, 10) || 1) : i.value;
         if (campo === "precio") $("ve-tot").textContent = fmtU(totalItems()); });
@@ -1110,7 +1120,9 @@ function abrirVenta(v0, cot){
       Object.assign(x, datosDeCot(q));
       cots = null; render(); toast(x.items.length > 1 ? `${x.items.length} productos copiados. Escribe el precio de cada uno y guarda.` : "Datos copiados. Escribe el precio y guarda.");
     }));
-    on("ve-abono", () => { cerrarEditor(); abrirMov(null, { tipo: "ingreso", ventaId: x.id, categoria: AJ.categoriasIngreso[0], descripcion: "Abono " + (resumenItems(x.items) || "") }); });
+    on("ve-abono", () => abrirPago("parcial"));
+    on("ve-pagar", () => abrirPago(tot - c > 0.009 ? "total" : "parcial"));
+    eventosPago(tot, c);
     on("ve-costo", () => { cerrarEditor(); abrirMov(null, { tipo: "gasto", ventaId: x.id }); });
     on("ve-del", () => { confirmar = true; render(); });
     on("ve-del-no", () => { confirmar = false; render(); });
@@ -1118,6 +1130,92 @@ function abrirVenta(v0, cot){
       try { await db.collection("ventas").doc(x.id).delete(); VENTAS = VENTAS.filter(v => v.id !== x.id); cerrarEditor(); refrescar(); toast("Venta eliminada."); }
       catch (e) { console.error(e); toast("No se pudo eliminar."); }
     });
+  }
+  /* ===== Registrar pago desde la misma venta (total o parcial) ===== */
+  function abrirPago(modo){
+    const activas = CUENTAS.filter(cc => cc.activa !== false);
+    const op = gestor() && PRIV.bancos && activas.some(cc => cc.id === PRIV.bancos.operativa) ? PRIV.bancos.operativa : "";
+    pago = { modo, cuenta: (pago && pago.cuenta) || op || (activas[0] && activas[0].id) || "", monto: 0, tasa: (AJ.tasa && AJ.tasa.valor) || 0, fecha: hoy(), ref: "", err: "", guardando: false };
+    render();
+    setTimeout(() => { const n = ed.querySelector("#ve-pago"); if (n) n.scrollIntoView({ behavior: "smooth", block: "start" }); }, 30);
+  }
+  const monPago = () => (cuenta(pago.cuenta) || {}).moneda || "USD";
+  /* Monto en la moneda de la caja: en pago total se calcula solo con el saldo */
+  function montoPago(saldo){
+    if (pago.modo === "total") return monPago() === "VES" ? r2v(saldo * (pago.tasa || 0)) : r2v(saldo);
+    return num(pago.monto);
+  }
+  const r2v = n => Math.round(n * 100) / 100;
+  function usdPago(saldo){ const m = montoPago(saldo); return monPago() === "VES" ? (pago.tasa ? r2v(m / pago.tasa) : 0) : m; }
+  function bloquePago(tot, c){
+    const saldo = Math.max(0, r2v(tot - c));
+    if (!pago) return saldo > 0.009
+      ? `<p style="margin:0"><button type="button" class="btn oro ancho-pago" id="ve-pagar">💵 Registrar pago</button></p>`
+      : (c > 0 ? `<p class="msg ok" style="margin:0">✓ Esta venta está pagada completa.</p>` : "");
+    const activas = CUENTAS.filter(cc => cc.activa !== false), mon = monPago(), vs = mon === "VES";
+    const m = montoPago(saldo), usd = usdPago(saldo), queda = r2v(saldo - usd);
+    return `<div class="bloque pago-v" id="ve-pago"><h3>Registrar pago</h3>
+      <div class="seg"><button type="button" data-pm="total" aria-pressed="${pago.modo === "total"}">Pago total · ${fmtU(saldo)}</button><button type="button" data-pm="parcial" aria-pressed="${pago.modo === "parcial"}">Pago parcial (abono)</button></div>
+      <div class="fila">
+        <label class="f">Caja donde entró<select id="pg-caja">${activas.map(cc => `<option value="${cc.id}" ${cc.id === pago.cuenta ? "selected" : ""}>${esc(cc.nombre)} (${cc.moneda === "VES" ? "Bs" : "€"})</option>`).join("")}</select></label>
+        <label class="f">Fecha<input type="date" id="pg-fecha" value="${pago.fecha}"></label>
+        ${pago.modo === "parcial"
+          ? `<label class="f">Monto <small>${vs ? "en bolívares" : "en euros"}</small><input type="text" inputmode="decimal" id="pg-monto" value="${pago.monto ? inNum(num(pago.monto)) : ""}" placeholder="${vs ? "Ej: 45.000" : "Ej: 50"}"></label>`
+          : `<label class="f">Monto <small>${vs ? "en bolívares" : "en euros"} · el saldo completo</small><input type="text" id="pg-monto-fijo" value="${vs ? fmtM(m, "VES") : fmtU(m)}" readonly></label>`}
+        ${vs ? `<label class="f">Tasa <small>${tasaUnidad()}</small><input type="text" inputmode="decimal" id="pg-tasa" value="${inNum(pago.tasa)}"></label>` : ""}
+        <label class="f">Referencia <small>opcional</small><input type="text" id="pg-ref" value="${esc(pago.ref)}" placeholder="N° de transferencia o pago móvil"></label>
+      </div>
+      <p class="equiv" id="pg-equiv">${equivPago(saldo)}</p>
+      ${pago.err ? `<p class="msg err">${esc(pago.err)}</p>` : ""}
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button type="button" class="btn oro" id="pg-ok"${pago.guardando ? " disabled" : ""}>${pago.guardando ? "Guardando…" : "GUARDAR PAGO"}</button><button type="button" class="btn borde" id="pg-x">Cancelar</button></div>
+    </div>`;
+  }
+  function equivPago(saldo){
+    const usd = usdPago(saldo), queda = r2v(saldo - usd);
+    if (!(usd > 0)) return monPago() === "VES" && !(pago.tasa > 0) ? "Escribe la tasa del día." : "Escribe cuánto pagó el cliente.";
+    return `${monPago() === "VES" ? `Equivale a <b>${fmtU(usd)}</b> · ` : ""}${queda > 0.009 ? `queda debiendo <b>${fmtU(queda)}</b>` : queda < -0.009 ? `<b>pagó ${fmtU(-queda)} de más</b>` : "<b>queda pagado completo</b>"}`;
+  }
+  function eventosPago(tot, c){
+    if (!pago) return;
+    const saldo = Math.max(0, r2v(tot - c)), q = id => ed.querySelector("#" + id);
+    const eq = () => { const n = q("pg-equiv"); if (n) n.innerHTML = equivPago(saldo); const f = q("pg-monto-fijo"); if (f) f.value = monPago() === "VES" ? fmtM(montoPago(saldo), "VES") : fmtU(montoPago(saldo)); };
+    ed.querySelectorAll("[data-pm]").forEach(b => b.addEventListener("click", () => { pago.modo = b.dataset.pm; pago.err = ""; render(); }));
+    if (q("pg-caja")) q("pg-caja").addEventListener("change", e => { pago.cuenta = e.target.value; pago.err = ""; render(); });
+    if (q("pg-fecha")) q("pg-fecha").addEventListener("change", e => pago.fecha = e.target.value || hoy());
+    if (q("pg-monto")) q("pg-monto").addEventListener("input", e => { pago.monto = e.target.value; eq(); });
+    if (q("pg-tasa")) q("pg-tasa").addEventListener("input", e => { pago.tasa = num(e.target.value); eq(); });
+    if (q("pg-ref")) q("pg-ref").addEventListener("input", e => pago.ref = e.target.value);
+    if (q("pg-x")) q("pg-x").addEventListener("click", () => { pago = null; render(); });
+    if (q("pg-ok")) q("pg-ok").addEventListener("click", () => guardarPago(saldo));
+  }
+  async function guardarPago(saldo){
+    const cc = cuenta(pago.cuenta), mon = monPago(), monto = montoPago(saldo), usd = usdPago(saldo);
+    const mal = t => { pago.err = t; render(); };
+    if (!cc) return mal("Elige la caja donde entró el dinero.");
+    if (mon === "VES" && !(pago.tasa > 0)) return mal("Escribe la tasa del día.");
+    if (!(monto > 0)) return mal("Escribe un monto mayor que cero.");
+    const cat = AJ.categoriasIngreso.find(k => /venta/i.test(k)) || AJ.categoriasIngreso[0] || "Venta de muebles";
+    const total = pago.modo === "total" || usd >= saldo - 0.009;
+    const d = { fecha: pago.fecha, tipo: "ingreso", cuenta: cc.id, moneda: mon, monto: r2v(monto), tasa: mon === "VES" ? r2v(pago.tasa) : null, usd: r2v(usd),
+      categoria: cat, ventaId: x.id, descripcion: ((total ? "Pago total " : "Abono ") + (resumenItems(x.items) || x.producto || "")).trim().slice(0, 300),
+      ref: (pago.ref || "").trim().slice(0, 80), proveedor: "", lineas: [], cuentaDestino: "", monedaDestino: "", montoDestino: 0, creadoPor: YO };
+    if (bancosListos() && cc.id === PRIV.bancos.resguardo) d.pote = potePorDefecto("ingreso", false);
+    pago.guardando = true; pago.err = ""; render();
+    try {
+      const ref = await db.collection("movimientos").add(Object.assign({ creado: firebase.firestore.FieldValue.serverTimestamp() }, d));
+      const nm = Object.assign({ id: ref.id }, d); MOVS.push(nm);
+      if (mon === "VES" && d.tasa && gestor() && d.fecha >= ((AJ.tasa && AJ.tasa.fecha) || "")) { AJ.tasa = { valor: d.tasa, fecha: d.fecha }; db.collection("contab").doc("publico").set(AJ).catch(() => {}); }
+      pago = null;
+      const resta = r2v(saldo - d.usd);
+      toast(resta > 0.009 ? `Abono de ${fmtU(d.usd)} anotado. Queda debiendo ${fmtU(resta)}.` : `Pago anotado: la venta queda pagada completa.`);
+      /* Si hay banco de resguardo, se aparta la parte de este cobro y luego se vuelve a esta misma venta */
+      if (bancosListos() && esCobroVenta(nm) && nm.cuenta !== PRIV.bancos.resguardo && (nm.fecha || "") >= (PRIV.bancos.desde || "")) {
+        const seguir = JSON.parse(JSON.stringify(x));
+        abrirApartado(nm, () => abrirVenta(seguir));
+        return;
+      }
+      refrescar(); render();
+    } catch (e) { console.error(e); pago.guardando = false; mal("No se pudo guardar el pago. Revisa tu conexión e intenta de nuevo."); }
   }
   async function guardar(ir){
     if (typeof ir !== "string") ir = "";
@@ -1246,11 +1344,11 @@ function pintarAjustes(){
         <p class="ayuda">Cada lugar donde está el dinero del negocio. En <b>Saldo inicial</b> escribe cuánto tenía la caja el día que empezaste a anotar. Tu cuenta personal no va aquí.</p>
         <div class="wrap-t"><table class="t"><thead><tr><th>Nombre</th><th>Moneda</th><th>Saldo inicial</th><th class="num">Saldo hoy</th><th>Activa</th></tr></thead><tbody>
           ${CUENTAS.map(c => `<tr><td style="min-width:180px"><input type="text" data-c="${c.id}" data-k="nombre" value="${esc(c.nombre)}"></td>
-            <td><select data-c="${c.id}" data-k="moneda" ${MOVS.some(m => m.cuenta === c.id || m.cuentaDestino === c.id) ? "disabled title='Ya tiene movimientos'" : ""}><option value="VES" ${c.moneda === "VES" ? "selected" : ""}>Bs</option><option value="USD" ${c.moneda === "USD" ? "selected" : ""}>$</option></select></td>
+            <td><select data-c="${c.id}" data-k="moneda" ${MOVS.some(m => m.cuenta === c.id || m.cuentaDestino === c.id) ? "disabled title='Ya tiene movimientos'" : ""}><option value="VES" ${c.moneda === "VES" ? "selected" : ""}>Bs</option><option value="USD" ${c.moneda === "USD" ? "selected" : ""}>€</option></select></td>
             <td style="min-width:120px"><input type="text" inputmode="decimal" data-c="${c.id}" data-k="inicial" value="${inNum(num(c.inicial))}" placeholder="0,00"></td>
             <td class="num">${fmtM(saldo(c), c.moneda)}</td>
             <td><input type="checkbox" class="chk" data-c="${c.id}" data-k="activa" ${c.activa !== false ? "checked" : ""} style="width:20px;height:20px;accent-color:var(--gold)"></td></tr>`).join("")}
-          <tr><td><input type="text" id="a-nc" placeholder="Nueva caja, ej: Banesco"></td><td><select id="a-nm"><option value="VES">Bs</option><option value="USD">$</option></select></td><td colspan="3"><button class="btn borde mini" id="a-add">+ Agregar caja</button>${!CUENTAS.length ? ` <button class="btn oro mini" id="a-sug">Crear las sugeridas</button>` : ""}</td></tr>
+          <tr><td><input type="text" id="a-nc" placeholder="Nueva caja, ej: Banesco"></td><td><select id="a-nm"><option value="VES">Bs</option><option value="USD">€</option></select></td><td colspan="3"><button class="btn borde mini" id="a-add">+ Agregar caja</button>${!CUENTAS.length ? ` <button class="btn oro mini" id="a-sug">Crear las sugeridas</button>` : ""}</td></tr>
         </tbody></table></div>
         <p style="margin:0"><button class="btn oro" id="a-cajas-ok">GUARDAR CAJAS</button></p></div>
 
@@ -1274,7 +1372,7 @@ function pintarAjustes(){
       <div class="bloque"><h3>Sueldo del dueño</h3>
         <p class="ayuda">La regla para separar tu dinero: el negocio te paga un sueldo fijo y tú vives de ese sueldo. Lo demás se queda en el negocio para material, imprevistos y crecer. Si necesitas sacar algo extra, anótalo como <b>Retiro personal</b>.</p>
         <div class="fila">
-          <label class="f">Monto por pago <small>en dólares</small><input type="text" inputmode="decimal" id="a-s-monto" value="${inNum(num(s.monto))}"></label>
+          <label class="f">Monto por pago <small>en euros</small><input type="text" inputmode="decimal" id="a-s-monto" value="${inNum(num(s.monto))}"></label>
           <label class="f">Cada cuánto<select id="a-s-frec">${["mensual", "quincenal", "semanal"].map(f => `<option ${s.frecuencia === f ? "selected" : ""}>${f}</option>`).join("")}</select></label>
           <label class="f">Caja de donde sale<select id="a-s-cuenta"><option value="">Elegir cada vez</option>${CUENTAS.filter(c => c.activa !== false || c.id === s.cuenta).map(c => `<option value="${c.id}" ${s.cuenta === c.id ? "selected" : ""}>${esc(c.nombre)}</option>`).join("")}</select></label></div>
         <p style="margin:0"><button class="btn oro" id="a-s-ok">GUARDAR SUELDO</button></p></div>
@@ -1534,7 +1632,7 @@ function abrirPagoNomina(g){
         <div class="bloque"><h3>¿A dónde se le paga?</h3>${BANC[g.e.id] ? fichaBanco(BANC[g.e.id]) : `<p class="ayuda" style="margin:0">${esc(g.e.nombre)} todavía no registra sus datos bancarios en su perfil del portal.</p>`}</div>
         <div class="bloque"><h3>¿De dónde sale el pago?</h3><div class="fila">
           <label class="f">Fecha de pago<input type="date" id="p-fecha" value="${x.fecha}"></label>
-          <label class="f">Caja<select id="p-cuenta">${activas.map(c => `<option value="${c.id}" ${c.id === x.cuenta ? "selected" : ""}>${esc(c.nombre)} (${c.moneda === "VES" ? "Bs" : "$"})</option>`).join("")}</select></label>
+          <label class="f">Caja<select id="p-cuenta">${activas.map(c => `<option value="${c.id}" ${c.id === x.cuenta ? "selected" : ""}>${esc(c.nombre)} (${c.moneda === "VES" ? "Bs" : "€"})</option>`).join("")}</select></label>
           ${mon === "VES" ? `<label class="f">Tasa <small>${tasaUnidad()}</small><input type="text" inputmode="decimal" id="p-tasa" value="${inNum(x.tasa)}"></label>` : ""}
           <label class="f">Referencia <small>opcional</small><input type="text" id="p-ref" value="${esc(x.ref)}"></label></div>
           <p class="equiv" id="p-eq"></p>
@@ -1710,7 +1808,7 @@ function abrirEmpleado(e0){
               : `<p style="margin:0"><button class="btn borde mini" id="bn-del">Borrar datos bancarios</button></p>`) : "")
           : `<p class="ayuda">Todavía no los registra. Cada empleado los anota <b>una sola vez</b> en su perfil del portal del personal; si se equivoca, aquí los borras y los vuelve a anotar.</p>`}</div>` : ""}
         ${!nuevo ? `<div class="bloque"><h3>Historial de proyectos</h3>${hist.length ? `<div class="wrap-t"><table class="t"><tbody>${hist.map(l => `<tr><td>${fechaCorta(l.fecha)}</td><td><b>${esc(l.venta.numero || "")}</b> · ${esc(l.venta.cliente || "")}<span class="sub">${esc(l.rol)} · ${fmtN(l.pct)}%</span></td><td class="num">${fmtU(l.monto)}</td><td>${l.pagado ? `<span class="chip ingreso">Pagado</span>` : `<span class="chip retiro">Pendiente</span>`}</td></tr>`).join("")}</tbody></table></div>` : `<p class="ayuda">Aún no tiene proyectos.</p>`}
-          <p style="margin:0;display:flex;gap:8px;flex-wrap:wrap">${x.acceso && x.acceso.email ? `<a class="btn oro mini" href="perfil.html?u=${encodeURIComponent(x.acceso.email)}">Ver perfil y documentos</a>` : ""}<button class="btn borde mini" id="e-aviso1">Enviarle un aviso</button><button class="btn borde mini" id="e-del">Eliminar empleado</button></p>
+          <p style="margin:0;display:flex;gap:8px;flex-wrap:wrap">${x.acceso && x.acceso.email ? `<a class="btn oro mini" href="perfil.html?u=${encodeURIComponent(x.acceso.email)}">Ver perfil y documentos</a>` : ""}${x.id ? `<button type="button" class="btn borde mini" id="e-idreloj" title="Para la lista de empleados del reloj de asistencia">ID para el reloj: <b style="font-family:monospace;margin-left:4px">${esc(x.id)}</b></button>` : ""}<button class="btn borde mini" id="e-aviso1">Enviarle un aviso</button><button class="btn borde mini" id="e-del">Eliminar empleado</button></p>
           ${confirmar ? (() => { const pend = hist.filter(l => !l.pagado).reduce((t, l) => t + l.monto, 0);
             return `<div class="confirma" style="flex-direction:column;align-items:flex-start"><span><b>¿Eliminar a ${esc(x.nombre)}?</b> Desaparece de la lista de empleados${x.acceso && x.acceso.email ? " y pierde el acceso al portal" : ""}.
               ${hist.length ? ` Sus proyectos ya pagados siguen en las ventas.${pend > 0.009 ? ` <b>Tiene ${fmtU(pend)} pendiente por pagar</b>: ese monto deja de aparecer en la nómina.` : ""}` : ""}
@@ -1739,6 +1837,7 @@ function abrirEmpleado(e0){
       try { await db.collection("bancarios").doc(x.id).delete(); delete BANC[x.id]; borrarBanco = false; render(); refrescar(); toast("Datos bancarios borrados. Puede registrarlos de nuevo en su perfil."); }
       catch (e) { console.error(e); toast("No se pudieron borrar. Revisa las reglas de Firestore."); b.disabled = false; } });
     on("e-aviso1", () => abrirAviso([x.id]));
+    on("e-idreloj", async () => { try { await navigator.clipboard.writeText(x.id); toast("ID copiado. Pégalo en puente_wifi.ino junto al nombre y el correo."); } catch (e) { prompt("Copia este ID:", x.id); } });
     on("e-del", () => { confirmar = true; render(); }); on("e-del-no", () => { confirmar = false; render(); });
     on("e-del-si", async () => {
       const b = $("e-del-si"); b.disabled = true; b.textContent = "Eliminando…";
@@ -1985,9 +2084,9 @@ async function exportar(mes, movs){
   const ls = movs || movsOrdenados(MOVS).filter(m => !mes || (m.fecha || "").startsWith(mes));
   const hojaCompras = [["Fecha", "Proveedor", "Artículo", "Cantidad", "Unidad", "Precio c/u", "Moneda", "Subtotal", "Subtotal $", "Categoría", "Caja"],
     ...ls.filter(m => (m.lineas || []).length).flatMap(m => { const tot = m.lineas.reduce((s, l) => s + l.sub, 0) || 1;
-      return m.lineas.map(l => [m.fecha, m.proveedor || "", l.art, l.cant, l.uni, l.pu, m.moneda === "VES" ? "Bs" : "$", l.sub, Math.round((m.usd || 0) * l.sub / tot * 100) / 100, l.cat, nomCuenta(m.cuenta)]); })];
+      return m.lineas.map(l => [m.fecha, m.proveedor || "", l.art, l.cant, l.uni, l.pu, m.moneda === "VES" ? "Bs" : "€", l.sub, Math.round((m.usd || 0) * l.sub / tot * 100) / 100, l.cat, nomCuenta(m.cuenta)]); })];
   const hojaMov = [["Fecha", "Tipo", "Categoría", "Proveedor", "Descripción", "Caja", "Moneda", "Monto", "Tasa", "Equivalente $", "Caja destino", "Monto destino", "Venta", "Cliente", "Referencia", "Anotado por"],
-    ...ls.map(m => { const v = venta(m.ventaId) || {}; return [m.fecha, (TIPOS[m.tipo] || {}).n || m.tipo, m.categoria, m.proveedor || "", m.descripcion, nomCuenta(m.cuenta), m.moneda === "VES" ? "Bs" : "$", m.monto, m.tasa || "", m.usd,
+    ...ls.map(m => { const v = venta(m.ventaId) || {}; return [m.fecha, (TIPOS[m.tipo] || {}).n || m.tipo, m.categoria, m.proveedor || "", m.descripcion, nomCuenta(m.cuenta), m.moneda === "VES" ? "Bs" : "€", m.monto, m.tasa || "", m.usd,
       m.cuentaDestino ? nomCuenta(m.cuentaDestino) : "", m.montoDestino || "", v.numero || "", v.cliente || "", m.ref, m.creadoPor]; })];
   const hojaVen = [["N°", "Fecha", "Cliente", "Teléfono", "Producto", "Estado", "Total $", "Cobrado $", "Saldo $", "Costos $", "Comisiones $", "Ganancia $"],
     ...VENTAS.filter(v => !mes || (v.fecha || "").startsWith(mes) || saldoVenta(v) > 0.009).sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""))
@@ -1995,7 +2094,7 @@ async function exportar(mes, movs){
   const hojaNom = [["Fecha", "Semana (viernes)", "Empleado", "Código", "Cargo", "Venta", "Cliente", "Producto", "%", "Monto $", "Pagado"],
     ...lineasNomina().filter(l => !mes || l.fecha.startsWith(mes)).sort((a, b) => a.fecha.localeCompare(b.fecha))
       .map(l => { const e = empleado(l.empleadoId) || {}; return [l.fecha, viernesDe(l.fecha), e.nombre || "", e.codigo || "", l.rol, l.venta.numero || "", l.venta.cliente || "", l.item.producto || l.venta.producto || "", l.pct, l.monto, l.pagado ? "Sí" : "No"]; })];
-  const hojaCaj = [["Caja", "Moneda", "Saldo hoy", "Equivalente $ (tasa " + fmtN((AJ.tasa || {}).valor) + ")"], ...CUENTAS.map(c => [c.nombre, c.moneda === "VES" ? "Bs" : "$", saldo(c), aUSD(saldo(c), c.moneda)])];
+  const hojaCaj = [["Caja", "Moneda", "Saldo hoy", "Equivalente € (tasa euro " + fmtN((AJ.tasa || {}).valor) + ")"], ...CUENTAS.map(c => [c.nombre, c.moneda === "VES" ? "Bs" : "€", saldo(c), aUSD(saldo(c), c.moneda)])];
   const hojas = [];
   if (mes) { const t = totalesMes(mes);
     hojas.push(["Resumen", [["Muebles Ideal · " + nombreMes(mes)], [], ["Entró (ingresos) $", t.ingreso], ["Gastos del negocio $", t.gasto], ["Utilidad $", t.utilidad], ["Sueldo del dueño $", t.sueldo], ["Retiros personales $", t.retiro], ["Aportes del dueño $", t.aporte], ["Quedó en el negocio $", t.queda], [], ["Gastos por categoría"], ...Object.entries(t.cat).sort((a, b) => b[1] - a[1])]]); }
